@@ -26,6 +26,10 @@ function handleVideo(stream) {
     video.srcObject = stream;
 }
 
+setInterval(function(){
+  draw(v,context,w,h);
+},20.0);
+
 function videoError(e) {
     // no webcam found - do something
 }
@@ -36,33 +40,21 @@ document.addEventListener('DOMContentLoaded', function(){
     v = document.getElementById('videoElement');
     canvas = document.getElementById('canvas');
     context = canvas.getContext('2d');
+    // hide the canvas
+    canvas.style.display="none";
+    canvas.height = 480;
+    canvas.width = 640;
 },false);
 
 function draw(v,c) {
-    canvas.width = v.videoWidth;
-    canvas.height = v.videoHeight;
 
-    // hide the canvas
-    //canvas.style.display="none";
 
     if(v.paused || v.ended) return false; // if no video, exit here
     context.drawImage(v,0,0,v.videoWidth,v.videoHeight); // draw video feed to canvas
-   //
-   // var uri = canvas.toDataURL("image/jpg"); // convert canvas to data URI
-   // var blob = dataURItoBlob(uri);
-   // ws.send(blob);
-   //  console.log(blob);
-   //
-   canvas.toBlob(function(blob){
 
-       console.log(blob);
+   canvas.toBlob(function(blob){
        ws.send(blob);
-           var myReader = new FileReader();
-       myReader.onload = function(event){
-           console.log(JSON.stringify(myReader.result));
-       };
-       myReader.readAsText(blob);
-    }, 'image/jpeg', 0.95);
+    }, 'image/jpeg', 1);
 
 
 }
