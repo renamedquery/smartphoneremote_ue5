@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Display Webcam Stream</title>
+
+<style>
+#container {
+    margin: 0px auto;
+    border: 10px #333 solid;
+    width: 500px;
+   height: 375px;
+}
+#videoElement {
+    background-color: #666;
+    width: 500px;
+   height: 375px;
+}
+#canvas {
+    background-color: #CCC;
+}
+</style>
+
+</head>
+
+<body>
+  <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
+  <div id="container">
+      <video autoplay id="videoElement">
+      </video>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <!-- Used to capture frame from webcam video feed -->
+  <input type="button" value="Save" id="save" />
+
+  <script src="js/VideoStream.js"></script>
+</body>
+</html>
