@@ -85,7 +85,6 @@ public:
     }
     virtual void onData(WebSocket*, const uint8_t* data, size_t size) {
       vector<char> jpgbytes(data, data+size);
-      //cv::Mat test(1, , CV_8UC1, &data);
       Mat img = imdecode(jpgbytes, 1);//Mat(480, 640, CV_8UC3, &data).clone();
 
       if(img.empty())
@@ -96,7 +95,7 @@ public:
       {
           // cv::namedWindow( "test", CV_WINDOW_AUTOSIZE );
           cv::imshow("test",img);
-          if( waitKey(10) == 27 ) exit(0);
+          if( waitKey(1) == 27 ) exit(0);
       }
       // copies from Result.Buffer into img
       //memcpy(img.ptr(),data,480*640);
@@ -122,7 +121,7 @@ private:
 };
 
 int main(int /*argc*/, const char* /*argv*/[]) {
-    auto logger = std::make_shared<PrintfLogger>(Logger::Level::SEVERE);
+    auto logger = std::make_shared<PrintfLogger>(Logger::Level::DEBUG);
 
     Server server(logger);
 

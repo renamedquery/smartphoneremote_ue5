@@ -1,9 +1,13 @@
 var video = document.querySelector("#videoElement");
-var ws = new WebSocket("ws://127.0.0.1:9090/ws");
-ws.binaryType = 'arraybuffer';
-ws.onopen = function () {
-          console.log("Openened connection to websocket");
-}
+var _commandButton = v = document.getElementById('webcamCommand');
+
+//Video web socket
+var ws;
+
+
+var _intervalHandle;
+
+
 // check for getUserMedia support
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
 
@@ -26,9 +30,6 @@ function handleVideo(stream) {
     video.srcObject = stream;
 }
 
-setInterval(function(){
-  draw(v,context,w,h);
-},20.0);
 
 function videoError(e) {
     // no webcam found - do something
@@ -54,13 +55,32 @@ function draw(v,c) {
 
    canvas.toBlob(function(blob){
        ws.send(blob);
-    }, 'image/jpeg', 1);
+    }, 'image/jpeg', 0.90);
 
 
 }
 
-document.getElementById('save').addEventListener('click',function(e){
+document.getElementById('webcamCommand').addEventListener('click',function(e){
+  if(_commandButton.value == "Start")
+  {
+    ws = new WebSocket("ws://192.168.43.243:8080/ws");
+    ws.binaryType = 'arraybuffer';
+    ws.onopen = function () {
+              console.log("Openened connection to websocket");
+    }
 
-    draw(v,context,w,h); // when save button is clicked, draw video feed to canvas
+    _intervalHandle = setInterval(function(){
+      ws.send("test");
+        draw(v,context,w,h);
+      },30);
+      _commandButton.value="Stop";
+    }
+    else if(_commandButton.value == "Stop")
+    {
+      ws.send("stop_slam");
+      clearInterval(_intervalHandle);
 
+      ws.close();
+      _commandButton.value="Start";
+    }
 });
