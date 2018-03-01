@@ -38,14 +38,18 @@ public:
                 << endl;
         cout << "Credentials: " << *(connection->credentials()) << endl;
     }
-
     virtual void onData(WebSocket* connection, const char* data) {
         if (0 == strcmp("die", data)) {
             _server->terminate();
             return;
         }
+        if (0 == strcmp("start_slam", data)) {
+            _slam = new ORB_SLAM2::System("/home/slumber/Repos/ORB_SLAM2/Vocabulary/ORBvoc.txt","/home/slumber/Repos/DeviceTracking/CameraSettings.yaml",ORB_SLAM2::System::MONOCULAR,false);
+            connection->send("slam_ready");
+            return;
+        }
         if (0 == strcmp("stop_slam", data)) {
-            _slam->Shutdown();
+            _slam->Reset();
             return;
         }
         if (0 == strcmp("close", data)) {
@@ -73,8 +77,8 @@ public:
       }
       else
       {
-          _slam->TrackMonocular(img,0);
-          // cv::imshow("test",img);
+          cout << _slam->TrackMonocular(img,0) << endl;
+
           if( waitKey(1) == 27 ){
             _slam->Shutdown();
             exit(0);
@@ -112,12 +116,11 @@ private:
 
 int main(int argc, char** argv)
 {
-    auto logger = std::make_shared<PrintfLogger>(Logger::Level::DEBUG);
-    ORB_SLAM2::System  SLAM("/home/slumber/Repos/ORB_SLAM2/Vocabulary/ORBvoc.txt","/home/slumber/Repos/DeviceTracking/CameraSettings.yaml",ORB_SLAM2::System::MONOCULAR,true);
-
+    auto logger = std::make_shared<PrintfLogger>(Logger::Level::SEVERE);
+    ORB_SLAM2::System*  SLAM;
     Server server(logger);
 
-    auto handler = std::make_shared<MyHandler>(&server, &SLAM);
+    auto handler = std::make_shared<MyHandler>(&server, SLAM);
     server.addWebSocketHandler("/ws", handler);
     server.serve("/home/slumber/Repos/DeviceTracking/static", 8080);
     return 0;

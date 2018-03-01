@@ -7,7 +7,6 @@ var ws;
 
 var _intervalHandle;
 
-
 // check for getUserMedia support
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
 
@@ -63,16 +62,23 @@ function draw(v,c) {
 document.getElementById('webcamCommand').addEventListener('click',function(e){
   if(_commandButton.value == "Start")
   {
-    ws = new WebSocket("ws://192.168.43.243:8080/ws");
+
+    ws = new WebSocket("ws://"+document.URL.toString().split('/')[2]+"/ws");
     ws.binaryType = 'arraybuffer';
     ws.onopen = function () {
               console.log("Openened connection to websocket");
+              ws.send("start_slam");
     }
+    ws.onmessage = function(e){
+     var server_message = e.data;
+     console.log(server_message);
 
-    _intervalHandle = setInterval(function(){
-      ws.send("test");
-        draw(v,context,w,h);
-      },30);
+     if(server_message == "slam_ready"){
+       _intervalHandle = setInterval(function(){
+           draw(v,context,w,h);
+         },30);
+     }
+   }
       _commandButton.value="Stop";
     }
     else if(_commandButton.value == "Stop")
