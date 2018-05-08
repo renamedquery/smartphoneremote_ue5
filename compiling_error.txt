@@ -1,0 +1,31 @@
+/tmp/ccd9QheD.o: In function `main':
+WSImageTest.cpp:(.text+0x179): undefined reference to `seasocks::Server::Server(std::shared_ptr<seasocks::Logger>)'
+WSImageTest.cpp:(.text+0x1db): undefined reference to `seasocks::Server::addWebSocketHandler(char const*, std::shared_ptr<seasocks::WebSocket::Handler>, bool)'
+WSImageTest.cpp:(.text+0x202): undefined reference to `seasocks::Server::serve(char const*, int)'
+WSImageTest.cpp:(.text+0x225): undefined reference to `seasocks::Server::~Server()'
+WSImageTest.cpp:(.text+0x27d): undefined reference to `seasocks::Server::~Server()'
+/tmp/ccd9QheD.o: In function `cv::String::String(char const*)':
+WSImageTest.cpp:(.text._ZN2cv6StringC2EPKc[_ZN2cv6StringC5EPKc]+0x4d): undefined reference to `cv::String::allocate(unsigned long)'
+/tmp/ccd9QheD.o: In function `cv::String::~String()':
+WSImageTest.cpp:(.text._ZN2cv6StringD2Ev[_ZN2cv6StringD5Ev]+0x14): undefined reference to `cv::String::deallocate()'
+/tmp/ccd9QheD.o: In function `cv::String::operator=(cv::String const&)':
+WSImageTest.cpp:(.text._ZN2cv6StringaSERKS0_[_ZN2cv6StringaSERKS0_]+0x28): undefined reference to `cv::String::deallocate()'
+/tmp/ccd9QheD.o: In function `cv::Mat::Mat(int, int, int, cv::Scalar_<double> const&)':
+WSImageTest.cpp:(.text._ZN2cv3MatC2EiiiRKNS_7Scalar_IdEE[_ZN2cv3MatC5EiiiRKNS_7Scalar_IdEE]+0xe0): undefined reference to `cv::Mat::operator=(cv::Scalar_<double> const&)'
+/tmp/ccd9QheD.o: In function `cv::Mat::~Mat()':
+WSImageTest.cpp:(.text._ZN2cv3MatD2Ev[_ZN2cv3MatD5Ev]+0x39): undefined reference to `cv::fastFree(void*)'
+/tmp/ccd9QheD.o: In function `cv::Mat::create(int, int, int)':
+WSImageTest.cpp:(.text._ZN2cv3Mat6createEiii[_ZN2cv3Mat6createEiii]+0x8e): undefined reference to `cv::Mat::create(int, int const*, int)'
+/tmp/ccd9QheD.o: In function `cv::Mat::release()':
+WSImageTest.cpp:(.text._ZN2cv3Mat7releaseEv[_ZN2cv3Mat7releaseEv]+0x4b): undefined reference to `cv::Mat::deallocate()'
+/tmp/ccd9QheD.o: In function `CameraHandler::onConnect(seasocks::WebSocket*)':
+WSImageTest.cpp:(.text._ZN9CameraHandler9onConnectEPN8seasocks9WebSocketE[_ZN9CameraHandler9onConnectEPN8seasocks9WebSocketE]+0x7a): undefined reference to `seasocks::formatAddress[abi:cxx11](sockaddr_in const&)'
+/tmp/ccd9QheD.o: In function `CameraHandler::onData(seasocks::WebSocket*, char const*)':
+WSImageTest.cpp:(.text._ZN9CameraHandler6onDataEPN8seasocks9WebSocketEPKc[_ZN9CameraHandler6onDataEPN8seasocks9WebSocketEPKc]+0x37): undefined reference to `seasocks::Server::terminate()'
+/tmp/ccd9QheD.o: In function `CameraHandler::onData(seasocks::WebSocket*, unsigned char const*, unsigned long)':
+WSImageTest.cpp:(.text._ZN9CameraHandler6onDataEPN8seasocks9WebSocketEPKhm[_ZN9CameraHandler6onDataEPN8seasocks9WebSocketEPKhm]+0x161): undefined reference to `cv::imdecode(cv::_InputArray const&, int)'
+WSImageTest.cpp:(.text._ZN9CameraHandler6onDataEPN8seasocks9WebSocketEPKhm[_ZN9CameraHandler6onDataEPN8seasocks9WebSocketEPKhm]+0x1d1): undefined reference to `cv::imshow(cv::String const&, cv::_InputArray const&)'
+WSImageTest.cpp:(.text._ZN9CameraHandler6onDataEPN8seasocks9WebSocketEPKhm[_ZN9CameraHandler6onDataEPN8seasocks9WebSocketEPKhm]+0x1f3): undefined reference to `cv::waitKey(int)'
+/tmp/ccd9QheD.o: In function `CameraHandler::onDisconnect(seasocks::WebSocket*)':
+WSImageTest.cpp:(.text._ZN9CameraHandler12onDisconnectEPN8seasocks9WebSocketE[_ZN9CameraHandler12onDisconnectEPN8seasocks9WebSocketE]+0x4d): undefined reference to `seasocks::formatAddress[abi:cxx11](sockaddr_in const&)'
+collect2: error: ld returned 1 exit status

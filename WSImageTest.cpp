@@ -48,9 +48,9 @@ using namespace seasocks;
 using namespace std;
 using namespace cv;
 
-class MyHandler: public WebSocket::Handler {
+class CameraHandler: public WebSocket::Handler {
 public:
-    explicit MyHandler(Server* server) : _server(server), _currentValue(0) {
+    explicit CameraHandler(Server* server) : _server(server), _currentValue(0) {
         setValue(1);
     }
 
@@ -125,7 +125,7 @@ int main(int /*argc*/, const char* /*argv*/[]) {
 
     Server server(logger);
 
-    auto handler = std::make_shared<MyHandler>(&server);
+    auto handler = std::make_shared<CameraHandler>(&server);
     server.addWebSocketHandler("/ws", handler);
     server.serve("/home/slumber/Repos/DeviceTracking/static", 9090);
     return 0;
