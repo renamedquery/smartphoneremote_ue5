@@ -19,6 +19,47 @@ using namespace std;
 using namespace cv;
 using namespace seasocks;
 
+class CommandHandler : public WebSocket::Handler {
+public:
+  explicit CommandHandler(Server *server)
+      : _server(server), _currentValue(0) {
+    setValue(1);
+  }
+
+  virtual void onConnect(WebSocket *connection) {
+    _connections.insert(connection);
+    connection->send(_currentSetValue.c_str());
+    cout << "Connected: " << connection->getRequestUri() << " : "
+         << formatAddress(connection->getRemoteAddress()) << endl;
+    cout << "Credentials: " << *(connection->credentials()) << endl;
+  }
+  virtual void onData(WebSocket *connection, const char *data) {
+      cout<<"Reveceiving command"<<endl;
+  }
+  virtual void onData(WebSocket *, const uint8_t *data, size_t size) {
+      cout<<"Reveceiving command"<<endl;
+  }
+
+  virtual void onDisconnect(WebSocket *connection) {
+    _connections.erase(connection);
+    cout << "Disconnected: " << connection->getRequestUri() << " : "
+         << formatAddress(connection->getRemoteAddress()) << endl;
+
+  }
+
+private:
+  set<WebSocket *> _connections;
+  Server *_server;
+  int _currentValue;
+  double _currentTime;
+  string _currentSetValue;
+
+  void setValue(int value) {
+    _currentValue = value;
+    _currentSetValue = makeExecString("set", _currentValue);
+  }
+};
+
 class CameraHandler : public WebSocket::Handler {
 public:
   explicit CameraHandler(Server *server, ORB_SLAM2::System *SLAMPtr)
@@ -117,8 +158,11 @@ int main(int argc, char **argv) {
   ORB_SLAM2::System *SLAM;
   Server server(logger);
 
-  auto handler = std::make_shared<CameraHandler>(&server, SLAM);
-  server.addWebSocketHandler("/ws", handler);
-  server.serve("/home/slumber/Repos/DeviceTracking/static", 8080);
+  auto cameraHandler = std::make_shared<CameraHandler>(&server, SLAM);
+  server.addWebSocketHandler("/ws", cameraHandler);
+  auto commandHandler = std::make_shared<CommandHandler>(&server);
+  server.addWebSocketHandler("/command", commandHandler);
+
+  server.serve(/*"/home/slumber/Repos/DeviceTracking/static"*/"/dev/null", 6302);
   return 0;
 }

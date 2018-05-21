@@ -1,41 +1,52 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8">
-<title>Display Webcam Stream</title>
 
-<style>
-#container {
-    /* margin: auto;
+<head>
+  <meta charset="utf-8">
+  <title>Blender Remote</title>
+
+  <style>
+    #container {
+      /* margin: auto;
     border: 5px #333 solid;
     width: 100%;
     height: 100%; */
-}
-#videoElement {
-    /* background-color: #666;
+    }
+
+    #videoElement {
+      /* background-color: #666;
     width: 100%;
    height: 100%;
    margin: auto; */
-}
-#canvas {
-    background-color: #CCC;
-}
-</style>
+    }
+
+    #canvas {
+      background-color: #CCC;
+    }
+  </style>
+  <script src="js/Inputs.js"></script>
 
 </head>
 
-<body>
+<body onload="initRemote();">
+  <div id="server_status">
+    Waiting for the server...
+  </div>
+
   <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
   <div id="container">
-      <video autoplay id="videoElement">
+    <video autoplay id="videoElement">
       </video>
   </div>
 
   <canvas id="canvas"></canvas>
   <canvas id="video-canvas"></canvas>
   <!-- Used to capture frame from webcam video feed -->
-  <input type="button" value="Start" id="webcamCommand" />
-
-  <script src="js/VideoStream.js"></script>
+  <input type="button" value="Init" id="webcamCommand" />
+  <select name="Input Feed">
+   <option value="imu">IMU</option>
+   <option value="camera">Camera</option>
+  </select>
 </body>
+
 </html>

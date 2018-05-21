@@ -165,7 +165,7 @@ class AsyncLoopModalOperator(bpy.types.Operator):
         if event.type != 'TIMER':
             return {'PASS_THROUGH'}
 
-        # self.log.debug('KICKING LOOP')
+        self.log.debug('KICKING LOOP')
         stop_after_this_kick = kick_async_loop()
         if stop_after_this_kick:
             context.window_manager.event_timer_remove(self.timer)

@@ -7,8 +7,9 @@ import locale
 import numpy
 import bpy
 import mathutils
+import loggin
 
-class DataProtocol(asyncio.SubprocessProtocol):
+class DateProtocol(asyncio.SubprocessProtocol):
     def __init__(self, exit_future):
         self.exit_future = exit_future
         self.output = bytearray()
@@ -18,10 +19,23 @@ class DataProtocol(asyncio.SubprocessProtocol):
         pose = mathutils.Matrix()
         
         try:
-            buffer = numpy.matrix(text)
-            buffer[0:2,3]*=10            
-            bpy.data.objects['Camera'].matrix_basis = buffer.transpose().A
-            print( bpy.data.objects['Camera'].matrix_basis)
+            test = numpy.matrix(text)
+            test[0:2,3]*=10
+            
+            '''for x in range(0,3):
+                for y in range(0,3):
+                   pose[x][y] = test[x,y]'''
+            
+            bpy.data.objects['Cube'].matrix_basis = test.transpose().A
+            print( bpy.data.objects['Cube'].matrix_basis)
+            #print(bpy.data.objects['Cube'].matrix_basis )
+            #bpy.data.objects['Cube'].location.y = test[0,3]*10
+            #bpy.data.objects['Cube'].location.z = test[1,3]*10
+            #bpy.data.objects['Cube'].location.x = test[2,3]*10
+            #bpy.data.objects['Cube'].matrix_world = pose * bpy.data.objects['Cube'].matrix_world
+            #print("Translation:"+test[0,3]*10+" - "+test[1,3]*10+" - "+test[2,3]*10)
+            
+            #print(pose.rotation)
         except:   
             print("matrix parsing none")
             pass       
@@ -29,16 +43,16 @@ class DataProtocol(asyncio.SubprocessProtocol):
         self.output.extend(data)
 
     def process_exited(self):
-        print("process exited")
         self.exit_future.set_result(True)
 
 @asyncio.coroutine
-def get_data(loop):
+def get_date(loop):
+    code = 'import datetime; print(datetime.datetime.now())'
     exit_future = asyncio.Future(loop=loop)
 
     # Create the subprocess controlled by the protocol DateProtocol,
     # redirect the standard output into a pipe
-    create = loop.subprocess_exec(lambda: DataProtocol(exit_future),
+    create = loop.subprocess_exec(lambda: DateProtocol(exit_future),
                                   '/home/slumber/Repos/DeviceTracking/build/DeviceTracking',
                                   stdin=None, stderr=None)
     transport, protocol = yield from create
@@ -55,6 +69,7 @@ def get_data(loop):
     data = bytes(protocol.output)
     return data.decode('ascii').rstrip()
 
+logging.basicConfig(level=logging.DEBUG)
 
 try:
     async_loop.setup_asyncio_executor()
@@ -72,6 +87,6 @@ else:
     loop = asyncio.get_event_loop()
 
 
-date = asyncio.ensure_future(get_data(loop))
+date = asyncio.ensure_future(get_date(loop))
 async_loop.ensure_async_loop()
 

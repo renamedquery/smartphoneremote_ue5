@@ -306,4 +306,4 @@ def _start_server(bindaddr, port, hostname, folder):
 
 #Test
 if __name__ == '__main__':
-    _start_server('0.0.0.0', 80,"192.168.0.10",'.')
+    _start_server('0.0.0.0', 80,"192.168.0.17",'.')
