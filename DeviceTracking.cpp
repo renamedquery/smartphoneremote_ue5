@@ -73,6 +73,7 @@ public:
     cout << "Connected: " << connection->getRequestUri() << " : "
          << formatAddress(connection->getRemoteAddress()) << endl;
     cout << "Credentials: " << *(connection->credentials()) << endl;
+    connection->send("ping from image processor");
   }
   virtual void onData(WebSocket *connection, const char *data) {
     if (0 == strcmp("die", data)) {
@@ -154,6 +155,7 @@ private:
 };
 
 int main(int argc, char **argv) {
+  cout<<"test";
   auto logger = std::make_shared<PrintfLogger>(Logger::Level::SEVERE);
   ORB_SLAM2::System *SLAM;
   Server server(logger);

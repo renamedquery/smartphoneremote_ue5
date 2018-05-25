@@ -15,7 +15,6 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
         self.output = bytearray()
 
     def pipe_data_received(self, fd, data):
-        print(data)
         self.output.extend(data)
 
     def process_exited(self):
@@ -74,6 +73,17 @@ async def WebsocketRecv(websocket, path):
                  bpy.context.selected_objects[0].rotation_euler[1]),
                 (float(sensors[1]) - bpy.context.selected_objects[0].rotation_euler[2])]
 
+
+async def CameraFeed():
+    async with websockets.connect(
+            'ws://localhost:6302/ws') as cli:
+        print("connecting")
+        cli.send("start_slam")
+        while True:
+            t = await cli.recv()
+            print(t)
+
+
 # setup logging
 logging.basicConfig(level=logging.DEBUG)
 _logger = logging.getLogger('Main')
@@ -91,12 +101,10 @@ else:
         _logger.debug('Loop already setup, something went wrong')
         pass
 
-
-
     # http server setup
     print("routines setuping")
 
-    _httpd = _loop.create_server(lambda: httpd.HttpProtocol('192.168.0.17', 'static'),
+    _httpd = _loop.create_server(lambda: httpd.HttpProtocol('192.168.1.12', 'static'),
                                  '0.0.0.0',
                                  8080)
     # websocket setup
@@ -111,6 +119,6 @@ else:
     _logger.debug('Launching camera daemon..')
     camera_task = asyncio.ensure_future(get_frame(_loop))
     _logger.debug('Success.')
-
+    camera_feed_task = asyncio.ensure_future(CameraFeed())
     # async_loop.ensure_async_loop()
     _loop.run_forever()
