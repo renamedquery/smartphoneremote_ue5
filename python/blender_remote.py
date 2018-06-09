@@ -7,7 +7,7 @@ import logging
 import async_loop
 import bpy
 import sys
-
+import socket
 
 class CameraProcessProtocol(asyncio.SubprocessProtocol):
     def __init__(self, exit_future):
@@ -19,7 +19,6 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
 
     def process_exited(self):
         self.exit_future.set_result(True)
-
 
 @asyncio.coroutine
 def get_frame(loop):
@@ -43,7 +42,6 @@ def get_frame(loop):
     # method of the protocol
     data = bytes(protocol.output)
     return data.decode('ascii').rstrip()
-
 
 async def WebsocketRecv(websocket, path):
     import bpy
@@ -75,6 +73,7 @@ async def WebsocketRecv(websocket, path):
 
 
 async def CameraFeed():
+    await asyncio.sleep(2)
     async with websockets.connect(
             'ws://localhost:6302/ws') as cli:
         print("connecting")
@@ -84,10 +83,18 @@ async def CameraFeed():
             print(t)
 
 
+def GetCurrentIp():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    ip = s.getsockname()[0]
+    s.close()
+    return ip
+
 # setup logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger('Main')
 
+_ip = GetCurrentIp()
 _loop = asyncio.get_event_loop()
 
 if _loop.is_running():
@@ -104,7 +111,8 @@ else:
     # http server setup
     print("routines setuping")
 
-    _httpd = _loop.create_server(lambda: httpd.HttpProtocol('192.168.1.12', 'static'),
+
+    _httpd = _loop.create_server(lambda: httpd.HttpProtocol(_ip, 'static'),
                                  '0.0.0.0',
                                  8080)
     # websocket setup
@@ -120,5 +128,6 @@ else:
     camera_task = asyncio.ensure_future(get_frame(_loop))
     _logger.debug('Success.')
     camera_feed_task = asyncio.ensure_future(CameraFeed())
+
     # async_loop.ensure_async_loop()
     _loop.run_forever()

@@ -32,6 +32,10 @@ function initRemote() {
     document.getElementById('server_status').innerHTML = displayed_status;
   }, 5000);
 
+   document.getElementById('fullscreenCommand').addEventListener('click', function(e) {
+     setFullscreen();
+  });
+
   //Video elements init
   v = document.getElementById('videoElement');
   canvas = document.getElementById('canvas');
@@ -79,6 +83,28 @@ function initRemote() {
 
 
 }
+
+function setFullscreen(){
+  var isInFullScreen = (document.fullScreenElement && document.fullScreenElement !==     null) ||    // alternative standard method
+          (document.mozFullScreen || document.webkitIsFullScreen);
+
+  var docElm = document.documentElement;
+  if (!isInFullScreen) {
+
+      if (docElm.requestFullscreen) {
+          docElm.requestFullscreen();
+      }
+      else if (docElm.mozRequestFullScreen) {
+          docElm.mozRequestFullScreen();
+          //alert("Mozilla entering fullscreen!");
+      }
+      else if (docElm.webkitRequestFullScreen) {
+          docElm.webkitRequestFullScreen();
+          //alert("Webkit entering fullscreen!");
+      }
+  }
+}
+
 
 function initCameraFeed() {
  video = document.querySelector("#videoElement");
