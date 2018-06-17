@@ -5,7 +5,32 @@ var video;
 var v, canvas, context, w, h;
 var _commandButton;
 
+
+
+function StartuInfoBoxEvents() {
+  return Metro.infobox.create(
+    "<div align='center' data-role='activity' data-type='simple'></div>Connecting. Wait... ",
+    "", {
+      closeButton: false,
+      //overlay: false,
+      width: 'auto',
+      overlayAlpha: 0,
+      overlayColor: '#303030',
+    }
+
+  );
+}
+
 function initRemote() {
+
+  var connectionActivity = Metro.activity.open({
+    type: 'cycle',
+    // style: 'light',
+     overlayColor: '#585B5D',
+    // text: '<div class=\'mt-2 text-small\'>load server...</div>',
+    overlayAlpha: 1
+  });
+
   _ws_command = new WebSocket("ws://" + document.URL.toString().split('/')[2].split(':')[0] + ":5678/command");
 
   setInterval(function() {
@@ -18,6 +43,8 @@ function initRemote() {
         break;
       case 1:
         displayed_status = "connected";
+        Metro.activity.close(connectionActivity);
+
         break;
       case 2:
         displayed_status = "closing";
@@ -29,11 +56,11 @@ function initRemote() {
         displayed_status = "none";
     }
 
-    document.getElementById('server_status').innerHTML = displayed_status;
+    // document.getElementById('server_status').innerHTML = displayed_status;
   }, 5000);
 
-   document.getElementById('fullscreenCommand').addEventListener('click', function(e) {
-     setFullscreen();
+  document.getElementById('fullscreenCommand').addEventListener('click', function(e) {
+    setFullscreen();
   });
 
   //Video elements init
@@ -43,71 +70,68 @@ function initRemote() {
   // hide the canvas
   canvas.style.display = "none";
 
-  _commandButton =  document.getElementById('webcamCommand');
-   document.getElementById('webcamCommand').addEventListener('click', function(e) {
+  _commandButton = document.getElementById('webcamCommand');
+  document.getElementById('webcamCommand').addEventListener('click', function(e) {
 
-     if (_commandButton.value == "Init") {
-       initCameraFeed();
-       _commandButton.value = "Start";
-     }
-     else if (_commandButton.value == "Start") {
+    if (_commandButton.value == "Init") {
+      initCameraFeed();
+      _commandButton.value = "Start";
+    } else if (_commandButton.value == "Start") {
 
-       ws_cameraStream = new WebSocket("ws://" + document.URL.toString().split('/')[2].split(':')[0] + ":6302/ws");
-       ws_cameraStream.binaryType = 'arraybuffer';
-       ws_cameraStream.onopen = function() {
-         console.log("Openened connection to websocket");
-         ws_cameraStream.send("start_slam");
-       }
-       ws_cameraStream.onmessage = function(e) {
-         var server_message = e.data;
-         console.log(server_message);
+      ws_cameraStream = new WebSocket("ws://" + document.URL.toString().split('/')[2].split(':')[0] + ":6302/ws");
+      ws_cameraStream.binaryType = 'arraybuffer';
+      ws_cameraStream.onopen = function() {
+        console.log("Openened connection to websocket");
+        ws_cameraStream.send("start_slam");
+      }
+      ws_cameraStream.onmessage = function(e) {
+        var server_message = e.data;
+        console.log(server_message);
 
-         if (server_message == "slam_ready") {
-           canvas.height = v.videoHeight;
-           canvas.width = v.videoWidth;
+        if (server_message == "slam_ready") {
+          canvas.height = v.videoHeight;
+          canvas.width = v.videoWidth;
 
-           _intervalHandle = setInterval(function() {
-             RenderFrame(v, context, w, h);
-           }, 60);
-         }
-       }
-       _commandButton.value = "Stop";
-     } else if (_commandButton.value == "Stop") {
-       ws_cameraStream.send("stop_slam");
-       clearInterval(_intervalHandle);
+          _intervalHandle = setInterval(function() {
+            RenderFrame(v, context, w, h);
+          }, 60);
+        }
+      }
+      _commandButton.value = "Stop";
+    } else if (_commandButton.value == "Stop") {
+      ws_cameraStream.send("stop_slam");
+      clearInterval(_intervalHandle);
 
-       ws_cameraStream.close();
-       _commandButton.value = "Start";
-     }
-   });
+      ws_cameraStream.close();
+      _commandButton.value = "Start";
+    }
+  });
 
 
 }
 
-function setFullscreen(){
-  var isInFullScreen = (document.fullScreenElement && document.fullScreenElement !==     null) ||    // alternative standard method
-          (document.mozFullScreen || document.webkitIsFullScreen);
+function setFullscreen() {
+  var isInFullScreen = (document.fullScreenElement && document.fullScreenElement !== null) || // alternative standard method
+    (document.mozFullScreen || document.webkitIsFullScreen);
 
   var docElm = document.documentElement;
   if (!isInFullScreen) {
 
-      if (docElm.requestFullscreen) {
-          docElm.requestFullscreen();
-      }
-      else if (docElm.mozRequestFullScreen) {
-          docElm.mozRequestFullScreen();
-          //alert("Mozilla entering fullscreen!");
-      }
-      else if (docElm.webkitRequestFullScreen) {
-          docElm.webkitRequestFullScreen();
-          //alert("Webkit entering fullscreen!");
-      }
+    if (docElm.requestFullscreen) {
+      docElm.requestFullscreen();
+    } else if (docElm.mozRequestFullScreen) {
+      docElm.mozRequestFullScreen();
+      //alert("Mozilla entering fullscreen!");
+    } else if (docElm.webkitRequestFullScreen) {
+      docElm.webkitRequestFullScreen();
+      //alert("Webkit entering fullscreen!");
+    }
   }
 }
 
 
 function initCameraFeed() {
- video = document.querySelector("#videoElement");
+  video = document.querySelector("#videoElement");
   // check for getUserMedia support
   navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
 

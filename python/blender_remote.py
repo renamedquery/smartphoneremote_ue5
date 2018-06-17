@@ -73,6 +73,7 @@ async def WebsocketRecv(websocket, path):
 
 
 async def CameraFeed():
+    # Wait for ImageProcess
     await asyncio.sleep(2)
     async with websockets.connect(
             'ws://localhost:6302/ws') as cli:
@@ -128,6 +129,6 @@ else:
     camera_task = asyncio.ensure_future(get_frame(_loop))
     _logger.debug('Success.')
     camera_feed_task = asyncio.ensure_future(CameraFeed())
-
+    
     # async_loop.ensure_async_loop()
     _loop.run_forever()

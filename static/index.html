@@ -1,55 +1,62 @@
 <!DOCTYPE html>
-<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-<meta content="utf-8" http-equiv="encoding">
-<html>
+<html lang="en">
 
 <head>
+
+  <!-- Required meta tags -->
   <meta charset="utf-8">
-  <title>Blender Remote</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <style>
-    #container {
-      /* margin: auto;
-    border: 5px #333 solid;
-    width: 100%;
-    height: 100%; */
-    }
+  <!-- Bootstrap CSS -->
 
-    #videoElement {
-      /* background-color: #666;
-    width: 100%;
-   height: 100%;
-   margin: auto; */
-    }
+  <link rel="stylesheet" href="https://cdn.metroui.org.ua/v4/css/metro-all.min.css">
+  <link id="color-scheme" href="https://metroui.org.ua/metro/css/schemes/darcula.css" rel="stylesheet">
 
-    #canvas {
-      background-color: #CCC;
-    }
-  </style>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script src="https://cdn.metroui.org.ua/v4/js/metro.min.js"></script>
+
   <script src="js/Inputs.js"></script>
 
+  <title>Blender Remote</title>
 </head>
 
 <body onload="initRemote();">
+
+<ul class="t-menu horizontal compact open">
+    <li><a href="#"><span class="icon mif-home"></span></a></li>
+    <li><a href="#" class="dropdown-toggle"><span class="icon mif-compass"></span></a>
+        <ul class="t-menu compact" data-role="dropdown">
+            <li><a href="#"><span class="icon mif-home"></span></a></li>
+            <li><a href="#" class="dropdown-toggle"><span class="icon mif-compass"></span></a>
+                <ul class="t-menu compact horizontal" data-role="dropdown">
+                    <li><a href="#"><span class="icon mif-home"></span></a></li>
+                    <li><a href="#"><span class="icon mif-compass"></span></a></li>
+                    <li><a href="#"><span class="icon mif-bubbles"></span></a></li>
+                    <li><a href="#"><span class="icon mif-file-empty"></span></a></li>
+                </ul>
+            </li>
+            <li><a href="#"><span class="icon mif-bubbles"></span></a></li>
+            <li><a href="#"><span class="icon mif-bubbles"></span></a></li>
+        </ul>
+    </li>
+    <li><a href="#"><span class="icon mif-bubbles"></span></a></li>
+    <li><a href="#"><span class="icon mif-file-empty"></span></a></li>
+</ul>
+  <!-- Connection window -->
   <div id="server_status">
-    Waiting for the server...
+    test
   </div>
-
-  <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
-  <div id="container">
-    <video autoplay id="videoElement">
-      </video>
-  </div>
-
-  <canvas id="canvas"></canvas>
-  <canvas id="video-canvas"></canvas>
+  <canvas id="canvas" hidden></canvas>
+  <canvas id="video-canvas" hidden></canvas>
   <!-- Used to capture frame from webcam video feed -->
   <input type="button" value="Init" id="webcamCommand" />
   <input type="button" value="fullscreen" id="fullscreenCommand" />
   <select name="Input Feed">
-   <option value="imu">IMU</option>
-   <option value="camera">Camera</option>
-  </select>
+     <option value="imu">IMU</option>
+     <option value="camera">Camera</option>
+    </select>
+
+<div>
 </body>
 
 </html>

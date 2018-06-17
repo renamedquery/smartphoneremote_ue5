@@ -1,0 +1,5 @@
+include *.rst
+include LICENSE
+include signing-key.asc
+include tox.ini
+include doc/qr.1
