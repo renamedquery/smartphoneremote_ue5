@@ -39,7 +39,7 @@ def get_frame(loop):
     transport.close()
 
     # Read the output which was collected by the pipe_data_received()
-    # method of the protocol
+    # method of the protocolBB
     data = bytes(protocol.output)
     return data.decode('ascii').rstrip()
 
@@ -129,6 +129,6 @@ else:
     camera_task = asyncio.ensure_future(get_frame(_loop))
     _logger.debug('Success.')
     camera_feed_task = asyncio.ensure_future(CameraFeed())
-    
+
     # async_loop.ensure_async_loop()
     _loop.run_forever()
