@@ -26,8 +26,8 @@ function initRemote() {
   var connectionActivity = Metro.activity.open({
     type: 'cycle',
     // style: 'light',
-     overlayColor: '#585B5D',
-    // text: '<div class=\'mt-2 text-small\'>load server...</div>',
+    overlayColor: '#585B5D',
+    // text: '<div class=\'mt-2 text-small\'>connecting to server</div>',
     overlayAlpha: 1
   });
 
@@ -35,28 +35,32 @@ function initRemote() {
 
   setInterval(function() {
     var displayed_status = "None";
-    var displayed_status_color = 'White';
+    var displayed_status_color = "fg-light";
 
     switch (_ws_command.readyState) {
       case 0:
         displayed_status = "connecting";
+        displayed_status_color = "fg-orange";
         break;
       case 1:
         displayed_status = "connected";
         Metro.activity.close(connectionActivity);
+        displayed_status_color = "fg-green";
 
         break;
       case 2:
         displayed_status = "closing";
+        displayed_status_color = "fg-orange";
         break;
       case 3:
         displayed_status = "closed";
+        displayed_status_color = "fg-grey";
         break;
       default:
         displayed_status = "none";
     }
 
-    // document.getElementById('server_status').innerHTML = displayed_status;
+    document.getElementById('connexion_status').className = "mif-wifi-connect mif-3x "+ displayed_status_color;
   }, 5000);
 
   document.getElementById('fullscreenCommand').addEventListener('click', function(e) {
@@ -126,6 +130,18 @@ function setFullscreen() {
       docElm.webkitRequestFullScreen();
       //alert("Webkit entering fullscreen!");
     }
+    document.getElementById('fullscreenCommandIcon').className = "mif-3x mif-shrink2";
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+    document.getElementById('fullscreenCommandIcon').className = "mif-3x mif-enlarge2";
   }
 }
 

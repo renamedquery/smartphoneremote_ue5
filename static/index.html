@@ -9,7 +9,7 @@
 
   <!-- Bootstrap CSS -->
 
-  <link rel="stylesheet" href="https://cdn.metroui.org.ua/v4/css/metro-all.min.css">
+  <link rel="stylesheet" href="https://cdn.metroui.org.ua/v4/css/metro-all.min.css" rel="stylesheet">
   <link id="color-scheme" href="https://metroui.org.ua/metro/css/schemes/darcula.css" rel="stylesheet">
 
   <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
@@ -22,38 +22,66 @@
 
 <body onload="initRemote();">
   <!-- <input type="checkbox" data-role="switch" data-caption=""> -->
-  <div class="app-bar pos-absolute bg-red z-1" data-role="appbar" id="app-bar-1"><button type="button" class="hamburger menu-down hidden" style="display: none;"></button>
-    <button class="app-bar-item c-pointer" id="sidebar-toggle"><span class="mif-menu fg-white"></span></button>
+  <div class="pos-relative z-dropdown d-flex flex-justify-between app-bar" data-role="appbar">
+    <div class="app-bar-container float-none">
+      <div class="brand">
+        <span class="mif-switch mif-3x"></span>
+
+      </div>
+
+      <!-- <ul class="t-menu horizontal open">
+        <li><a href="#" class="dropdown-toggle"><span class="icon mif-switch"></span></a>
+          <ul class="t-menu " data-role="dropdown">
+            <li><a href="#"><span class="icon mif-home"></span></a></li>
+            <li><a href="#"><span class="icon mif-bubbles"></span></a></li>
+            <li><a href="#"><span class="icon mif-bubbles"></span></a></li>
+          </ul>
+        </li>
+      </ul> -->
+    </div>
+    <div class="app-bar-container float-left">
+      <div class="brand no-hover">
+        <span id="connexion_status" class="mif-3x mif-wifi-connect"></span>
+      </div>
+      <a id="fullscreenCommand" class="brand">
+    <span id="fullscreenCommandIcon" class="mif-3x mif-enlarge2"></span>
+      </a>
+    </div>
   </div>
-  <aside class="sidebar pos-absolute z-2 open" data-role="sidebar" data-toggle="#sidebar-toggle" id="sb1">
-                        <div class="sidebar-header" data-image="images/sb-bg-1.jpg" style="background-image: url(&quot;images/sb-bg-1.jpg&quot;);">
-                            <a href="/" class="fg-white sub-action" onclick="Metro.sidebar.close('#sb1'); return false;"><span class="mif-arrow-left"></span></a>
-                            <div class="avatar">
-                                <img data-role="gravatar" data-email="sergey@pimenov.com.ua" src="//www.gravatar.com/avatar/75d0f7104baad47ed0e96649b905d9bf?size=80&amp;d=404">
-                            </div>
-                            <span class="title fg-white">Metro 4 Components Library</span>
-                            <span class="subtitle fg-white"> 2018 © Sergey Pimenov</span>
-                        </div>
-                        <ul class="sidebar-menu">
-                            <li><a><span class="mif-home icon"></span>Home</a></li>
-                            <li><a><span class="mif-books icon"></span>Guide</a></li>
-                            <li><a><span class="mif-files-empty icon"></span>Examples</a></li>
-                            <li class="divider"></li>
-                            <li><a><span class="mif-images icon"></span>Icons</a></li>
-                        </ul>
-                    </aside>
-  <div id="server_status">
-    test
+
+  <div data-role="progress" data-value="0" data-buffer="0" data-small="true" data-cls-back="bg-dark">
+  <div class="notify-container"></div>
   </div>
-  <canvas id="canvas" hidden></canvas>
-  <canvas id="video-canvas" hidden></canvas>
-  <!-- Used to capture frame from webcam video feed -->
-  <input type="button" value="Init" id="webcamCommand" />
-  <input type="button" value="fullscreen" id="fullscreenCommand" />
-  <select name="Input Feed">
-             <option value="imu">IMU</option>
-             <option value="camera">Camera</option>
-            </select>
+  <!-- <div class="container-fluid "> -->
+    <div class=" d-flex flex-justify-center flex-nowrap">
+        <!-- <div class=" d-flex"> -->
+        <div data-role="tile" data-size="large" class="bg-darkOrange w-100">
+           <span class="mif-compass icon"></span>
+        </div>
+      </div>
+    <div class=" d-flex flex-justify-center flex-nowrap">
+<h2 id="button">Setup</h2>
+    </div>
+  <!-- </div> -->
+      <!-- <div id="server_status">
+      test
+    </div> -->
+      <!-- <button class="shortcut">
+        <span class="caption">Rocket</span>
+        <span class="mif-rocket icon"></span>
+      </button>
+      <canvas id="canvas" hidden></canvas>
+      <canvas id="video-canvas" hidden></canvas> -->
+      <!-- Used to capture frame from webcam video feed -->
+      <!-- <input type="button" id="webcamCommand" />
+
+      <select name="Input Feed">
+     <option value="imu">IMU</option>
+     <option value="camera">Camera</option>
+    </select> -->
+    </div>
+</div>
+
 </body>
 
 </html>

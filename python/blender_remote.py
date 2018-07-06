@@ -39,7 +39,7 @@ def get_frame(loop):
     transport.close()
 
     # Read the output which was collected by the pipe_data_received()
-    # method of the protocolBB
+    # method of the protocol
     data = bytes(protocol.output)
     return data.decode('ascii').rstrip()
 
