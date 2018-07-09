@@ -78,41 +78,42 @@ function initRemote() {
   // hide the canvas
   canvas.style.display = "none";
 
-  _commandButton = document.getElementById('webcamCommand');
-  document.getElementById('webcamCommand').addEventListener('click', function(e) {
+  _commandButton = document.getElementById('trackingTile');
+  document.getElementById('trackingTile').addEventListener('click', function(e) {
 
-    if (_commandButton.value == "Init") {
-      initCameraFeed();
-      _commandButton.value = "Start";
-    } else if (_commandButton.value == "Start") {
-
-      ws_cameraStream = new WebSocket("ws://" + document.URL.toString().split('/')[2].split(':')[0] + ":6302/ws");
-      ws_cameraStream.binaryType = 'arraybuffer';
-      ws_cameraStream.onopen = function() {
-        console.log("Openened connection to websocket");
-        ws_cameraStream.send("start_slam");
-      }
-      ws_cameraStream.onmessage = function(e) {
-        var server_message = e.data;
-        console.log(server_message);
-
-        if (server_message == "slam_ready") {
-          canvas.height = v.videoHeight;
-          canvas.width = v.videoWidth;
-
-          _intervalHandle = setInterval(function() {
-            RenderFrame(v, context, w, h);
-          }, 60);
-        }
-      }
-      _commandButton.value = "Stop";
-    } else if (_commandButton.value == "Stop") {
-      ws_cameraStream.send("stop_slam");
-      clearInterval(_intervalHandle);
-
-      ws_cameraStream.close();
-      _commandButton.value = "Start";
-    }
+    
+    // if (_commandButton.value == "Init") {
+    //   initCameraFeed();
+    //   _commandButton.value = "Start";
+    // } else if (_commandButton.value == "Start") {
+    //
+    //   ws_cameraStream = new WebSocket("ws://" + document.URL.toString().split('/')[2].split(':')[0] + ":6302/ws");
+    //   ws_cameraStream.binaryType = 'arraybuffer';
+    //   ws_cameraStream.onopen = function() {
+    //     console.log("Openened connection to websocket");
+    //     ws_cameraStream.send("start_slam");
+    //   }
+    //   ws_cameraStream.onmessage = function(e) {
+    //     var server_message = e.data;
+    //     console.log(server_message);
+    //
+    //     if (server_message == "slam_ready") {
+    //       canvas.height = v.videoHeight;
+    //       canvas.width = v.videoWidth;
+    //
+    //       _intervalHandle = setInterval(function() {
+    //         RenderFrame(v, context, w, h);
+    //       }, 60);
+    //     }
+    //   }
+    //   _commandButton.value = "Stop";
+    // } else if (_commandButton.value == "Stop") {
+    //   ws_cameraStream.send("stop_slam");
+    //   clearInterval(_intervalHandle);
+    //
+    //   ws_cameraStream.close();
+    //   _commandButton.value = "Start";
+    // }
   });
 
 
@@ -147,6 +148,10 @@ function setFullscreen() {
     }
     document.getElementById('fullscreenCommandIcon').className = "mif-3x mif-enlarge2";
   }
+}
+
+function tracking(){
+
 }
 
 function setView(){
