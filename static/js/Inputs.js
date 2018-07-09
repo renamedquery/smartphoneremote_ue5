@@ -22,7 +22,6 @@ function StartuInfoBoxEvents() {
 }
 
 function initRemote() {
-
   var connectionActivity = Metro.activity.open({
     type: 'cycle',
     // style: 'light',
@@ -66,6 +65,11 @@ function initRemote() {
   document.getElementById('fullscreenCommand').addEventListener('click', function(e) {
     setFullscreen();
   });
+
+  document.getElementById('viewSwitchCommand').addEventListener('click', function(e) {
+    setView();
+  });
+
 
   //Video elements init
   v = document.getElementById('videoElement');
@@ -145,6 +149,30 @@ function setFullscreen() {
   }
 }
 
+function setView(){
+  var displayed_status_icon = "mif-equalizer";
+  action_view = $('#_action_window').data('collapse');
+  tools_view = $('#_tool_window').data('collapse');
+  var collapsed = action_view.isCollapsed();
+
+  if(collapsed){
+    action_view.expand();
+    tools_view.collapse();
+
+
+    displayed_status_icon = "mif-equalizer";
+  }
+  else{
+    tools_view.expand();
+
+
+
+    displayed_status_icon = "mif-dashboard";
+    action_view.collapse();
+  }
+
+    document.getElementById('viewSwitchCommandIcon').className = "mif-3x "+ displayed_status_icon ;
+}
 
 function initCameraFeed() {
   video = document.querySelector("#videoElement");
