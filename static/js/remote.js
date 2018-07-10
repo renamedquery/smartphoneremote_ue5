@@ -6,7 +6,7 @@ var v, canvas, context, w, h;
 var _commandButton;
 var _isCommandStreamInit;
 var _actions = [];
-
+var _client;
 
 function StartuInfoBoxEvents() {
   return Metro.infobox.create(
@@ -23,6 +23,8 @@ function StartuInfoBoxEvents() {
 }
 
 function initRemote() {
+  _client = document.URL.toString().split('/')[2].split(':')[0] + ':5678';
+
   var connectionActivity = Metro.activity.open({
     type: 'cycle',
     style: 'light',
@@ -32,7 +34,7 @@ function initRemote() {
   });
 
 
-  _ws_command = new WebSocket("ws://" + document.URL.toString().split('/')[2].split(':')[0] + ":5678/command");
+  _ws_command = new WebSocket("ws://" + _client + "/command");
 
   setInterval(function() {
     var displayed_status = "None";
@@ -70,16 +72,9 @@ function initRemote() {
   }, 5000);
 
   let imu = new Imu(false,false);
-  let test = new Tracking("tracking", "large", "mif-play", "websocket",imu);
+  let test = new Tracking("tracking", "large", "mif-play", _client,imu);
+
   _actions.push(test);
-
-  //UGLY, to fix in classs
-  for(let x of _actions){
-    //Bind mousedown action
-    document.getElementById(x.name).addEventListener("mousedown", function(){x.mousedown();});
-  }
-
-
 
   document.getElementById('fullscreenCommand').addEventListener('click', function(e) {
     setFullscreen();

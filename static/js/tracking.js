@@ -77,49 +77,65 @@ class Imu extends Sensor {
     this.deviceOrientationData = event;
   }
 
-  remove() {}
+  remove() {
+    window.removeEventListener("deviceorientation", function() {
+      this.processGyro(event);
+    }.bind(this), true);
+  }
 
   pause() {}
 }
 
 class Action {
-  constructor(name, size, icon, websocket) {
+  constructor(name, size, icon, client) {
     this.name = name;
     this.size = size;
     this.icon = icon;
-    this.ws = websocket;
+    this.client = client;
     this.daemon = null;
     this.status = _status_enum.NULL;
 
+    //Setup data sender
+    this.websocket = new WebSocket("ws://"+this.client+"/"+this.name);
 
     //Setup action GUI
     document.getElementById('_actions_list').innerHTML +=
-    " <div id = \'"+this.name+"\' data-role=\'tile\' data-size=\'"+this.size+"\' style=\'background-color:#585B5D;\' class=\' fg-white\'> \n" +
+    " <div id = \'"+this.name+"\' data-role=\'tile\' data-size=\'"+this.size+"\'  class=\'bg-darkSteel fg-white\'> \n" +
     "<span id=\'"+this.name+"_icon\' class = \'"+this.icon+ " icon\'></span></div>"
 
 
+    document.getElementById(this.name).addEventListener("mousedown", function(){this.mousedown();}.bind(this));
     this.status = _status_enum.IDLE;
   }
-
   mousedown(){
+    var newTileIcon;
+    var newTileColor;
 
     if(this.status == _status_enum.NULL){
         console.log('Error on ' + this.name+ " init");
     }
     else if (this.status == _status_enum.IDLE || this.status == _status_enum.STOPPED) {
+      newTileColor = "tile-large bg-orange";
+      newTileIcon = "mif-stop icon";
       this.play();
     }
     else if (this.status == _status_enum.PLAYING) {
+      newTileColor = "tile-large bg-darkSteel";
+      newTileIcon = "mif-play icon";
       this.stop();
     }
     else if (this.status == _status_enum.ERROR) {
       console.log('Error on ' + this.name);
     }
+    document.getElementById(this.name).className = newTileColor;
+    document.getElementById(this.name+"_icon").className = newTileIcon;
   }
   play() {
-    console.log('Play on ' + this.name + ' action');
+
   }
-  stop() {}
+  stop() {
+
+  }
   delete() {}
 }
 
@@ -132,19 +148,30 @@ class Tracking extends Action {
   }
 
   play() {
-     var t = this.sensor.get_data();
     // document.getElementById().innerHTML = (t.alpha +' - '+t.beta +' - '+t.gamma +this.sensor.enabled);
-    // this.daemon = setInterval(function(){
-    //   var t = this.sensor.get_data();
-    //
-    //
-    // }.bind(this),16.67);
-      document.getElementById(this.name+"_icon").className = "mif-stop icon";
-      console.log(this.name+"_icon");
+    if(this.websocket.readyState == 1){
+      this.daemon = setInterval(function(){
+        var t = this.sensor.get_data();
+
+        this.websocket.send(degToRad(t.alpha)+
+        '/'+degToRad(t.beta)+
+        '/'+degToRad(t.gamma));
+      }.bind(this),16.67);
+
+      this.status = _status_enum.PLAYING;
+    }
+    else{
+      this.status = _status_enum.ERROR;
+    }
+
+
+
   }
 
   stop(){
-
+      clearInterval(this.daemon);
+      var t = this.sensor.remove();
+      this.status = _status_enum.IDLE;
   }
 
 }
