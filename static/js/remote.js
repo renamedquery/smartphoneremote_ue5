@@ -4,7 +4,8 @@ var _videoStreamHandle;
 var video;
 var v, canvas, context, w, h;
 var _commandButton;
-
+var _isCommandStreamInit;
+var _actions = [];
 
 
 function StartuInfoBoxEvents() {
@@ -24,11 +25,12 @@ function StartuInfoBoxEvents() {
 function initRemote() {
   var connectionActivity = Metro.activity.open({
     type: 'cycle',
-    // style: 'light',
+    style: 'light',
     overlayColor: '#585B5D',
     // text: '<div class=\'mt-2 text-small\'>connecting to server</div>',
     overlayAlpha: 1
   });
+
 
   _ws_command = new WebSocket("ws://" + document.URL.toString().split('/')[2].split(':')[0] + ":5678/command");
 
@@ -42,9 +44,13 @@ function initRemote() {
         displayed_status_color = "fg-orange";
         break;
       case 1:
+        if(!_isCommandStreamInit)
+          Metro.activity.close(connectionActivity);
+
         displayed_status = "connected";
-        Metro.activity.close(connectionActivity);
         displayed_status_color = "fg-green";
+
+        _isCommandStreamInit = true;
 
         break;
       case 2:
@@ -57,10 +63,23 @@ function initRemote() {
         break;
       default:
         displayed_status = "none";
+
     }
 
     document.getElementById('connexion_status').className = "mif-wifi-connect mif-3x "+ displayed_status_color;
   }, 5000);
+
+  let imu = new Imu(false,false);
+  let test = new Tracking("tracking", "large", "mif-play", "websocket",imu);
+  _actions.push(test);
+
+  //UGLY, to fix in classs
+  for(let x of _actions){
+    //Bind mousedown action
+    document.getElementById(x.name).addEventListener("mousedown", function(){x.mousedown();});
+  }
+
+
 
   document.getElementById('fullscreenCommand').addEventListener('click', function(e) {
     setFullscreen();
@@ -78,10 +97,12 @@ function initRemote() {
   // hide the canvas
   canvas.style.display = "none";
 
-  _commandButton = document.getElementById('trackingTile');
-  document.getElementById('trackingTile').addEventListener('click', function(e) {
 
-    
+
+  // _commandButton = document.getElementById('trackingTile');
+  // document.getElementById('trackingTile').addEventListener('mousedown', function(e) {
+  //
+
     // if (_commandButton.value == "Init") {
     //   initCameraFeed();
     //   _commandButton.value = "Start";
@@ -114,7 +135,7 @@ function initRemote() {
     //   ws_cameraStream.close();
     //   _commandButton.value = "Start";
     // }
-  });
+  // });
 
 
 }
