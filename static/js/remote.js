@@ -71,8 +71,9 @@ function initRemote() {
     document.getElementById('connexion_status').className = "mif-wifi-connect mif-3x "+ displayed_status_color;
   }, 5000);
 
-  let imu = new Imu(false,false);
-  let test = new Tracking("tracking", "large", "mif-play", _client,imu);
+  var sampling = document.getElementById('tracking_settings_sampling').value;
+  let imu = new Imu(sampling,false,false);
+  let test = new Tracking("tracking", "large", "mif-play", _client, imu);
 
   _actions.push(test);
 

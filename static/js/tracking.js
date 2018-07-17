@@ -8,9 +8,10 @@ function degToRad(deg) // Degree-to-Radian conversion
 }
 
 class Sensor {
-  constructor() {
+  constructor(frequency) {
     this.supported = false;
     this.enabled = false;
+    this.frequency = 1000/frequency;
   }
   init() { }
   get_data() {}
@@ -21,7 +22,7 @@ class Sensor {
 
 class Camera extends Sensor {
   constructor() {
-    super();
+    super(frequency);
   }
   init() {
 
@@ -29,8 +30,8 @@ class Camera extends Sensor {
 }
 
 class Imu extends Sensor {
-  constructor(relative, enabled) {
-    super();
+  constructor(frequency,relative, enabled) {
+    super(frequency);
     this.relative = relative;
 
     //IMU values
@@ -117,6 +118,7 @@ class Action {
     else if (this.status == _status_enum.IDLE || this.status == _status_enum.STOPPED) {
       newTileColor = "tile-large bg-orange";
       newTileIcon = "mif-stop icon";
+
       this.play();
     }
     else if (this.status == _status_enum.PLAYING) {
@@ -148,15 +150,13 @@ class Tracking extends Action {
   }
 
   play() {
-    // document.getElementById().innerHTML = (t.alpha +' - '+t.beta +' - '+t.gamma +this.sensor.enabled);
     if(this.websocket.readyState == 1){
       this.daemon = setInterval(function(){
         var t = this.sensor.get_data();
-
         this.websocket.send(degToRad(t.alpha)+
         '/'+degToRad(t.beta)+
         '/'+degToRad(t.gamma));
-      }.bind(this),16.67);
+      }.bind(this),this.sensor.frequency);
 
       this.status = _status_enum.PLAYING;
     }
