@@ -1,0 +1,33 @@
+# 1.2.1
+* Fixed issue #43. A debug print statement got left in by mistake. I altered
+  The distribution script to check and make sure it does not happen again.
+
+# 1.2
+* Added Kanji support.
+* Added ability to output PNG QR codes as a base64 string. Allows coded to be
+  created for web services without the need to create intermediary files.
+  Thanks to [Fábio C. Barrionuevo da Luz (luzfcb)](https://github.com/luzfcb)
+* Added renderer for XBM. Displaying QR codes in Tkinter is now extremely
+  simple. Thanks to [Seth VanHeulen (svanheulen)](https://github.com/svanheulen)
+
+# 1.1.1
+* Fix for issue #38, where numeric encodings got broken by added unicode support.
+
+# 1.1
+* Added support for Python 2.6
+* All renderers now have a **quiet zone of four**. This value is settable via a
+  parameter.
+* Fixed issue where file streams were not being closed correctly
+* **Special thanks goes to [Lars (heuer)](https://github.com/heuer) who 
+  contributed a massive amount of improvements in this version.**
+  * Enormously improved SVG implementation. Now uses paths instead of lines.
+    Also allows for SVG fragments instead of entire documents.
+  * We now have unit tests!! He wrote over 100 unit tests for
+    all of the various parts of the library.
+  * A new EPS renderer.
+  * A mechanism for showing QR codes directly from within your code.
+
+# 1.0
+* Fixed issue where terminal bits were being added in the wrong location.
+* Added ability to output QR code to a Linux terminal.
+* Added support for Python 2.7
