@@ -36,6 +36,12 @@ class SmartphoneRemoteSettingsPanel(Panel):
         # (Which is our preview)
         sub.template_icon_view(context.scene, "my_thumbnails")
         sub.label(text = bpy.context.user_preferences.inputs.srLocalIp[1]['default'])
+        if bpy.context.user_preferences.inputs.srDaemonRunning[1]['default'] == False:
+            sub.operator("scene.restart_blender_remote")
+        else:
+            sub.operator("scene.stop_blender_remote")
+
+        #UGLY
         sub = row.column()
         sub.label(text="   ")
         sub = row.column()

@@ -22,9 +22,20 @@ log = logging.getLogger(__name__)
 
 # Keeps track of whether a loop-kicking operator is already running.
 _loop_kicking_operator_running = False
-_stop_daemons = False
+_daemons = []
+'''
+    Utility functions
+'''
+def GetCurrentIp():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    ip = s.getsockname()[0]
+    s.close()
+    return ip
 
-
+'''
+    control functions
+'''
 def setup_asyncio_executor():
     """Sets up AsyncIO to run properly on each platform."""
 
@@ -43,20 +54,102 @@ def setup_asyncio_executor():
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
     loop.set_default_executor(executor)
 
-def run_services():
-    log.debug('Starting asyncio loop')
+@persistent
+def auto_launch_daemons(scene):
+    log.debug('Auto launch smartphone remote daemon')
+    setup_daemons()
+    run_daemons()
+    log.debug('Done.')
+
+def run_daemons():
+    log.debug('Starting  smartphone remote daemon')
+    bpy.context.user_preferences.inputs.srDaemonRunning[1]['default'] = True
     result = bpy.ops.asyncio.loop()
     log.debug('Result of starting modal operator is %r', result)
 
-
-def stop_services():
+def stop_daemons():
     global _loop_kicking_operator_running
 
-    log.debug('Erasing async loop')
-    _loop_kicking_operator_running = False
-    loop = asyncio.get_event_loop()
-    loop.stop()
+    if bpy.context.user_preferences.inputs.srDaemonRunning[1]['default']:
+        log.debug('Stopping')
+        for i in _daemons:
+            i.cancel()
+        _daemons.clear()
+        bpy.context.user_preferences.inputs.srDaemonRunning[1]['default'] = False
+        _loop_kicking_operator_running = False
+        loop = asyncio.get_event_loop()
+        loop.stop()
+    else:
+        pass
 
+def setup_daemons():
+    logging.basicConfig(level=logging.DEBUG)
+
+    _ip = GetCurrentIp()
+
+
+    if sys.platform == "win32":
+        _loop = asyncio.ProactorEventLoop()
+        asyncio.set_event_loop(_loop)
+    else:
+        _loop = asyncio.get_event_loop()
+
+    try:
+        setup_asyncio_executor()
+
+        print("async_loop setuping")
+    except:
+        print("async_loop already setup")
+        pass
+
+    root = os.path.dirname(os.path.abspath(__file__))+"/static"
+    print("launch server on " + _ip+ root)
+    _httpd = _loop.create_server(lambda: httpd.HttpProtocol(_ip, root),
+                                 '0.0.0.0',
+                                 8080)
+
+    _wsd = websockets.serve(WebsocketRecv, '0.0.0.0', 5678)
+
+    websocket_task = asyncio.ensure_future(_wsd)
+    # httpd_task = _loop.run_until_complete(_httpd)
+    httpd_task = asyncio.ensure_future(_httpd)
+
+    _daemons.append(websocket_task)
+    _daemons.append(httpd_task)
+    # camera_task = asyncio.ensure_future(get_frame(_loop))
+    # camera_feed_task = asyncio.ensure_future(CameraFeed())
+
+
+    #_loop.run_forever()
+    bpy.app.handlers.load_post.clear()
+
+class StopBlenderRemote(bpy.types.Operator):
+    """Tooltip"""
+    bl_idname = "scene.stop_blender_remote"
+    bl_label = "Stop daemons"
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None
+
+    def execute(self, context):
+        stop_daemons()
+        return {'FINISHED'}
+
+class RestartBlenderRemote(bpy.types.Operator):
+    """Tooltip"""
+    bl_idname = "scene.restart_blender_remote"
+    bl_label = "Reboot daemons"
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None
+
+    def execute(self, context):
+        stop_daemons()
+        setup_daemons()
+        run_daemons()
+        return {'FINISHED'}
 
 class AsyncLoopModalOperator(bpy.types.Operator):
     bl_idname = 'asyncio.loop'
@@ -116,8 +209,6 @@ class AsyncLoopModalOperator(bpy.types.Operator):
 
 
         return {'RUNNING_MODAL'}
-
-
 
 class CameraProcessProtocol(asyncio.SubprocessProtocol):
     def __init__(self, exit_future):
@@ -192,62 +283,16 @@ async def CameraFeed():
             t = await cli.recv()
             print(t)
 
-def GetCurrentIp():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    ip = s.getsockname()[0]
-    s.close()
-    return ip
-
-
-@persistent
-def launchDaemons(scene):
-    logging.basicConfig(level=logging.DEBUG)
-
-    _ip = GetCurrentIp()
-
-
-    if sys.platform == "win32":
-        _loop = asyncio.ProactorEventLoop()
-        asyncio.set_event_loop(_loop)
-    else:
-        _loop = asyncio.get_event_loop()
-
-    try:
-        setup_asyncio_executor()
-
-        print("async_loop setuping")
-    except:
-        print("async_loop already setup")
-        pass
-
-    root = os.path.dirname(os.path.abspath(os.path.join(__file__,"../../..")))+"/static"
-    print("launch server on " + _ip+ root)
-    _httpd = _loop.create_server(lambda: httpd.HttpProtocol(_ip, root),
-                                 '0.0.0.0',
-                                 8080)
-
-    _wsd = websockets.serve(WebsocketRecv, '0.0.0.0', 5678)
-
-    websocket_task = asyncio.ensure_future(_wsd)
-    # httpd_task = _loop.run_until_complete(_httpd)
-    httpd_task = asyncio.ensure_future(_httpd)
-
-    # camera_task = asyncio.ensure_future(get_frame(_loop))
-    # camera_feed_task = asyncio.ensure_future(CameraFeed())
-    #
-    run_services()
-
-    #_loop.run_forever()
-    bpy.app.handlers.load_post.clear()
-
 def register():
+    bpy.utils.register_class(StopBlenderRemote)
+    bpy.utils.register_class(RestartBlenderRemote)
     bpy.utils.register_class(AsyncLoopModalOperator)
-    bpy.app.handlers.load_post.append(launchDaemons)
-    # Launch()
+    bpy.app.handlers.load_post.append(auto_launch_daemons)
 
 
 def unregister():
+    bpy.utils.unregister_class(StopBlenderRemote)
+    bpy.utils.unregister_class(RestartBlenderRemote)
     bpy.utils.unregister_class(AsyncLoopModalOperator)
     bpy.app.handlers.load_post.clear()
     print('test', sep=' ', end='n', file=sys.stdout, flush=False)
