@@ -9,53 +9,49 @@ bl_info = {
 }
 
 import bpy
-from . import sr_settings
-from io_smartphone_remote.libs import pyqrcode
+import sys
+import os
 
-
+thirdPartyDir = os.path.dirname(os.path.abspath(__file__))+"/libs"
 
 def register():
-    print('hi')
-    qr = pyqrcode.create('Unladden swallow')
-    qr.png('famous-joke.png', scale=5)
-    # sr_settings.register()
-    # bpy.utils.register_class(SettingsPanel)
-    # bpy.utils.register_module(__name__)
-    pass
-    # import sys
-    #
-    # # Support reloading
-    # if '%s.blender' % __name__ in sys.modules:
-    #     import importlib
-    #
-    #     def reload_mod(name):
-    #         modname = '%s.%s' % (__name__, name)
-    #         try:
-    #             old_module = sys.modules[modname]
-    #         except KeyError:
-    #             # Wasn't loaded before -- can happen after an upgrade.
-    #             new_module = importlib.import_module(modname)
-    #         else:
-    #             new_module = importlib.reload(old_module)
-    #
-    #         sys.modules[modname] = new_module
-    #         return new_module
-    #
-    #     async_loop = reload_mod('async_loop')
-    # else:
-    #     from . import (async_loop,)
-    #
-    # async_loop.setup_asyncio_executor()
-    # async_loop.register()
+    if thirdPartyDir in sys.path:
+        print('Third party module already added')
+    else:
+        print('Adding local modules dir to the path')
+        sys.path.insert(0, thirdPartyDir)
 
+    import  async_loop
+
+
+
+    from . import sr_settings,sr_daemon
+    import pyqrcode
+
+
+    app = sr_daemon.GetCurrentIp()+":8080"
+    bpy.types.UserPreferencesInput.srLocalIp = bpy.props.StringProperty(name = "Interface address", default=app)
+    bpy.types.UserPreferencesInput.srDaemonRunning = bpy.props.BoolProperty(name = "Daemon running", default=False)
+    url = pyqrcode.create(app)
+    url.png(os.path.dirname(os.path.abspath(__file__))+"/images/connect.png",  scale=4)
+
+    sr_settings.register()
+    # sr_daemon.Launch()
+    sr_daemon.register()
 
 def unregister():
-    # sr_settings.unregister()
-    # bpy.utils.unregister_class(SettingsPanel)
-    # bpy.utils.unregister_module(__name__)
-    pass
-    # from . import (async_loop)
-    # async_loop.unregister()
+    if thirdPartyDir in sys.path:
+        print('Cleanup the path')
+        sys.path.remove(thirdPartyDir)
+    else:
+        print('Nothing to clean')
+
+    from . import (sr_settings,sr_daemon)
+    import async_loop
+
+    sr_settings.unregister()
+    async_loop.unregister();
+
 
 
 if __name__ == "__main__":

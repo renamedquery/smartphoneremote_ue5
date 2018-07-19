@@ -2,12 +2,15 @@ import asyncio
 import websockets
 import subprocess
 import os
-import sr_httpd
+
 import logging
-import async_loop
+from . import async_loop as  al
+import httpd
 import bpy
 import sys
 import socket
+from bpy.app.handlers import persistent
+
 
 class CameraProcessProtocol(asyncio.SubprocessProtocol):
     def __init__(self, exit_future):
@@ -71,7 +74,6 @@ async def WebsocketRecv(websocket, path):
                  bpy.context.selected_objects[0].rotation_euler[1]),
                 (float(sensors[1]) - bpy.context.selected_objects[0].rotation_euler[2])]
 
-
 async def CameraFeed():
     # Wait for ImageProcess
     await asyncio.sleep(2)
@@ -83,7 +85,6 @@ async def CameraFeed():
             t = await cli.recv()
             print(t)
 
-
 def GetCurrentIp():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
@@ -91,44 +92,57 @@ def GetCurrentIp():
     s.close()
     return ip
 
-# setup logging
-logging.basicConfig(level=logging.INFO)
-_logger = logging.getLogger('Main')
+def done_callback(task):
+    print('Task result: ', task.result())
 
-_ip = GetCurrentIp()
-_loop = asyncio.get_event_loop()
 
-if _loop.is_running():
-    _logger.debug('loop is running, check services..')
-else:
+
+@persistent
+def launchDaemon(scene):
+    logging.basicConfig(level=logging.DEBUG)
+
+    _ip = GetCurrentIp()
+
+
+    if sys.platform == "win32":
+        _loop = asyncio.ProactorEventLoop()
+        asyncio.set_event_loop(_loop)
+    else:
+        _loop = asyncio.get_event_loop()
+
     try:
-        async_loop.setup_asyncio_executor()
-        async_loop.register()
-        _logger.debug('loop setuping')
+        al.setup_asyncio_executor()
+        al.register()
+        print("async_loop setuping")
     except:
-        _logger.debug('Loop already setup, something went wrong')
+        print("async_loop already setup")
         pass
 
-    # http server setup
-    print("routines setuping")
-
-
-    _httpd = _loop.create_server(lambda: httpd.HttpProtocol(_ip, 'static'),
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__,"../../..")))+"/static"
+    print("launch server on " + _ip+ root)
+    _httpd = _loop.create_server(lambda: httpd.HttpProtocol(_ip, root),
                                  '0.0.0.0',
                                  8080)
-    # websocket setup
+
     _wsd = websockets.serve(WebsocketRecv, '0.0.0.0', 5678)
 
-    # launching services
-    print("launch daemon")
-    _logger.debug('Launching websocket daemon..')
     websocket_task = asyncio.ensure_future(_wsd)
-    _logger.debug('Launching http daemon..')
+    # httpd_task = _loop.run_until_complete(_httpd)
     httpd_task = asyncio.ensure_future(_httpd)
-    _logger.debug('Launching camera daemon..')
-    camera_task = asyncio.ensure_future(get_frame(_loop))
-    _logger.debug('Success.')
-    camera_feed_task = asyncio.ensure_future(CameraFeed())
 
-    # async_loop.ensure_async_loop()
-    _loop.run_forever()
+    # camera_task = asyncio.ensure_future(get_frame(_loop))
+    # camera_feed_task = asyncio.ensure_future(CameraFeed())
+    #
+    al.ensure_async_loop()
+
+    #_loop.run_forever()
+    # bpy.app.handlers.load_post.clear()
+
+def register():
+    bpy.app.handlers.load_post.append(launchDaemon)
+    # Launch()
+
+
+def unregister():
+    bpy.app.handlers.load_post.clear()
+    print('test', sep=' ', end='n', file=sys.stdout, flush=False)

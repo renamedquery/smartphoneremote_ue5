@@ -10,7 +10,6 @@ import bpy.utils.previews
 
 import os
 
-
 class SmartphoneRemoteSettingsPanel(Panel):
     """Creates a Panel in the Object properties window"""
     bl_label = "Smartphone"
@@ -26,18 +25,28 @@ class SmartphoneRemoteSettingsPanel(Panel):
         return (userpref.active_section == 'INPUT')
 
     @staticmethod
-    def draw(self, layout):
-
+    def draw(self, context):
         layout = self.layout
-        wm = context.window_manager
+        # wm = context.window_manager
         row = layout.row()
+        col = row.column()
+        sub = col.column()
+        sub.label(text="Smartphone:")
         # This tells Blender to draw the my_previews window manager object
         # (Which is our preview)
-        row.template_icon_view(context.scene, "my_thumbnails")
+        sub.template_icon_view(context.scene, "my_thumbnails")
+        sub.label(text = bpy.context.user_preferences.inputs.srLocalIp[1]['default'])
+        sub = row.column()
+        sub.label(text="   ")
+        sub = row.column()
+        sub.label(text="   ")
+        sub = row.column()
+        sub.label(text="   ")
+
 
         # Just a way to access which one is selected
-        row = layout.row()
-        row.label(text="You selected: " + bpy.context.scene.my_thumbnails)
+
+
 
 
 preview_collections = {}

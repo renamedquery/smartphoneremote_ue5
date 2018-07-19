@@ -9,7 +9,7 @@
 #     * Redistributions in binary form must reproduce the above copyright
 #       notice, this list of conditions and the following disclaimer in the
 #       documentation and/or other materials provided with the distribution.
-#     * Neither the name of the copyright holder nor the names of its
+#     * Neither the name of the copyright holder nor the names of its 
 #       contributors may be used to endorse or promote products derived from
 #       this software without specific prior written permission
 #
@@ -30,7 +30,7 @@ builds the code. While the various output methods draw the code into a file.
 #Imports required for 2.x support
 from __future__ import absolute_import, division, print_function, with_statement, unicode_literals
 
-from . import tables as tables
+import pyqrcode.tables as tables
 import io
 import itertools
 import math
@@ -171,7 +171,7 @@ class QRCodeBuilder:
                 ascii.append(tables.ascii_codes[chr(char)])
             else:
                 ascii.append(tables.ascii_codes[char])
-
+        
         #Now perform the algorithm that will make the ascii into bit fields
         with io.StringIO() as buf:
             for (a,b) in self.grouper(2, ascii):
@@ -254,7 +254,7 @@ class QRCodeBuilder:
             data = self.data.decode('shiftjis').encode('shiftjis')
         else:
             data = self.data.encode('shiftjis')
-
+        
         #Now perform the algorithm that will make the kanji into 13 bit fields
         with io.StringIO() as buf:
             for asint in two_bytes(data):
@@ -290,7 +290,7 @@ class QRCodeBuilder:
         #for i in range(0, len(s), 8):
         #    print(int(s[i:i+8], 2), end=',')
         #print()
-
+        
         #Fix for issue #3: https://github.com/mnooner256/pyqrcode/issues/3#
         #I was performing the terminate_bits() part in the encoding.
         #As per the standard, terminating bits are only supposed to
@@ -305,11 +305,11 @@ class QRCodeBuilder:
         add_bits = self.delimit_words()
         if add_bits:
             self.buffer.write(add_bits)
-
+        
         fill_bytes = self.add_words()
         if fill_bytes:
             self.buffer.write(fill_bytes)
-
+        
         #Get a numeric representation of the data
         data = [int(''.join(x),2)
                     for x in self.grouper(8, self.buffer.getvalue())]
@@ -336,7 +336,7 @@ class QRCodeBuilder:
         for n_data_blocks in data_block_sizes:
             data_blocks.append(data[current_byte:current_byte+n_data_blocks])
             current_byte += n_data_blocks
-
+        
         #I am not sure about the test after the "and". This was added to
         #fix a bug where after delimit_words padded the bit stream, a zero
         #byte ends up being added. After checking around, it seems this extra
@@ -405,7 +405,7 @@ class QRCodeBuilder:
         the encoded string contains only full bytes.
         """
         bits_short = 8 - (len(self.buffer.getvalue()) % 8)
-
+        
         #The string already falls on an byte boundary do nothing
         if bits_short == 0 or bits_short == 8:
             return None
@@ -1000,7 +1000,7 @@ def _terminal(code, module_color='default', background='reverse', quiet_zone=4):
                 buf.write(data)
             elif bit == 0:
                 buf.write(background)
-
+        
         #Each row ends with a quiet zone on the right side, this is the
         #right hand border background modules
         draw_border()
@@ -1041,7 +1041,7 @@ def _text(code, quiet_zone=4):
             #unset pixels will be spaces.
             else:
                 buf.write(' ')
-
+        
         #Draw the ending quiet zone
         for b in range(quiet_zone):
             buf.write('0')
@@ -1062,12 +1062,12 @@ def _xbm(code, scale=1, quiet_zone=4):
         str = unicode  # Python 2
     except NameError:
         str = __builtins__['str']
-
+        
     buf = io.StringIO()
-
+    
     # Calculate the width in pixels
     pixel_width = (len(code[0]) + quiet_zone * 2) * scale
-
+    
     # Add the size information and open the pixel data section
     buf.write('#define im_width ')
     buf.write(str(pixel_width))
@@ -1076,10 +1076,10 @@ def _xbm(code, scale=1, quiet_zone=4):
     buf.write(str(pixel_width))
     buf.write('\n')
     buf.write('static char im_bits[] = {\n')
-
+    
     # Calculate the number of bytes per row
     byte_width = int(math.ceil(pixel_width / 8.0))
-
+    
     # Add the top quiet zone
     buf.write(('0x00,' * byte_width + '\n') * quiet_zone * scale)
     for row in code:
@@ -1101,7 +1101,7 @@ def _xbm(code, scale=1, quiet_zone=4):
     # Add the bottom quiet zone and close the pixel data section
     buf.write(('0x00,' * byte_width + '\n') * quiet_zone * scale)
     buf.write('};')
-
+    
     return buf.getvalue()
 
 def _svg(code, version, file, scale=1, module_color='#000', background=None,
@@ -1263,8 +1263,8 @@ def _png(code, version, file, scale=1, module_color=(0, 0, 0, 255),
     :param debug: Inidicates if errors in the QR code should be added (as red
             modules) to the output (default: ``False``).
     """
-    from . import png
-
+    import png
+    
     # Coerce scale parameter into an integer
     try:
         scale = int(scale)
