@@ -36,9 +36,10 @@ class Imu extends Sensor {
 
     //IMU values
     this.deviceOrientationData = {
-      alpha: 0,
-      beta: 0,
-      gamma: 0
+      w: 0,
+      x: 0,
+      y: 0,
+      z: 0
     };
     this.deltaDeviceOrientationData = {
       alpha: 0,
@@ -74,8 +75,25 @@ class Imu extends Sensor {
     }
 
   }
-    processGyro(event){
-    this.deviceOrientationData = event;
+    processGyro(event) {
+    var x = degToRad(event.beta); // beta value
+    var y = degToRad(event.gamma); // gamma value
+    var z = degToRad(event.alpha); // alpha value
+
+    //precompute to save on processing time
+    var cX = Math.cos(x / 2);
+    var cY = Math.cos(y / 2);
+    var cZ = Math.cos(z / 2);
+    var sX = Math.sin(x / 2);
+    var sY = Math.sin(y / 2);
+    var sZ = Math.sin(z / 2);
+
+    this.deviceOrientationData.w = cX * cY * cZ - sX * sY * sZ;
+    this.deviceOrientationData.x = sX * cY * cZ - cX * sY * sZ;
+    this.deviceOrientationData.y = cX * sY * cZ + sX * cY * sZ;
+    this.deviceOrientationData.z = cX * cY * sZ + sX * sY * cZ;
+
+    // this.deviceOrientationData.x
   }
 
   remove() {
@@ -153,9 +171,7 @@ class Tracking extends Action {
     if(this.websocket.readyState == 1){
       this.daemon = setInterval(function(){
         var t = this.sensor.get_data();
-        this.websocket.send(degToRad(t.alpha)+
-        '/'+degToRad(t.beta)+
-        '/'+degToRad(t.gamma));
+        this.websocket.send(t.w+'/'+t.x+'/'+t.y+'/'+t.z);
       }.bind(this),this.sensor.frequency);
 
       this.status = _status_enum.PLAYING;

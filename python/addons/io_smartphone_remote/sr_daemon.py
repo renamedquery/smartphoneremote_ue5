@@ -83,7 +83,7 @@ def stop_daemons():
         pass
 
 def setup_daemons():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     _ip = GetCurrentIp()
 
@@ -250,18 +250,18 @@ async def WebsocketRecv(websocket, path):
     offset = [0.0, 0.0, 0.0]
     while True:
         data = await websocket.recv()
-        print(data)
-        if 'sensors' in path:
+        # print(data)
+        if 'tracking' in path:
             sensors = data.split('/')
-            bpy.context.selected_objects[0].rotation_euler[2] = float(
-                sensors[0]) + offset[2]
-            bpy.context.selected_objects[0].rotation_euler[1] = float(
-                sensors[1]) + offset[1]
-            bpy.context.selected_objects[0].rotation_euler[0] = float(
-                sensors[2]) + offset[0]
-            #bpy.context.selected_objects[0].location[0] += float(sensors[0]/2)
-            #bpy.context.selected_objects[0].location[1] += float(sensors[1]/2)
-            #bpy.context.selected_objects[0].location[2] += float(sensors[2]/2)
+
+            bpy.context.selected_objects[0].rotation_quaternion[0] = float(
+                sensors[0])
+            bpy.context.selected_objects[0].rotation_quaternion[1] = float(
+                sensors[1])
+            bpy.context.selected_objects[0].rotation_quaternion[2] = float(
+                sensors[2])
+            bpy.context.selected_objects[0].rotation_quaternion[3] = float(
+                sensors[3])
         elif 'commands' in path:
             print("init rotation")
             sensors = data.split('/')
