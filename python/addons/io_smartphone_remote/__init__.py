@@ -31,7 +31,7 @@ def register():
 
     app = sr_daemon.GetCurrentIp()+":8080"
     bpy.types.UserPreferencesInput.srLocalIp = bpy.props.StringProperty(name = "Interface address", default=app)
-    bpy.types.UserPreferencesInput.srDaemonRunning = bpy.props.BoolProperty(name = "Daemon running", default=False)
+    bpy.types.UserPreferencesInput.srDaemonRunning = bpy.props.BoolProperty(name = "Daemon running", default=True)
     url = pyqrcode.create(app)
     url.png(os.path.dirname(os.path.abspath(__file__))+"/images/connect.png",  scale=4)
 
@@ -48,9 +48,10 @@ def unregister():
 
     from . import (sr_settings,sr_daemon)
     import async_loop
-
-    sr_settings.unregister()
+    
     async_loop.unregister();
+    sr_settings.unregister()
+
 
 
 

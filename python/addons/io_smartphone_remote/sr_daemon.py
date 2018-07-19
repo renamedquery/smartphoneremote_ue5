@@ -1,15 +1,122 @@
+
 import asyncio
+import traceback
+import concurrent.futures
+import logging
+import gc
+
 import websockets
 import subprocess
 import os
 
 import logging
-from . import async_loop as  al
 import httpd
 import bpy
 import sys
 import socket
 from bpy.app.handlers import persistent
+
+import bpy
+
+log = logging.getLogger(__name__)
+
+# Keeps track of whether a loop-kicking operator is already running.
+_loop_kicking_operator_running = False
+_stop_daemons = False
+
+
+def setup_asyncio_executor():
+    """Sets up AsyncIO to run properly on each platform."""
+
+    import sys
+
+    if sys.platform == 'win32':
+        asyncio.get_event_loop().close()
+        # On Windows, the default event loop is SelectorEventLoop, which does
+        # not support subprocesses. ProactorEventLoop should be used instead.
+        # Source: https://docs.python.org/3/library/asyncio-subprocess.html
+        loop = asyncio.ProactorEventLoop()
+        asyncio.set_event_loop(loop)
+    else:
+        loop = asyncio.get_event_loop()
+
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
+    loop.set_default_executor(executor)
+
+def run_services():
+    log.debug('Starting asyncio loop')
+    result = bpy.ops.asyncio.loop()
+    log.debug('Result of starting modal operator is %r', result)
+
+
+def stop_services():
+    global _loop_kicking_operator_running
+
+    log.debug('Erasing async loop')
+    _loop_kicking_operator_running = False
+    loop = asyncio.get_event_loop()
+    loop.stop()
+
+
+class AsyncLoopModalOperator(bpy.types.Operator):
+    bl_idname = 'asyncio.loop'
+    bl_label = 'Runs the asyncio main loop'
+
+    timer = None
+    log = logging.getLogger(__name__ + '.AsyncLoopModalOperator')
+
+    def __del__(self):
+        global _loop_kicking_operator_running
+
+        # This can be required when the operator is running while Blender
+        # (re)loads a file. The operator then doesn't get the chance to
+        # finish the async tasks, hence stop_after_this_kick is never True.
+        _loop_kicking_operator_running = False
+
+    def execute(self, context):
+        return self.invoke(context, None)
+
+    def invoke(self, context, event):
+        global _loop_kicking_operator_running
+
+        if _loop_kicking_operator_running:
+            self.log.debug('Another loop-kicking operator is already running.')
+            return {'PASS_THROUGH'}
+
+        context.window_manager.modal_handler_add(self)
+        _loop_kicking_operator_running = True
+
+        wm = context.window_manager
+        self.timer = wm.event_timer_add(0.00001, context.window)
+
+        return {'RUNNING_MODAL'}
+
+    def modal(self, context, event):
+        global _loop_kicking_operator_running
+
+        # If _loop_kicking_operator_running is set to False, someone called
+        # erase_async_loop(). This is a signal that we really should stop
+        # running.
+        if not _loop_kicking_operator_running:
+            context.window_manager.event_timer_remove(self.timer)
+            return {'FINISHED'}
+
+        if event.type != 'TIMER':
+            return {'PASS_THROUGH'}
+
+        loop = asyncio.get_event_loop()
+        loop.stop()
+        loop.run_forever()
+
+        if bpy.context.user_preferences.inputs.srDaemonRunning[1]['default'] == False:
+            context.window_manager.event_timer_remove(self.timer)
+            _loop_kicking_operator_running = False
+            self.log.debug('Stopped asyncio loop kicking')
+            return {'FINISHED'}
+
+
+        return {'RUNNING_MODAL'}
+
 
 
 class CameraProcessProtocol(asyncio.SubprocessProtocol):
@@ -92,13 +199,9 @@ def GetCurrentIp():
     s.close()
     return ip
 
-def done_callback(task):
-    print('Task result: ', task.result())
-
-
 
 @persistent
-def launchDaemon(scene):
+def launchDaemons(scene):
     logging.basicConfig(level=logging.DEBUG)
 
     _ip = GetCurrentIp()
@@ -111,8 +214,8 @@ def launchDaemon(scene):
         _loop = asyncio.get_event_loop()
 
     try:
-        al.setup_asyncio_executor()
-        al.register()
+        setup_asyncio_executor()
+
         print("async_loop setuping")
     except:
         print("async_loop already setup")
@@ -133,16 +236,18 @@ def launchDaemon(scene):
     # camera_task = asyncio.ensure_future(get_frame(_loop))
     # camera_feed_task = asyncio.ensure_future(CameraFeed())
     #
-    al.ensure_async_loop()
+    run_services()
 
     #_loop.run_forever()
-    # bpy.app.handlers.load_post.clear()
+    bpy.app.handlers.load_post.clear()
 
 def register():
-    bpy.app.handlers.load_post.append(launchDaemon)
+    bpy.utils.register_class(AsyncLoopModalOperator)
+    bpy.app.handlers.load_post.append(launchDaemons)
     # Launch()
 
 
 def unregister():
+    bpy.utils.unregister_class(AsyncLoopModalOperator)
     bpy.app.handlers.load_post.clear()
     print('test', sep=' ', end='n', file=sys.stdout, flush=False)
