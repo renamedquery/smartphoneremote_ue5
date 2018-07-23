@@ -75,7 +75,7 @@ function initRemote() {
   var imu = new Imu(false,false);
 
   _actions.push(new Tracking("tracking", "large", "mif-play", _client,sampling, imu));
-  _actions.push(new Script("test", "wide", "mif-play", _client,sampling, 'imu'));
+  _actions.push(new Action("test", "wide", "mif-play", _client,0));
 
   document.getElementById('fullscreenCommand').addEventListener('click', function(e) {
     setFullscreen();

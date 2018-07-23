@@ -126,44 +126,84 @@ class Action {
     //Setup action GUI
     document.getElementById('_actions_list').innerHTML +=
     " <div id = \'"+this.name+"\' data-role=\'tile\' data-size=\'"+this.size+"\'  class=\'bg-darkSteel fg-white\'> \n" +
-    "<span id=\'"+this.name+"_icon\' class = \'"+this.icon+ " icon\'></span></div>"
+    "<span id=\'"+this.name+"_icon\' class = \'"+this.icon+ " icon\'></span><span id=\'"+this.name+"_brand\' class=\'badge-bottom\'>"+this.status+"</span></div>"
 
     $(document).on('mousedown', '#'+this.name, function() {
       this.mousedown();
     }.bind(this));
 
     this.status = _status_enum.IDLE;
-  }
-  
-  mousedown(){
-    var newTileIcon;
-    var newTileColor;
 
+    this.update_skin();
+  }
+
+  mousedown(){
     if(this.status == _status_enum.NULL){
         console.log('Error on ' + this.name+ " init");
     }
     else if (this.status == _status_enum.IDLE || this.status == _status_enum.STOPPED) {
-      newTileColor = "tile-"+this.size+" bg-orange";
-      newTileIcon = "mif-stop icon";
-
       this.play();
     }
     else if (this.status == _status_enum.PLAYING) {
-      newTileColor = "tile-"+this.size+" bg-darkSteel";
-      newTileIcon = "mif-play icon";
       this.stop();
     }
     else if (this.status == _status_enum.ERROR) {
       console.log('Error on ' + this.name);
     }
-    document.getElementById(this.name).className = newTileColor;
-    document.getElementById(this.name+"_icon").className = newTileIcon;
+      this.update_skin();
   }
+
   play() {
+    if (this.websocket.readyState == 1) {
+      if (this.frequency != 0) {
+        this.daemon = setInterval(function(){this.core();}.bind(this), this.frequency);
+        this.status = _status_enum.PLAYING;
+        this.update_skin();
+      } else {
+        this.core();
+        this.status = _status_enum.IDLE;
+      }
+    } else {
+      this.status = _status_enum.ERROR;
+    }
 
   }
-  stop() {}
+  core(){
+    console.log('Define action');
+  }
+  stop() {
+    if(this.frequency != 0){
+      clearInterval(this.daemon);
+      var t = this.sensor.remove();
+      this.status = _status_enum.IDLE;
+    }
+    this.update_skin();
+  }
   delete() {}
+  update_skin(){
+    var newTileIcon;
+    var newTileColor;
+
+    if(this.status == _status_enum.NULL){
+    }
+    else if (this.status == _status_enum.IDLE || this.status == _status_enum.STOPPED) {
+      newTileColor = "tile-"+this.size+" bg-darkSteel";
+      newTileIcon = "mif-play icon";
+
+    }
+    else if (this.status == _status_enum.PLAYING) {
+      newTileColor = "tile-"+this.size+" bg-orange";
+      newTileIcon = "mif-stop icon";
+
+    }
+    else if (this.status == _status_enum.ERROR) {
+      console.log('Error on ' + this.name);
+    }
+    document.getElementById(this.name+"_brand").innerHTML = this.status;
+    document.getElementById(this.name).className = newTileColor;
+    document.getElementById(this.name+"_icon").className = newTileIcon;
+
+  }
 }
 
 class Script extends Action {
@@ -171,19 +211,12 @@ class Script extends Action {
     super(name, size, icon, client, frequency);
     this.script = command;
   }
-  play() {
-      this.status = _status_enum.PLAYING;
-  }
+
   // mousedown(){
   //   super.mousedown();
   //
   //   console.log('mouve over from tracking');
   // }
-  stop(){
-    super.stop()
-      clearInterval(this.daemon);
-      this.status = _status_enum.IDLE;
-  }
 
 }
 class Tracking extends Action {
@@ -199,25 +232,16 @@ class Tracking extends Action {
   //   console.log('mouve over from tracking');
   // }
 
-  play() {
-    if(this.websocket.readyState == 1){
-      this.daemon = setInterval(function(){
-        var t = this.sensor.get_data();
-        this.websocket.send(t.w+'/'+t.x+'/'+t.y+'/'+t.z);
-      }.bind(this),this.frequency);
-
-      this.status = _status_enum.PLAYING;
-    }
-    else{
-      this.status = _status_enum.ERROR;
-    }
+  core() {
+      var t = this.sensor.get_data();
+      this.websocket.send(t.w+'/'+t.x+'/'+t.y+'/'+t.z);
   }
 
-  stop(){
-    super.stop()
-      clearInterval(this.daemon);
-      var t = this.sensor.remove();
-      this.status = _status_enum.IDLE;
-  }
+  // stop(){
+  //   super.stop()
+  //     clearInterval(this.daemon);
+  //     var t = this.sensor.remove();
+  //     this.status = _status_enum.IDLE;
+  // }
 
 }

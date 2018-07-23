@@ -263,6 +263,8 @@ async def WebsocketRecv(websocket, path):
                 sensors[2])
             bpy.context.selected_objects[0].rotation_quaternion[3] = float(
                 sensors[3])
+        elif 'script' in path:
+            eval(data)
         elif 'commands' in path:
             print("init rotation")
             sensors = data.split('/')
