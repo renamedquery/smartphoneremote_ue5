@@ -131,9 +131,10 @@ class Action {
     $(document).on('mousedown', '#'+this.name, function() {
       this.mousedown();
     }.bind(this));
-    
+
     this.status = _status_enum.IDLE;
   }
+  
   mousedown(){
     var newTileIcon;
     var newTileColor;

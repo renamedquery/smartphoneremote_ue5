@@ -76,15 +76,6 @@ function initRemote() {
 
   _actions.push(new Tracking("tracking", "large", "mif-play", _client,sampling, imu));
   _actions.push(new Script("test", "wide", "mif-play", _client,sampling, 'imu'));
-  console.log(_actions.length);
-  // for(var i = 0;i < _actions.length;i++){
-  //   console.log(_actions[i].name);
-  //   document.getElementById(_actions[i].name).addEventListener("mousedown", function(){_actions[i].mousedown();}.bind(_actions[i]));
-  // }
-
-
-  // document.getElementById(this.name).addEventListener("mousedown", function(){this.mousedown();}.bind(this));
-    // var test3 = new Action("recordsd", "wide", "mif-play", _client,sampling);
 
   document.getElementById('fullscreenCommand').addEventListener('click', function(e) {
     setFullscreen();
