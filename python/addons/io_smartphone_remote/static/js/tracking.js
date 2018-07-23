@@ -11,7 +11,6 @@ class Sensor {
   constructor(frequency) {
     this.supported = false;
     this.enabled = false;
-    this.frequency = 1000/frequency;
   }
   init() { }
   get_data() {}
@@ -22,7 +21,7 @@ class Sensor {
 
 class Camera extends Sensor {
   constructor() {
-    super(frequency);
+    super();
   }
   init() {
 
@@ -31,7 +30,7 @@ class Camera extends Sensor {
 
 class Imu extends Sensor {
   constructor(frequency,relative, enabled) {
-    super(frequency);
+    super();
     this.relative = relative;
 
     //IMU values
@@ -106,7 +105,7 @@ class Imu extends Sensor {
 }
 
 class Action {
-  constructor(name, size, icon, client) {
+  constructor(name, size, icon, client, frequency) {
     this.name = name;
     this.size = size;
     this.icon = icon;
@@ -114,6 +113,13 @@ class Action {
     this.daemon = null;
     this.status = _status_enum.NULL;
 
+    //TODO: Cleanup
+    if(frequency > 0){
+      this.frequency = 1000/frequency;
+    }
+    else{
+      this.frequency = 0;
+    }
     //Setup data sender
     this.websocket = new WebSocket("ws://"+this.client+"/"+this.name);
 
@@ -122,8 +128,10 @@ class Action {
     " <div id = \'"+this.name+"\' data-role=\'tile\' data-size=\'"+this.size+"\'  class=\'bg-darkSteel fg-white\'> \n" +
     "<span id=\'"+this.name+"_icon\' class = \'"+this.icon+ " icon\'></span></div>"
 
-
-    document.getElementById(this.name).addEventListener("mousedown", function(){this.mousedown();}.bind(this));
+    $(document).on('mousedown', '#'+this.name, function() {
+      this.mousedown();
+    }.bind(this));
+    
     this.status = _status_enum.IDLE;
   }
   mousedown(){
@@ -134,13 +142,13 @@ class Action {
         console.log('Error on ' + this.name+ " init");
     }
     else if (this.status == _status_enum.IDLE || this.status == _status_enum.STOPPED) {
-      newTileColor = "tile-large bg-orange";
+      newTileColor = "tile-"+this.size+" bg-orange";
       newTileIcon = "mif-stop icon";
 
       this.play();
     }
     else if (this.status == _status_enum.PLAYING) {
-      newTileColor = "tile-large bg-darkSteel";
+      newTileColor = "tile-"+this.size+" bg-darkSteel";
       newTileIcon = "mif-play icon";
       this.stop();
     }
@@ -153,38 +161,59 @@ class Action {
   play() {
 
   }
-  stop() {
-
-  }
+  stop() {}
   delete() {}
 }
 
+class Script extends Action {
+  constructor(name, size, icon,client,frequency, command) {
+    super(name, size, icon, client, frequency);
+    this.script = command;
+  }
+  play() {
+      this.status = _status_enum.PLAYING;
+  }
+  // mousedown(){
+  //   super.mousedown();
+  //
+  //   console.log('mouve over from tracking');
+  // }
+  stop(){
+    super.stop()
+      clearInterval(this.daemon);
+      this.status = _status_enum.IDLE;
+  }
+
+}
 class Tracking extends Action {
-  constructor(name, size, icon, websocket, sensor) {
-    super(name, size, icon, websocket);
+  constructor(name, size, icon,client,frequency, sensor) {
+    super(name, size, icon, client, frequency);
     this.sensor = sensor;
     this.sensor.init();
 
   }
+  // mousedown(){
+  //   super.mousedown();
+  //
+  //   console.log('mouve over from tracking');
+  // }
 
   play() {
     if(this.websocket.readyState == 1){
       this.daemon = setInterval(function(){
         var t = this.sensor.get_data();
         this.websocket.send(t.w+'/'+t.x+'/'+t.y+'/'+t.z);
-      }.bind(this),this.sensor.frequency);
+      }.bind(this),this.frequency);
 
       this.status = _status_enum.PLAYING;
     }
     else{
       this.status = _status_enum.ERROR;
     }
-
-
-
   }
 
   stop(){
+    super.stop()
       clearInterval(this.daemon);
       var t = this.sensor.remove();
       this.status = _status_enum.IDLE;

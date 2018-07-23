@@ -247,12 +247,13 @@ def get_frame(loop):
 async def WebsocketRecv(websocket, path):
     import bpy
     print("starting websocket server on 5678")
-    offset = [0.0, 0.0, 0.0]
+    offset = [0.0, 0.0, 0.0,0.0]
     while True:
         data = await websocket.recv()
         # print(data)
         if 'tracking' in path:
             sensors = data.split('/')
+            bpy.context.object.rotation_mode = 'QUATERNION'
 
             bpy.context.selected_objects[0].rotation_quaternion[0] = float(
                 sensors[0])

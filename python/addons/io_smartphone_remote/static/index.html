@@ -20,7 +20,7 @@
 
 <body onload="initRemote();">
   <!-- <input type="checkbox" data-role="switch" data-caption=""> -->
-  <div class="pos-relative z-dropdown d-flex flex-justify-between app-bar" data-role="appbar">
+  <div class="pos-fixed fixed-top app-bar-wrapper z-top d-flex flex-justify-between" data-role="appbar">
     <div class="app-bar-container float-none">
       <a id="viewSwitchCommand" class="brand">
     <span id="viewSwitchCommandIcon" class="mif-3x mif-equalizer"></span>
@@ -44,14 +44,12 @@
       </a>
     </div>
   </div>
-  <div data-role="progress" data-value="0" data-buffer="0" data-small="true">
-    <div class="notify-container"></div>
+  <div class="pos-fixed fixed-top pt-14" style="z-index: 10;"data-role="progress" data-value="0" data-buffer="0" data-small="true">
   </div>
-  <div id="_action_window" data-role="collapse" class="container-fluid" data-duration="0">
-    <div id="_actions_list" class="tiles-grid d-flex flex-justify-center  flex-align-center flex-wrap" style="height: 80vh;">
-      <!-- <div id="trackingTile" data-role="tile" data-size="large" style="background-color:#585B5D;" class=" fg-white">
-        <span class="mif-play icon"></span>
-      </div> -->
+  <div id="_action_window" class="container-fluid pt-16" data-role="collapse" data-duration="0">
+    <div id="_actions_list" class="tiles-grid d-flex flex-content-center flex-justify-center flex-wrap" style="height:86vh;" >
+
+      </div>
       <!-- <div data-role="tile" data-size="medium"  class="bg-darkSteel fg-white">
         <span class="mif-chart-dots icon"></span>
       </div>
@@ -59,7 +57,7 @@
         <span class="mif-video-camera icon"></span>
       </div> -->
     </div>
-    <div class=" d-flex flex-nowrap">
+    <div class=" pos-fixed pos-bottom-left p-3">
       <div class="multi-action">
         <button class="action-button fg-white rotate-minus " style="background-color:#585B5D; //border-radius:0%;" onclick="$(this).toggleClass('active')">
             <span class="icon"><span class="mif-plus"></span></span>
@@ -72,7 +70,7 @@
       </div>
     </div>
   </div>
-  <div id="_tool_window" data-role="collapse" class="container-fluid p-2" data-collapsed="true" data-duration="0">
+  <div id="_tool_window" data-role="collapse" class="container-fluid pt-16 p-2" data-collapsed="true" data-duration="0">
     <button class="button" id="tracking_settings_toogle">Tracking settings</button>
     <div class="bg-dark bd-darkGrey p-2" data-role="collapse" data-toggle-element="#tracking_settings_toogle" data-collapsed="false" data-duration="0">
           <div class="row ">
