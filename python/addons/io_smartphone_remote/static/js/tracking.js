@@ -135,6 +135,7 @@ class Action {
     this.status = _status_enum.IDLE;
 
     this.update_skin();
+
   }
 
   mousedown(){
@@ -179,6 +180,9 @@ class Action {
     this.update_skin();
   }
   delete() {}
+  init_settings_pannel(){
+
+  }
   update_skin(){
     var newTileIcon;
     var newTileColor;
@@ -210,10 +214,29 @@ class Script extends Action {
     name += "_script"
     super(name, size, icon, client, frequency);
     this.script = command;
+    this.init_settings_pannel();
   }
   core(){
     console.log('sending code');
     this.websocket.send(this.script);
+  }
+
+  init_settings_pannel(){
+    document.getElementById('_tool_window').innerHTML += "<div class='mb-2' data-role='panel' data-title-caption='"+this.name+" settings' data-collapsed='true' data-collapsible='true'>"
+         +`<div class='row'>
+              <label class='cell'>Frequency</label>
+              <div class='cell'>
+                <input id='tracking_settings_sampling'class='flex-self-center' data-role='slider'`
+           +      "data-value='"+this.frequency+"'"
+           +   `   data-hint='true'
+                 data-min='0' data-max='60'>
+              </div>
+         </div>`
+        +`<div class='row'>
+             <label class='cell'>Command</label></div>`
+        +"  <div class='row'>    <div class='cell'> <textarea class='flex-self-center' id='newScriptActionCommand'  data-role='textarea'  >"+this.script+" </textarea></div>"
+        +`</div>
+        </div>`
   }
 
 }
@@ -222,7 +245,7 @@ class Tracking extends Action {
     super(name, size, icon, client, frequency);
     this.sensor = sensor;
     this.sensor.init();
-
+    this.init_settings_pannel();
   }
   core() {
       var t = this.sensor.get_data();
@@ -233,7 +256,28 @@ class Tracking extends Action {
     var t = this.sensor.remove();
 
   }
-
+  init_settings_pannel(){
+    document.getElementById('_tool_window').innerHTML += "<div data-role='panel' class='mb-2' data-title-caption='"+this.name+" settings' data-collapsed='true' data-collapsible='true'>"
+        +`<div class='row '>
+           <label class='cell'>Sensor</label>
+           <div class='cell'>
+             <select data-role='select' name='Input Feed' class='flex-self-center'>
+                 <option value='imu'>IMU</option>
+                 <option value='camera'>Camera</option>
+             </select>
+           </div>
+         </div>`
+        +`<div class='row'>
+             <label class='cell'>Frequency</label>
+             <div class='cell'>
+               <input id='tracking_settings_sampling'class='flex-self-center' data-role='slider'`
+          +      "data-value='"+this.frequency+"'"
+          +`      data-hint='true'
+                data-min='0' data-max='60'>
+             </div>
+        </div>
+        </div>`
+  }
 
 
 }

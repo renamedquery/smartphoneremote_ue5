@@ -105,28 +105,33 @@
   </div>
 
   <div id="_tool_window" data-role="collapse" class="container-fluid pt-16 p-2" data-collapsed="true" data-duration="0">
-    <button class="button" id="tracking_settings_toogle">Tracking settings</button>
-    <div class="bg-dark bd-darkGrey p-2" data-role="collapse" data-toggle-element="#tracking_settings_toogle" data-collapsed="false" data-duration="0">
-          <div class="row ">
-           <label class="cell">Sensor</label>
-           <div class="cell">
-             <select data-role="select" name="Input Feed" class="flex-self-center">
-                 <option value="imu">IMU</option>
-                 <option value="camera">Camera</option>
-           </select>
-           </div>
-       </div>
-       <div class="row ">
-           <label class="cell">Frequency</label>
-           <div class="cell">
-             <input id="tracking_settings_sampling"class="flex-self-center" data-role="slider"
-              data-value="30"
-              data-hint="true"
-              data-min="0" data-max="60">
-           </div>
-       </div>
-    </div>
+    <!-- <div data-role="panel"
+        data-title-caption="Tracking settings"
+        data-collapsed="true"
+        data-collapsible="true">
+        <div class="row ">
+         <label class="cell">Sensor</label>
+         <div class="cell">
+           <select data-role="select" name="Input Feed" class="flex-self-center">
+               <option value="imu">IMU</option>
+               <option value="camera">Camera</option>
+         </select>
+         </div>
+     </div>
+     <div class="row ">
+         <label class="cell">Frequency</label>
+         <div class="cell">
+           <input id="tracking_settings_sampling"class="flex-self-center" data-role="slider"
+            data-value="30"
+            data-hint="true"
+            data-min="0" data-max="60">
+         </div>
+    </div> -->
   </div>
+
+
+    </div>
+
 
   <canvas id="canvas" hidden></canvas>
   <canvas id="video-canvas" hidden></canvas>

@@ -71,10 +71,10 @@ function initRemote() {
     document.getElementById('connexion_status').className = "mif-wifi-connect mif-3x "+ displayed_status_color;
   }, 5000);
 
-  var sampling = document.getElementById('tracking_settings_sampling').value;
+
   var imu = new Imu(false,false);
 
-  _actions.push(new Tracking("tracking", "medium", "mif-play", _client,sampling, imu));
+  _actions.push(new Tracking("tracking", "medium", "mif-play", _client,30, imu));
 
   var translate_local = "bpy.ops.transform.translate(value=(0, -0.1, 0), constraint_axis=(False, True, False), constraint_orientation='LOCAL')"
   _actions.push(new Script("test", "medium", "mif-airplane", _client,30,translate_local));
