@@ -174,7 +174,6 @@ class Action {
   stop() {
     if(this.frequency != 0){
       clearInterval(this.daemon);
-      var t = this.sensor.remove();
       this.status = _status_enum.IDLE;
     }
     this.update_skin();
@@ -188,7 +187,7 @@ class Action {
     }
     else if (this.status == _status_enum.IDLE || this.status == _status_enum.STOPPED) {
       newTileColor = "tile-"+this.size+" bg-darkSteel";
-      newTileIcon = "mif-play icon";
+      newTileIcon = this.icon+" icon";
 
     }
     else if (this.status == _status_enum.PLAYING) {
@@ -208,15 +207,14 @@ class Action {
 
 class Script extends Action {
   constructor(name, size, icon,client,frequency, command) {
+    name += "_script"
     super(name, size, icon, client, frequency);
     this.script = command;
   }
-
-  // mousedown(){
-  //   super.mousedown();
-  //
-  //   console.log('mouve over from tracking');
-  // }
+  core(){
+    console.log('sending code');
+    this.websocket.send(this.script);
+  }
 
 }
 class Tracking extends Action {
@@ -226,22 +224,16 @@ class Tracking extends Action {
     this.sensor.init();
 
   }
-  // mousedown(){
-  //   super.mousedown();
-  //
-  //   console.log('mouve over from tracking');
-  // }
-
   core() {
       var t = this.sensor.get_data();
       this.websocket.send(t.w+'/'+t.x+'/'+t.y+'/'+t.z);
   }
+  stop(){
+    super.stop();
+    var t = this.sensor.remove();
 
-  // stop(){
-  //   super.stop()
-  //     clearInterval(this.daemon);
-  //     var t = this.sensor.remove();
-  //     this.status = _status_enum.IDLE;
-  // }
+  }
+
+
 
 }

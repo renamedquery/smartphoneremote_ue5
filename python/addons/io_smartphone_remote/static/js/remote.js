@@ -74,8 +74,10 @@ function initRemote() {
   var sampling = document.getElementById('tracking_settings_sampling').value;
   var imu = new Imu(false,false);
 
-  _actions.push(new Tracking("tracking", "large", "mif-play", _client,sampling, imu));
-  _actions.push(new Action("test", "wide", "mif-play", _client,0));
+  _actions.push(new Tracking("tracking", "medium", "mif-play", _client,sampling, imu));
+
+  var translate_local = "bpy.ops.transform.translate(value=(0, -0.1, 0), constraint_axis=(False, True, False), constraint_orientation='LOCAL')"
+  _actions.push(new Script("test", "medium", "mif-airplane", _client,30,translate_local));
 
   document.getElementById('fullscreenCommand').addEventListener('click', function(e) {
     setFullscreen();
@@ -94,46 +96,15 @@ function initRemote() {
   canvas.style.display = "none";
 
 
+}
 
-  // _commandButton = document.getElementById('trackingTile');
-  // document.getElementById('trackingTile').addEventListener('mousedown', function(e) {
-  //
+function createScriptAction(){
+  var actionName =  document.getElementById('newScriptActionName').value;
+  var actionSize =  document.getElementById('newScriptActionSize').value;
+  var actionCommand =  document.getElementById('newScriptActionCommand').value;
+  var actionCommand =  document.getElementById('newScriptActionFrequency').value;
 
-    // if (_commandButton.value == "Init") {
-    //   initCameraFeed();
-    //   _commandButton.value = "Start";
-    // } else if (_commandButton.value == "Start") {
-    //
-    //   ws_cameraStream = new WebSocket("ws://" + document.URL.toString().split('/')[2].split(':')[0] + ":6302/ws");
-    //   ws_cameraStream.binaryType = 'arraybuffer';
-    //   ws_cameraStream.onopen = function() {
-    //     console.log("Openened connection to websocket");
-    //     ws_cameraStream.send("start_slam");
-    //   }
-    //   ws_cameraStream.onmessage = function(e) {
-    //     var server_message = e.data;
-    //     console.log(server_message);
-    //
-    //     if (server_message == "slam_ready") {
-    //       canvas.height = v.videoHeight;
-    //       canvas.width = v.videoWidth;
-    //
-    //       _intervalHandle = setInterval(function() {
-    //         RenderFrame(v, context, w, h);
-    //       }, 60);
-    //     }
-    //   }
-    //   _commandButton.value = "Stop";
-    // } else if (_commandButton.value == "Stop") {
-    //   ws_cameraStream.send("stop_slam");
-    //   clearInterval(_intervalHandle);
-    //
-    //   ws_cameraStream.close();
-    //   _commandButton.value = "Start";
-    // }
-  // });
-
-
+  _actions.push(new Script(actionName, actionSize, "mif-file-code", _client,30,actionCommand));
 }
 
 function setFullscreen() {

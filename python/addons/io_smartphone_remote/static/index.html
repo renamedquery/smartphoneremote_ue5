@@ -57,6 +57,39 @@
         <span class="mif-video-camera icon"></span>
       </div> -->
     </div>
+    <div class="dialog" id="newScriptActionDialog" data-role="dialog">
+        <div class="dialog-title">New script</div>
+        <div class="dialog-content">
+          <form class="inline-form">
+            <div class="form-group">
+              <label>Infos</label>
+              <input id="newScriptActionName" type="text" placeholder="Name">
+              <input id="newScriptActionDescription" type="text" placeholder="Description">
+            </div>
+            <div class="form-group">
+              <label>Style</label>
+              <select id="newScriptActionSize"data-role="select">
+                      <option>small</option>
+                      <option selected>medium</option>
+                      <option>wide</option>
+                      <option>large</option>
+                  </select>
+            </div>
+            <div class="form-group">
+              <label>Command</label>
+              <input id="newScriptActionCommand"type="text" placeholder="Python command">
+            </div>
+            <div class="form-group">
+              <label>Execution frequency( 0 mean no looping)</label>
+              <input data-role="slider" data-hint="true" id="newScriptActionFrequency">
+          </div>
+          </form>
+      </div>
+      <div class="dialog-actions">
+          <button onclick="createScriptAction();" class="button primary js-dialog-close">Create</button>
+          <button class="button  js-dialog-close">Cancel</button>
+      </div>
+    </div>
     <div class=" pos-fixed pos-bottom-left p-3">
       <div class="multi-action">
         <button class="action-button fg-white rotate-minus " style="background-color:#585B5D; //border-radius:0%;" onclick="$(this).toggleClass('active')">
@@ -64,12 +97,13 @@
         </button>
         <ul class="actions drop-right">
           <li class=""><a href="#"><span class="mif-chart-dots"></span></a></li>
-          <li class=""><a href="#"><span class="mif-embed2"></span></a></li>
+          <li class=""><a   onclick="Metro.dialog.open('#demoDialog1')" href="#"><span  class="mif-embed2"></span></a></li>
           <li class=""><a href="#"><span class="mif-alarm"></span></a></li>
         </ul>
       </div>
     </div>
   </div>
+
   <div id="_tool_window" data-role="collapse" class="container-fluid pt-16 p-2" data-collapsed="true" data-duration="0">
     <button class="button" id="tracking_settings_toogle">Tracking settings</button>
     <div class="bg-dark bd-darkGrey p-2" data-role="collapse" data-toggle-element="#tracking_settings_toogle" data-collapsed="false" data-duration="0">
