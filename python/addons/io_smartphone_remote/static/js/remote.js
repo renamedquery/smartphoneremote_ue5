@@ -22,6 +22,9 @@ function StartuInfoBoxEvents() {
   );
 }
 
+function test(){
+  console.log('caca');
+}
 function initRemote() {
   _client = document.URL.toString().split('/')[2].split(':')[0] + ':5678';
 

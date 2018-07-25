@@ -137,7 +137,6 @@ class Action {
     this.update_skin();
 
   }
-
   mousedown(){
     if(this.status == _status_enum.NULL){
         console.log('Error on ' + this.name+ " init");
@@ -153,7 +152,6 @@ class Action {
     }
       this.update_skin();
   }
-
   play() {
     if (this.websocket.readyState == 1) {
       if (this.frequency != 0) {
@@ -207,6 +205,7 @@ class Action {
     document.getElementById(this.name+"_icon").className = newTileIcon;
 
   }
+  update_settings(){}
 }
 
 class Script extends Action {
@@ -224,9 +223,9 @@ class Script extends Action {
   init_settings_pannel(){
     document.getElementById('_tool_window').innerHTML += "<div class='mb-2' data-role='panel' data-title-caption='"+this.name+" settings' data-collapsed='true' data-collapsible='true'>"
          +`<div class='row'>
-              <label class='cell'>Frequency</label>
-              <div class='cell'>
-                <input id='tracking_settings_sampling'class='flex-self-center' data-role='slider'`
+              <label class='cell'>Frequency</label>`
+            +"  <div class='cell'>"
+            +    "<input id='tracking_settings_sampling'class='flex-self-center' data-role='slider'"
            +      "data-value='"+this.frequency+"'"
            +   `   data-hint='true'
                  data-min='0' data-max='60'>
