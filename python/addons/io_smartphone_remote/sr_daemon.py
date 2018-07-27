@@ -216,6 +216,30 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
         self.output = bytearray()
 
     def pipe_data_received(self, fd, data):
+        text = data.decode(locale.getpreferredencoding(False))
+        pose = mathutils.Matrix()
+
+        try:
+            test = numpy.matrix(text)
+            test[0:2,3]*=10
+
+            '''for x in range(0,3):
+                for y in range(0,3):
+                   pose[x][y] = test[x,y]'''
+
+            bpy.data.objects['Cube'].matrix_basis = test.transpose().A
+            print( bpy.data.objects['Cube'].matrix_basis)
+            #print(bpy.data.objects['Cube'].matrix_basis )
+            #bpy.data.objects['Cube'].location.y = test[0,3]*10
+            #bpy.data.objects['Cube'].location.z = test[1,3]*10
+            #bpy.data.objects['Cube'].location.x = test[2,3]*10
+            #bpy.data.objects['Cube'].matrix_world = pose * bpy.data.objects['Cube'].matrix_world
+            #print("Translation:"+test[0,3]*10+" - "+test[1,3]*10+" - "+test[2,3]*10)
+
+            #print(pose.rotation)
+        except:
+            print("matrix parsing none")
+            pass  
         self.output.extend(data)
 
     def process_exited(self):

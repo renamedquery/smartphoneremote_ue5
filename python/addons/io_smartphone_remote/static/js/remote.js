@@ -22,9 +22,6 @@ function StartuInfoBoxEvents() {
   );
 }
 
-function test(){
-  console.log('caca');
-}
 function initRemote() {
   _client = document.URL.toString().split('/')[2].split(':')[0] + ':5678';
 
@@ -74,12 +71,13 @@ function initRemote() {
     document.getElementById('connexion_status').className = "mif-wifi-connect mif-3x "+ displayed_status_color;
   }, 5000);
 
-
   var imu = new Imu(false,false);
+  var cam = new Camera(false,false);
 
   _actions.push(new Tracking("tracking", "medium", "mif-play", _client,30, imu));
+  // _actions.push(new Tracking('camera','wide','mif-compass',_client,30,camera));
 
-  var translate_local = "bpy.ops.transform.translate(value=(0, -0.1, 0), constraint_axis=(False, True, False), constraint_orientation='LOCAL')"
+  var translate_local = "bpy.ops.transform.translate(value=(0, 0.5, 0), constraint_axis=(False, True, False), constraint_orientation='LOCAL')"
   _actions.push(new Script("test", "medium", "mif-airplane", _client,30,translate_local));
 
   document.getElementById('fullscreenCommand').addEventListener('click', function(e) {

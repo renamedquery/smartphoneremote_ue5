@@ -24,7 +24,7 @@ class Camera extends Sensor {
     super();
   }
   init() {
-
+    super.init();
   }
 }
 
