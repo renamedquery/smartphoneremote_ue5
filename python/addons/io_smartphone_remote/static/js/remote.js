@@ -75,7 +75,7 @@ function initRemote() {
   var cam = new Camera(false,false);
 
   _actions.push(new Tracking("tracking", "medium", "mif-play", _client,30, imu));
-  // _actions.push(new Tracking('camera','wide','mif-compass',_client,30,camera));
+  _actions.push(new Tracking('camera','wide','mif-compass',_client,30,cam));
 
   var translate_local = "bpy.ops.transform.translate(value=(0, 0.5, 0), constraint_axis=(False, True, False), constraint_orientation='LOCAL')"
   _actions.push(new Script("test", "medium", "mif-airplane", _client,30,translate_local));

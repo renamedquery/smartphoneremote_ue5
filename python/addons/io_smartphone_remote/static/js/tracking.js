@@ -7,6 +7,28 @@ function degToRad(deg) // Degree-to-Radian conversion
   return deg * Math.PI / 180;
 }
 
+//function from https://stackoverflow.com/questions/4998908/convert-data-uri-to-file-then-append-to-formdata/5100158
+function dataURItoBlob(dataURI) {
+    // convert base64/URLEncoded data component to raw binary data held in a string
+    var byteString;
+    if (dataURI.split(',')[0].indexOf('base64') >= 0)
+        byteString = atob(dataURI.split(',')[1]);
+    else
+        byteString = unescape(dataURI.split(',')[1]);
+
+    // separate out the mime component
+    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+    // write the bytes of the string to a typed array
+    var ia = new Uint8Array(byteString.length);
+    for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+
+    return new Blob([ia], {type:mimeString});
+}
+
+
 class Sensor {
   constructor(frequency) {
     this.supported = false;
@@ -22,10 +44,52 @@ class Sensor {
 class Camera extends Sensor {
   constructor() {
     super();
+    this.video = $("#video").get()[0];
+    this.canvas = $("#canvas");
+    this.ctx = this.canvas.get()[0].getContext('2d');
+
+    // Older browsers might not implement mediaDevices at all, so we set an empty object first
+    if (navigator.mediaDevices === undefined) {
+      navigator.mediaDevices = {};
+    }
   }
   init() {
     super.init();
+    navigator.getUserMedia = navigator.getUserMedia ||
+                      navigator.webkitGetUserMedia ||
+                      navigator.mozGetUserMedia;
+
+    if (navigator.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: {
+            width: 640,
+            height: 480
+          }
+        },
+        function(stream) {
+          this.video = document.querySelector('video');
+          this.video.srcObject = stream;
+          this.video.onloadedmetadata = function(e) {
+            this.video.play();
+          };
+        },
+        function(err) {
+          console.log("The following error occurred: " + err.name);
+        }
+      );
+    } else {
+      console.log("getUserMedia not supported");
+    }
   }
+  get_data() {
+    if(this.video){
+      this.ctx.drawImage(this.video,0,0,640,480);
+    }
+
+  }
+
+
 }
 
 class Imu extends Sensor {
@@ -68,7 +132,7 @@ class Imu extends Sensor {
         }.bind(this), true);
         this.enabled = true;
       }
-      return this.deviceOrientationData;
+      return this.deviceOrientationData.w+'/'+this.deviceOrientationData.x+'/'+this.deviceOrientationData.y+'/'+this.deviceOrientationData.z;
     } else {
       return null;
     }
@@ -247,8 +311,7 @@ class Tracking extends Action {
     this.init_settings_pannel();
   }
   core() {
-      var t = this.sensor.get_data();
-      this.websocket.send(t.w+'/'+t.x+'/'+t.y+'/'+t.z);
+      this.websocket.send(this.sensor.get_data());
   }
   stop(){
     super.stop();
