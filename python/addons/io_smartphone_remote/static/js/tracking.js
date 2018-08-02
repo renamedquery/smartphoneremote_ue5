@@ -44,10 +44,10 @@ class Sensor {
 class Camera extends Sensor {
   constructor() {
     super();
-    this.video = $("#video").get()[0];
+    // this.video = $("#video").get()[0];
     this.canvas = $("#canvas");
     this.ctx = this.canvas.get()[0].getContext('2d');
-
+    this.video = document.querySelector('video');
     // Older browsers might not implement mediaDevices at all, so we set an empty object first
     if (navigator.mediaDevices === undefined) {
       navigator.mediaDevices = {};
@@ -55,29 +55,41 @@ class Camera extends Sensor {
   }
   init() {
     super.init();
-    navigator.getUserMedia = navigator.getUserMedia ||
+    this.supported /*= navigator.getUserMedia*/ = navigator.getUserMedia ||
                       navigator.webkitGetUserMedia ||
                       navigator.mozGetUserMedia;
 
     if (navigator.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: {
-            width: 640,
-            height: 480
-          }
-        },
-        function(stream) {
-          this.video = document.querySelector('video');
-          this.video.srcObject = stream;
-          this.video.onloadedmetadata = function(e) {
-            this.video.play();
-          };
-        },
-        function(err) {
-          console.log("The following error occurred: " + err.name);
-        }
-      );
+      // Prefer camera resolution nearest to 1280x720.
+      var constraints = { audio: false, video: { width: 1280, height: 720 } };
+      navigator.mediaDevices.getUserMedia(constraints)
+.then(function(mediaStream) {
+  // var video = document.querySelector('video');
+  this.video.srcObject = mediaStream;
+  this.video.onloadedmetadata = function(e) {
+    this.video.play();
+  }.bind(this);
+}.bind(this))
+.catch(function(err) { console.log(err.name + ": " + err.message); }); // always check for errors at the end.
+      // navigator.getUserMedia({
+      //     audio: false,
+      //     video: {
+      //       width: 640,
+      //       height: 480
+      //     }
+      //   },
+      //   function(stream) {
+      //     this.video = document.querySelector('video');
+      //     console.log('get stream');
+      //     this.video.srcObject = stream;
+      //     // this.video.onloadedmetadata = function(e) {
+      //     //   video.play();
+      //     // };
+      //   }.bind(this),
+      //   function(err) {
+      //     console.log("The following error occurred: " + err.name);
+      //   }
+      // );
     } else {
       console.log("getUserMedia not supported");
     }
@@ -85,6 +97,7 @@ class Camera extends Sensor {
   get_data() {
     if(this.video){
       this.ctx.drawImage(this.video,0,0,640,480);
+      return(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
     }
 
   }
