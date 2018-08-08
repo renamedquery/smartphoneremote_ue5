@@ -9,11 +9,13 @@ import websockets
 import subprocess
 import os
 
+import locale
 import logging
 import httpd
 import bpy
 import sys
 import socket
+import mathutils
 from bpy.app.handlers import persistent
 
 import bpy
