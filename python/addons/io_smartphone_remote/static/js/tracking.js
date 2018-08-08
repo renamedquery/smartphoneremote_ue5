@@ -30,7 +30,7 @@ function dataURItoBlob(dataURI) {
 
 
 class Sensor {
-  constructor(frequency) {
+  constructor() {
     this.supported = false;
     this.enabled = false;
   }
@@ -42,7 +42,7 @@ class Sensor {
 }
 
 class Camera extends Sensor {
-  constructor() {
+  constructor(computeUnite) {
     super();
     // this.video = $("#video").get()[0];
     this.canvas = $("#canvas");
@@ -52,44 +52,37 @@ class Camera extends Sensor {
     if (navigator.mediaDevices === undefined) {
       navigator.mediaDevices = {};
     }
+
+    this.wsComputeUnite = new WebSocket("ws://"+computeUnite+"/ws");
   }
   init() {
     super.init();
-    this.supported /*= navigator.getUserMedia*/ = navigator.getUserMedia ||
-                      navigator.webkitGetUserMedia ||
-                      navigator.mozGetUserMedia;
 
-    if (navigator.getUserMedia) {
+    this.wsComputeUnite.send("start_slam");
+    this.supported /*= navigator.getUserMedia*/ = navigator.getUserMedia ||
+      navigator.webkitGetUserMedia ||
+      navigator.mozGetUserMedia;
+
+    if (  this.supported) {
       // Prefer camera resolution nearest to 1280x720.
-      var constraints = { audio: false, video: { width: 1280, height: 720 } };
+      var constraints = {
+        audio: false,
+        video: {
+          width: 640,
+          height: 480
+        }
+      };
       navigator.mediaDevices.getUserMedia(constraints)
-.then(function(mediaStream) {
-  // var video = document.querySelector('video');
-  this.video.srcObject = mediaStream;
-  this.video.onloadedmetadata = function(e) {
-    this.video.play();
-  }.bind(this);
-}.bind(this))
-.catch(function(err) { console.log(err.name + ": " + err.message); }); // always check for errors at the end.
-      // navigator.getUserMedia({
-      //     audio: false,
-      //     video: {
-      //       width: 640,
-      //       height: 480
-      //     }
-      //   },
-      //   function(stream) {
-      //     this.video = document.querySelector('video');
-      //     console.log('get stream');
-      //     this.video.srcObject = stream;
-      //     // this.video.onloadedmetadata = function(e) {
-      //     //   video.play();
-      //     // };
-      //   }.bind(this),
-      //   function(err) {
-      //     console.log("The following error occurred: " + err.name);
-      //   }
-      // );
+        .then(function(mediaStream) {
+          // var video = document.querySelector('video');
+          this.video.srcObject = mediaStream;
+          this.video.onloadedmetadata = function(e) {
+            this.video.play();
+          }.bind(this);
+        }.bind(this))
+        .catch(function(err) {
+          console.log(err.name + ": " + err.message);
+        }); // always check for errors at the end.
     } else {
       console.log("getUserMedia not supported");
     }
@@ -97,16 +90,26 @@ class Camera extends Sensor {
   get_data() {
     if(this.video){
       this.ctx.drawImage(this.video,0,0,640,480);
-      return(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
+      this.wsComputeUnite.send(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
+      // return(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
+      return 1;
     }
 
+  }
+  remove(){
+    // this.video.pause();
+    // this.video.srcObject = null;
+    // stop both video and audio
+    this.video.srcObject.getTracks().forEach( (track) => {
+    track.stop();
+    });
   }
 
 
 }
 
 class Imu extends Sensor {
-  constructor(frequency,relative, enabled) {
+  constructor(relative, enabled) {
     super();
     this.relative = relative;
 
@@ -316,12 +319,18 @@ class Script extends Action {
   }
 
 }
+
 class Tracking extends Action {
   constructor(name, size, icon,client,frequency, sensor) {
     super(name, size, icon, client, frequency);
     this.sensor = sensor;
-    this.sensor.init();
+
     this.init_settings_pannel();
+  }
+  play(){
+    this.sensor.init();
+
+    super.play();
   }
   core() {
       this.websocket.send(this.sensor.get_data());

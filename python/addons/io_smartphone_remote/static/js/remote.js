@@ -24,7 +24,7 @@ function StartuInfoBoxEvents() {
 
 function initRemote() {
   _client = document.URL.toString().split('/')[2].split(':')[0] + ':5678';
-
+  _trackingUnit = document.URL.toString().split('/')[2].split(':')[0] + ':6302';
   var connectionActivity = Metro.activity.open({
     type: 'cycle',
     style: 'light',
@@ -72,7 +72,7 @@ function initRemote() {
   }, 5000);
 
   var imu = new Imu(false,false);
-  var cam = new Camera(false,false);
+  var cam = new Camera(_trackingUnit);
 
   _actions.push(new Tracking("tracking", "medium", "mif-play", _client,30, imu));
   _actions.push(new Tracking('camera','wide','mif-compass',_client,30,cam));

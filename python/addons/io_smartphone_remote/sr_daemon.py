@@ -116,8 +116,8 @@ def setup_daemons():
 
     _daemons.append(websocket_task)
     _daemons.append(httpd_task)
-    # camera_task = asyncio.ensure_future(get_frame(_loop))
-    # camera_feed_task = asyncio.ensure_future(CameraFeed())
+    camera_task = asyncio.ensure_future(get_frame(_loop))
+    camera_feed_task = asyncio.ensure_future(CameraFeed())
 
 
     #_loop.run_forever()
@@ -239,7 +239,7 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
             #print(pose.rotation)
         except:
             print("matrix parsing none")
-            pass  
+            pass
         self.output.extend(data)
 
     def process_exited(self):
