@@ -94,7 +94,7 @@ function initRemote() {
   canvas = document.getElementById('canvas');
   context = canvas.getContext('2d');
   // hide the canvas
-  canvas.style.display = "none";
+  // canvas.style.display = "none";
 
 
 }
@@ -138,10 +138,10 @@ function setFullscreen() {
     document.getElementById('fullscreenCommandIcon').className = "mif-3x mif-enlarge2";
   }
 }
-
-function tracking(){
-
-}
+//
+// function tracking(){
+//
+// }
 
 function setView(){
   var displayed_status_icon = "mif-equalizer";
@@ -167,40 +167,40 @@ function setView(){
 
     document.getElementById('viewSwitchCommandIcon').className = "mif-3x "+ displayed_status_icon ;
 }
-
-function initCameraFeed() {
-  video = document.querySelector("#videoElement");
-  // check for getUserMedia support
-  navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
-
-  if (navigator.getUserMedia) {
-    // get webcam feed if available
-    navigator.getUserMedia({
-      audio: false,
-      video: {
-        width: 640,
-        height: 480
-      }
-    }, handleVideo, videoError);
-  }
-
-
-}
-
-function handleVideo(stream) {
-  // if found attach feed to video element
-  video.srcObject = stream;
-}
-
-function videoError(e) {
-  // no webcam found - do something
-}
-
-function RenderFrame(v, c) {
-  if (v.paused || v.ended) return false; // if no video, exit here
-  context.drawImage(v, 0, 0, v.videoWidth, v.videoHeight); // RenderFrame video feed to canvas
-  canvas.toBlob(function(blob) {
-    ws_cameraStream.send(blob);
-    ws_cameraStream.send('t' + v.currentTime);
-  }, 'image/jpeg', 1);
-}
+//
+// function initCameraFeed() {
+//   video = document.querySelector("#videoElement");
+//   // check for getUserMedia support
+//   navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
+//
+//   if (navigator.getUserMedia) {
+//     // get webcam feed if available
+//     navigator.getUserMedia({
+//       audio: false,
+//       video: {
+//         width: 640,
+//         height: 480
+//       }
+//     }, handleVideo, videoError);
+//   }
+//
+//
+// }
+//
+// function handleVideo(stream) {
+//   // if found attach feed to video element
+//   video.srcObject = stream;
+// }
+//
+// function videoError(e) {
+//   // no webcam found - do something
+// }
+//
+// function RenderFrame(v, c) {
+//   if (v.paused || v.ended) return false; // if no video, exit here
+//   context.drawImage(v, 0, 0, v.videoWidth, v.videoHeight); // RenderFrame video feed to canvas
+//   canvas.toBlob(function(blob) {
+//     ws_cameraStream.send(blob);
+//     ws_cameraStream.send('t' + v.currentTime);
+//   }, 'image/jpeg', 1);
+// }

@@ -45,8 +45,8 @@ class Camera extends Sensor {
   constructor(computeUnite) {
     super();
     // this.video = $("#video").get()[0];
-    this.canvas = $("#canvas");
-    this.ctx = this.canvas.get()[0].getContext('2d');
+    this.canvas = document.getElementById('canvas');
+    this.ctx = this.canvas.getContext('2d');
     this.video = document.querySelector('video');
     // Older browsers might not implement mediaDevices at all, so we set an empty object first
     if (navigator.mediaDevices === undefined) {
@@ -54,6 +54,7 @@ class Camera extends Sensor {
     }
 
     this.wsComputeUnite = new WebSocket("ws://"+computeUnite+"/ws");
+    this.wsComputeUnite.binaryType = 'arraybuffer';
   }
   init() {
     super.init();
@@ -90,7 +91,11 @@ class Camera extends Sensor {
   get_data() {
     if(this.video){
       this.ctx.drawImage(this.video,0,0,640,480);
-      this.wsComputeUnite.send(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
+      this.canvas.toBlob(function(blob){
+          this.wsComputeUnite.send(blob);
+       }.bind(this), 'image/jpeg', 0.90);
+
+      // this.wsComputeUnite.send(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
       // return(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
       return 1;
     }

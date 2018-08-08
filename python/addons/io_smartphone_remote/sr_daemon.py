@@ -111,13 +111,13 @@ def setup_daemons():
     _wsd = websockets.serve(WebsocketRecv, '0.0.0.0', 5678)
 
     websocket_task = asyncio.ensure_future(_wsd)
-    # httpd_task = _loop.run_until_complete(_httpd)
     httpd_task = asyncio.ensure_future(_httpd)
+    camera_task = asyncio.ensure_future(get_frame(_loop))
 
     _daemons.append(websocket_task)
     _daemons.append(httpd_task)
-    camera_task = asyncio.ensure_future(get_frame(_loop))
-    camera_feed_task = asyncio.ensure_future(CameraFeed())
+    _daemons.append(camera_task)
+    # camera_feed_task = asyncio.ensure_future(CameraFeed())
 
 
     #_loop.run_forever()
