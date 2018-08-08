@@ -93,7 +93,8 @@ class Camera extends Sensor {
       this.ctx.drawImage(this.video,0,0,640,480);
       this.canvas.toBlob(function(blob){
           this.wsComputeUnite.send(blob);
-       }.bind(this), 'image/jpeg', 0.90);
+          console.log(blob);
+       }.bind(this), 'image/jpeg', 1.0);
 
       // this.wsComputeUnite.send(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
       // return(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));

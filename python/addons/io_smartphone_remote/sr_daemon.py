@@ -219,6 +219,7 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
 
     def pipe_data_received(self, fd, data):
         text = data.decode(locale.getpreferredencoding(False))
+        print(text)
         pose = mathutils.Matrix()
 
         try:
