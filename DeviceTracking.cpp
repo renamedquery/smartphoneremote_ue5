@@ -120,7 +120,7 @@ public:
     if (img.empty()) {
       cout << "image not loaded";
     } else {
-      cout << _slam->TrackMonocular(img, _currentTime) << endl;
+      cout << _slam->TrackMonocular(img,0 ) << endl;//_currentTime
 
       if (waitKey(1) == 27) {
         _slam->Shutdown();
