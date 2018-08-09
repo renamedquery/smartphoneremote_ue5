@@ -16,6 +16,7 @@ import bpy
 import sys
 import socket
 import mathutils
+import numpy
 from bpy.app.handlers import persistent
 
 import bpy
@@ -219,7 +220,6 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
 
     def pipe_data_received(self, fd, data):
         text = data.decode(locale.getpreferredencoding(False))
-        print(text)
         pose = mathutils.Matrix()
 
         try:
@@ -229,9 +229,10 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
             '''for x in range(0,3):
                 for y in range(0,3):
                    pose[x][y] = test[x,y]'''
+            # print("test", sep=' ', end='n', file=sys.stdout, flush=False)
+            bpy.context.selected_objects[0].matrix_basis = test.transpose().A
 
-            bpy.data.objects['Cube'].matrix_basis = test.transpose().A
-            print( bpy.data.objects['Cube'].matrix_basis)
+            # print( bpy.data.objects['Cube'].matrix_basis)
             #print(bpy.data.objects['Cube'].matrix_basis )
             #bpy.data.objects['Cube'].location.y = test[0,3]*10
             #bpy.data.objects['Cube'].location.z = test[1,3]*10
@@ -241,7 +242,7 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
 
             #print(pose.rotation)
         except:
-            print("matrix parsing none")
+            #print("matrix parsing none")
             pass
         self.output.extend(data)
 

@@ -95,7 +95,7 @@ public:
       return;
     }
     if (0 == strcmp("stop_slam", data)) {
-      _slam->Reset();
+      _slam->Shutdown();
       return;
     }
     if (0 == strcmp("close", data)) {
@@ -120,7 +120,7 @@ public:
     if (img.empty()) {
       cout << "image not loaded";
     } else {
-      cout << _slam->TrackMonocular(img,_currentTime ) << endl;
+      cout << _slam->TrackMonocular(img,0 ) << endl;//_currentTime
 
       if (waitKey(1) == 27) {
         _slam->Shutdown();

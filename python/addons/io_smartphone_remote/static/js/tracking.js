@@ -62,15 +62,15 @@ class Camera extends Sensor {
 
       if (server_message == "slam_ready") {
         this.enabled = true;
-        this.canvas.height = this.video.videoHeight;
-        this.canvas.width = this.video.videoWidth;
+        this.canvas.height = 480;
+        this.canvas.width = 640;
       }
     }.bind(this);
   }
   init() {
     super.init();
 
-    // this.wsComputeUnite.send("start_slam");
+    this.wsComputeUnite.send("start_slam");
     this.supported /*= navigator.getUserMedia*/ = navigator.getUserMedia ||
       navigator.webkitGetUserMedia ||
       navigator.mozGetUserMedia;
@@ -100,21 +100,14 @@ class Camera extends Sensor {
     }
   }
   get_data() {
-    var b64jpg;
     if(this.video){
-      // if(this.enabled){
-        this.ctx.drawImage(this.video,0,0);
-        b64jpg = this.canvas.toDataURL('image/jpeg',0.5);
-        // this.canvas.toBlob(function(blob){
-        //   console.log(this.video.currentTime);
-        console.log(b64jpg);
-            // this.wsComputeUnite.send(blob);
+      if(this.enabled){
+        this.ctx.drawImage(this.video,0,0,this.video.width,this.video.height);
+        this.canvas.toBlob(function(blob){
+            this.wsComputeUnite.send(blob);
             // this.wsComputeUnite.send('t' + this.video.currentTime);
-            // console.log(blob);
-         // }.bind(this), 'image/jpeg', 1.0);
-      // }
-      // this.wsComputeUnite.send(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
-      // return(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
+         }.bind(this), 'image/jpeg', .8);
+       }
       return 1;
     }
 
@@ -125,6 +118,7 @@ class Camera extends Sensor {
     // stop both video and audio
     this.video.srcObject.getTracks().forEach( (track) => {
     track.stop();
+    this.wsComputeUnite.send('die');
     });
   }
 
