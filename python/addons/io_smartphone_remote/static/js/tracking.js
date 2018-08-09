@@ -100,16 +100,18 @@ class Camera extends Sensor {
     }
   }
   get_data() {
+    var b64jpg;
     if(this.video){
       // if(this.enabled){
-        this.ctx.drawImage(this.video,0,0,640,480);
-        this.canvas.toBlob(function(blob){
-          console.log(blob);
-          console.log(this.canvas);
+        this.ctx.drawImage(this.video,0,0);
+        b64jpg = this.canvas.toDataURL('image/jpeg',0.5);
+        // this.canvas.toBlob(function(blob){
+        //   console.log(this.video.currentTime);
+        console.log(b64jpg);
             // this.wsComputeUnite.send(blob);
             // this.wsComputeUnite.send('t' + this.video.currentTime);
             // console.log(blob);
-         }.bind(this), 'image/jpeg', 1.0);
+         // }.bind(this), 'image/jpeg', 1.0);
       // }
       // this.wsComputeUnite.send(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
       // return(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
