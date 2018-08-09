@@ -62,6 +62,8 @@ class Camera extends Sensor {
 
       if (server_message == "slam_ready") {
         this.enabled = true;
+        this.canvas.height = this.video.videoHeight;
+        this.canvas.width = this.video.videoWidth;
       }
     }.bind(this);
   }
@@ -100,23 +102,14 @@ class Camera extends Sensor {
   get_data() {
     if(this.video){
       // if(this.enabled){
-        this.ctx.drawImage(this.video,0,0,this.video.videoWidth,this.video.videoHeight);
+        this.ctx.drawImage(this.video,0,0,640,480);
         this.canvas.toBlob(function(blob){
+          console.log(blob);
+          console.log(this.canvas);
             // this.wsComputeUnite.send(blob);
             // this.wsComputeUnite.send('t' + this.video.currentTime);
             // console.log(blob);
-
-            var newImg = document.createElement('img'),
-            url = URL.createObjectURL(blob);
-
-            newImg.onload = function() {
-              // no longer need to read the blob so it's revoked
-              URL.revokeObjectURL(url);
-            };
-
-            newImg.src = url;
-            document.body.appendChild(newImg);
-         }/*.bind(this)*/, 'image/jpeg', 1.0);
+         }.bind(this), 'image/jpeg', 1.0);
       // }
       // this.wsComputeUnite.send(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
       // return(dataURItoBlob(this.canvas.get()[0].toDataURL('image/jpeg', 1.0)));
