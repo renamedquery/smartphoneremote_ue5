@@ -223,9 +223,10 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
 
     def pipe_data_received(self, fd, data):
         text = data.decode(locale.getpreferredencoding(False))
-        pose = mathutils.Matrix()
-        print(text)
+        # pose = mathutils.Matrix()
+
         if text.split()[0][0] == 'p':
+            print(text)
             try:
                 test = numpy.matrix(text.strip('p'))
                 # test[0:2,3]*=10
@@ -234,7 +235,7 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
                     for y in range(0,3):
                        pose[x][y] = test[x,y]'''
                 # print("test", sep=' ', end='n', file=sys.stdout, flush=False)
-                bpy.data.objects['Camera'].matrix_basis =  test.transpose().A
+                bpy.data.objects['Camera'].matrix_basis =  test.A #.transpose().A
                 #bpy.context.selected_objects[0].
                 # print( bpy.data.objects['Cube'].matrix_basis)
                 #print(bpy.data.objects['Cube'].matrix_basis )

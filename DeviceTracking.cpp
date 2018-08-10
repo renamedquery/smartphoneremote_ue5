@@ -158,7 +158,7 @@ public:
     Mat img = imdecode(jpgbytes, 1); // Mat(480, 640, CV_8UC3, &data).clone();
 
     if (img.empty()) {
-      cout << "image not loaded";
+      // cout << "image not loaded";
     } else {
       // cout <<'p'<< _slam->TrackMonocular(img,_currentTime ) << endl;//_currentTime
       cv::Mat Tcw = _slam->TrackMonocular(img,_currentTime );
@@ -187,9 +187,18 @@ public:
           M(2,3) = Tcw.at<float>(2,3);
           M(3,3)  = 1.0;
 
+           M.block<3, 3>(0, 0) = _BLENDER.transpose().block<3, 3>(0, 0) * M.block<3, 3>(0, 0)  * _BLENDER.block<3, 3>(0, 0) ;
+
+          M(3,0) = -Tcw.at<float>(0,3);
+          M(3,1) = Tcw.at<float>(1,3);
+          M(3,2) = Tcw.at<float>(2,3);
+          // M(2,3) = Tcw.at<float>(2,3);
           Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, ", ", ";\n", "[", "]", "[", "]");
-          std::cout << "p"<<M.format(HeavyFmt);
+          std::cout << "p"<<M.format(HeavyFmt) <<std::endl ;
+          /**/
       }
+
+
 
       if (waitKey(1) == 27) {
         _slam->Shutdown();
@@ -231,10 +240,10 @@ int main(int argc, char **argv) {
     0, 0, 0, 1;
 
   _BLENDER <<
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    -1, 0, 0, 0,
-    0, 0, 0, 1;
+  1, 0, 0, 0,
+  0, -1, 0, 0,
+  0, 0, -1, 0,
+  0, 0, 0, 1;
 
   cout<<"test";
   auto logger = std::make_shared<PrintfLogger>(Logger::Level::SEVERE);
