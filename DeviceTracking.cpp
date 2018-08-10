@@ -6,7 +6,9 @@
 #include <vector>
 
 #include "opencv2/opencv.hpp"
+// #include <opencv2/core/eigen.hpp>.
 #include <opencv2/core/core.hpp>
+#include <Eigen/Geometry>
 
 #include "seasocks/PrintfLogger.h"
 #include "seasocks/Server.h"
@@ -19,6 +21,9 @@
 using namespace std;
 using namespace cv;
 using namespace seasocks;
+
+static Eigen::Matrix4f _SLAM;
+static Eigen::Matrix4f _BLENDER;
 
 class CommandHandler : public WebSocket::Handler {
 public:
@@ -100,17 +105,36 @@ public:
       return;
     }
     if (0 == strcmp("map", data)) {
-      vector<ORB_SLAM2::MapPoint*> mapPoints = _slam->GetTrackedMapPoints();
-      const int N = mapPoints.size();
-      for(int i =0; i<N;i++){
-        ORB_SLAM2::MapPoint* pMP = mapPoints[i];
-        if(!pMP->isBad())
-        {
-            cv::Mat Xw = pMP->GetWorldPos();
-            std::cout <<  Xw << std::endl;
-        }
-      }
+      vector<ORB_SLAM2::MapPoint*> vMPs = _slam->GetTrackedMapPoints();
+      vector<cv::Mat> vPoints;
+      vPoints.reserve(vMPs.size());
+      vector<ORB_SLAM2::MapPoint*> vPointMP;
+      vPointMP.reserve(vMPs.size());
+      std::stringstream buffer;
+      buffer  << 'm';
+      for(size_t i=0; i<vMPs.size(); i++)
+      {
+          ORB_SLAM2::MapPoint* pMP=vMPs[i];
+          if(pMP)
+          {
+              if(pMP->Observations()>5)
+              {
+                  vPoints.push_back(pMP->GetWorldPos());
+                  vPointMP.push_back(pMP);
 
+                  if(buffer.seekp(0, ios::end).tellp() <50){
+                    buffer  << vPoints.back()<<';' ;
+                  }
+                  else{
+                    std::cout << buffer.str() ;
+                    buffer.str("m");
+                  }
+
+
+              }
+          }
+      }
+      std::cout << buffer.str() ;
 
       return;
     }
@@ -136,7 +160,36 @@ public:
     if (img.empty()) {
       cout << "image not loaded";
     } else {
-      cout << _slam->TrackMonocular(img,_currentTime ) << endl;//_currentTime
+      // cout <<'p'<< _slam->TrackMonocular(img,_currentTime ) << endl;//_currentTime
+      cv::Mat Tcw = _slam->TrackMonocular(img,_currentTime );
+
+      if(!Tcw.empty())
+      {
+          Eigen::Matrix4f M;
+
+          M(0,0) = Tcw.at<float>(0,0);
+          M(1,0)= Tcw.at<float>(1,0);
+          M(2,0) = Tcw.at<float>(2,0);
+          M(3,0)  = 0.0;
+
+          M(0,1) = Tcw.at<float>(0,1);
+          M(1,1) = Tcw.at<float>(1,1);
+          M(2,1) = Tcw.at<float>(2,1);
+          M(3,1)  = 0.0;
+
+          M(0,2) = Tcw.at<float>(0,2);
+          M(1,2) = Tcw.at<float>(1,2);
+          M(2,2) = Tcw.at<float>(2,2);
+          M(3,2)  = 0.0;
+
+          M(0,3) = Tcw.at<float>(0,3);
+          M(1,3) = Tcw.at<float>(1,3);
+          M(2,3) = Tcw.at<float>(2,3);
+          M(3,3)  = 1.0;
+
+          Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, ", ", ";\n", "[", "]", "[", "]");
+          std::cout << "p"<<M.format(HeavyFmt);
+      }
 
       if (waitKey(1) == 27) {
         _slam->Shutdown();
@@ -171,6 +224,18 @@ private:
 };
 
 int main(int argc, char **argv) {
+  _SLAM <<
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, -1, 0,
+    0, 0, 0, 1;
+
+  _BLENDER <<
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    -1, 0, 0, 0,
+    0, 0, 0, 1;
+
   cout<<"test";
   auto logger = std::make_shared<PrintfLogger>(Logger::Level::SEVERE);
   ORB_SLAM2::System *SLAM;

@@ -26,6 +26,9 @@ log = logging.getLogger(__name__)
 # Keeps track of whether a loop-kicking operator is already running.
 _loop_kicking_operator_running = False
 _daemons = []
+_map = []
+# _base = Matrix([[1,0,0],[0,0,1],[0,-1,0],[0,0,0]])
+# _dest = = Matrix([[0,1,0],[0,0,1],[-1,0,0],[0,0,0]])
 '''
     Utility functions
 '''
@@ -221,30 +224,54 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
     def pipe_data_received(self, fd, data):
         text = data.decode(locale.getpreferredencoding(False))
         pose = mathutils.Matrix()
+        print(text)
+        if text.split()[0][0] == 'p':
+            try:
+                test = numpy.matrix(text.strip('p'))
+                # test[0:2,3]*=10
 
-        try:
-            test = numpy.matrix(text)
-            # test[0:2,3]*=10
+                '''for x in range(0,3):
+                    for y in range(0,3):
+                       pose[x][y] = test[x,y]'''
+                # print("test", sep=' ', end='n', file=sys.stdout, flush=False)
+                bpy.data.objects['Camera'].matrix_basis =  test.transpose().A
+                #bpy.context.selected_objects[0].
+                # print( bpy.data.objects['Cube'].matrix_basis)
+                #print(bpy.data.objects['Cube'].matrix_basis )
+                #bpy.data.objects['Cube'].location.y = test[0,3]*10
+                #bpy.data.objects['Cube'].location.z = test[1,3]*10
+                #bpy.data.objects['Cube'].location.x = test[2,3]*10
+                #bpy.data.objects['Cube'].matrix_world = pose * bpy.data.objects['Cube'].matrix_world
+                #print("Translation:"+test[0,3]*10+" - "+test[1,3]*10+" - "+test[2,3]*10)
 
-            '''for x in range(0,3):
-                for y in range(0,3):
-                   pose[x][y] = test[x,y]'''
-            # print("test", sep=' ', end='n', file=sys.stdout, flush=False)
-            bpy.context.selected_objects[0].matrix_basis = test.transpose().A
+                #print(pose.rotation)
+            except:
+                print("no pose")
+                # try:
+                #     # if text.split()[0][0] == 'p':
+                #     #     print("Point map buffer detected", sep=' ', end='n', file=sys.stdout, flush=False)
+                #     #     _map.append(text.strip('[]p').split(';'))
+                #     #     print("map state:"+ _map)
+                #     #     #bpy.ops.object.empty_add(type='PLAIN_AXES', radius=0.1, view_align=False, location=(p[0], p[1], p[2]))
+                #
+                # except:
+                pass
+        elif text.split()[0][0] == 'm':
+            #t = numpy.asfarray(text.split('p', 1)[0].strip('m[]\n').)
+            mbuffer = text.split('p', 1)[0].replace("m","").replace('\r', '').replace('\n', '').replace('[', '').replace(']', '').rstrip('\n').split(';')
 
-            # print( bpy.data.objects['Cube'].matrix_basis)
-            #print(bpy.data.objects['Cube'].matrix_basis )
-            #bpy.data.objects['Cube'].location.y = test[0,3]*10
-            #bpy.data.objects['Cube'].location.z = test[1,3]*10
-            #bpy.data.objects['Cube'].location.x = test[2,3]*10
-            #bpy.data.objects['Cube'].matrix_world = pose * bpy.data.objects['Cube'].matrix_world
-            #print("Translation:"+test[0,3]*10+" - "+test[1,3]*10+" - "+test[2,3]*10)
+            for c in mbuffer:
+                _map.append(c)
 
-            #print(pose.rotation)
-        except:
-            #print("matrix parsing none")
-            print(text)
-            pass
+            for i in range(0,len(_map),3):
+                try:
+                    print(str(_map[i]) + str(_map[i+1])+ str(_map[i+2]))
+                    bpy.ops.object.empty_add(type='PLAIN_AXES', radius=0.1, view_align=False, location=(float(_map[i]),float(_map[i+1]), float(_map[i+2])), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
+
+                except:
+                    print("too far..")
+            print("Map len:" + str(len(_map)))
+
         self.output.extend(data)
 
     def process_exited(self):
