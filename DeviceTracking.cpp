@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdio.h>
+#include <vector>
 
 #include "opencv2/opencv.hpp"
 #include <opencv2/core/core.hpp>
@@ -98,6 +99,21 @@ public:
       _slam->Shutdown();
       return;
     }
+    if (0 == strcmp("map", data)) {
+      vector<ORB_SLAM2::MapPoint*> mapPoints = _slam->GetTrackedMapPoints();
+      const int N = mapPoints.size();
+      for(int i =0; i<N;i++){
+        ORB_SLAM2::MapPoint* pMP = mapPoints[i];
+        if(!pMP->isBad())
+        {
+            cv::Mat Xw = pMP->GetWorldPos();
+            std::cout <<  Xw << std::endl;
+        }
+      }
+
+
+      return;
+    }
     if (0 == strcmp("close", data)) {
       cout << "Closing.." << endl;
       connection->close();
@@ -120,7 +136,7 @@ public:
     if (img.empty()) {
       cout << "image not loaded";
     } else {
-      cout << _slam->TrackMonocular(img,0 ) << endl;//_currentTime
+      cout << _slam->TrackMonocular(img,_currentTime ) << endl;//_currentTime
 
       if (waitKey(1) == 27) {
         _slam->Shutdown();

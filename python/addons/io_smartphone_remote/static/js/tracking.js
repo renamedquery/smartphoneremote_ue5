@@ -95,6 +95,11 @@ class Camera extends Sensor {
         .catch(function(err) {
           console.log(err.name + ": " + err.message);
         }); // always check for errors at the end.
+
+        //For byteString
+        setTimeout(function(){
+          this.wsComputeUnite.send("map");
+        }.bind(this), 20000);
     } else {
       console.log("getUserMedia not supported");
     }
@@ -105,7 +110,7 @@ class Camera extends Sensor {
         this.ctx.drawImage(this.video,0,0,this.video.width,this.video.height);
         this.canvas.toBlob(function(blob){
             this.wsComputeUnite.send(blob);
-            // this.wsComputeUnite.send('t' + this.video.currentTime);
+            this.wsComputeUnite.send('t' + this.video.currentTime);
          }.bind(this), 'image/jpeg', .8);
        }
       return 1;

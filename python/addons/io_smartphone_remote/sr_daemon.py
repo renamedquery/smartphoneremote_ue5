@@ -224,7 +224,7 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
 
         try:
             test = numpy.matrix(text)
-            test[0:2,3]*=10
+            # test[0:2,3]*=10
 
             '''for x in range(0,3):
                 for y in range(0,3):
@@ -243,6 +243,7 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
             #print(pose.rotation)
         except:
             #print("matrix parsing none")
+            print(text)
             pass
         self.output.extend(data)
 
