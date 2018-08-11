@@ -23,6 +23,12 @@ function StartuInfoBoxEvents() {
 }
 
 function initRemote() {
+
+    screen.addEventListener("orientationchange", function () {
+      console.log("The orientation of the screen is: " + screen.orientation);
+    });
+  locOrientation = screen.lockOrientation || screen.mozLockOrientation || screen.msLockOrientation || screen.orientation.lock;
+  screen.orientation.lock('landscape');
   _client = document.URL.toString().split('/')[2].split(':')[0] + ':5678';
   _trackingUnit = document.URL.toString().split('/')[2].split(':')[0] + ':6302';
   var connectionActivity = Metro.activity.open({
@@ -75,7 +81,7 @@ function initRemote() {
   var cam = new Camera(_trackingUnit);
 
   _actions.push(new Tracking("tracking", "medium", "mif-play", _client,30, imu));
-  _actions.push(new Tracking('camera','wide','mif-compass',_client,30,cam));
+  _actions.push(new Tracking('camera','wide','mif-compass',_client,25,cam));
 
   var translate_local = "bpy.ops.transform.translate(value=(0, 0.5, 0), constraint_axis=(False, True, False), constraint_orientation='LOCAL')"
   _actions.push(new Script("test", "medium", "mif-airplane", _client,30,translate_local));

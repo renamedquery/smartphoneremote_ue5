@@ -27,6 +27,7 @@ log = logging.getLogger(__name__)
 _loop_kicking_operator_running = False
 _daemons = []
 _map = []
+_rotation = []
 # _base = Matrix([[1,0,0],[0,0,1],[0,-1,0],[0,0,0]])
 # _dest = = Matrix([[0,1,0],[0,0,1],[-1,0,0],[0,0,0]])
 '''
@@ -226,22 +227,24 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
         # pose = mathutils.Matrix()
 
         if text.split()[0][0] == 'p':
-            print(text)
+            # print(text)
             try:
                 test = numpy.matrix(text.strip('p'))
-                # test[0:2,3]*=10
 
                 '''for x in range(0,3):
                     for y in range(0,3):
                        pose[x][y] = test[x,y]'''
                 # print("test", sep=' ', end='n', file=sys.stdout, flush=False)
-                bpy.data.objects['Camera'].matrix_basis =  test.A #.transpose().A
+                #bpy.context.selected_objects[0].matrix_basis =  test.A #.transpose().A
+                # bpy.context.selected_objects[0].location = test[0:2,3]
+                # print("translation" + str(test[0:3,3]))
+                bpy.context.selected_objects[0].location.x = test[3,0]
+                bpy.context.selected_objects[0].location.y = test[3,1]
+                bpy.context.selected_objects[0].location.z = test[3,2]
                 #bpy.context.selected_objects[0].
                 # print( bpy.data.objects['Cube'].matrix_basis)
                 #print(bpy.data.objects['Cube'].matrix_basis )
-                #bpy.data.objects['Cube'].location.y = test[0,3]*10
-                #bpy.data.objects['Cube'].location.z = test[1,3]*10
-                #bpy.data.objects['Cube'].location.x = test[2,3]*10
+
                 #bpy.data.objects['Cube'].matrix_world = pose * bpy.data.objects['Cube'].matrix_world
                 #print("Translation:"+test[0,3]*10+" - "+test[1,3]*10+" - "+test[2,3]*10)
 
@@ -310,6 +313,7 @@ async def WebsocketRecv(websocket, path):
         # print(data)
         if 'tracking' in path:
             sensors = data.split('/')
+            # print(_rotation)
             bpy.context.object.rotation_mode = 'QUATERNION'
 
             bpy.context.selected_objects[0].rotation_quaternion[0] = float(

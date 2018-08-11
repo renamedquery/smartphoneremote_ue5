@@ -97,9 +97,9 @@ class Camera extends Sensor {
         }); // always check for errors at the end.
 
         //For byteString
-        setTimeout(function(){
-          this.wsComputeUnite.send("map");
-        }.bind(this), 20000);
+        // setTimeout(function(){
+        //   this.wsComputeUnite.send("map");
+        // }.bind(this), 20000);
     } else {
       console.log("getUserMedia not supported");
     }
