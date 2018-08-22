@@ -2,7 +2,7 @@ bl_info = {
     "name": "Blender remote",
     "author": "Gobelet Team: Samuel Bernou, Laure Le Sidaner, Swann Martinez",
     "version": (1, 0),
-    "blender": (2, 8, 0),
+    "blender": (2, 81, 0),
     "location": "View3D",
     "description": "Allow to use smartphone as a controller",
     "category": "System",
@@ -20,10 +20,6 @@ def register():
     else:
         print('Adding local modules dir to the path')
         sys.path.insert(0, thirdPartyDir)
-
-    import  async_loop
-
-
 
     from . import sr_settings,sr_daemon
     import pyqrcode
@@ -48,7 +44,7 @@ def unregister():
 
     from . import (sr_settings,sr_daemon)
     import async_loop
-    
+
     async_loop.unregister();
     sr_settings.unregister()
 

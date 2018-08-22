@@ -28,6 +28,8 @@ _loop_kicking_operator_running = False
 _daemons = []
 _map = []
 _rotation = []
+_origins = []
+
 # _base = Matrix([[1,0,0],[0,0,1],[0,-1,0],[0,0,0]])
 # _dest = = Matrix([[0,1,0],[0,0,1],[-1,0,0],[0,0,0]])
 '''
@@ -94,6 +96,8 @@ def setup_daemons():
 
     _ip = GetCurrentIp()
 
+    for o in bpy.data.objects:
+        _origins.append((o.name,o.matrix_basis.translation))
 
     if sys.platform == "win32":
         _loop = asyncio.ProactorEventLoop()
@@ -224,10 +228,14 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
 
     def pipe_data_received(self, fd, data):
         text = data.decode(locale.getpreferredencoding(False))
-        # pose = mathutils.Matrix()
+        for o in _origins:
+            if o[0] == bpy.context.selected_objects[0].name:
+                origin_pose = o[1]
+        # origin_pose = bpy.context.selected_objects[0].matrix_basis.translation
 
         if text.split()[0][0] == 'p':
             # print(text)
+            bpy.context.selected_objects[0].location
             try:
                 test = numpy.matrix(text.strip('p'))
 
@@ -235,12 +243,14 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
                     for y in range(0,3):
                        pose[x][y] = test[x,y]'''
                 # print("test", sep=' ', end='n', file=sys.stdout, flush=False)
-                #bpy.context.selected_objects[0].matrix_basis =  test.A #.transpose().A
+                # bpy.context.selected_objects[0].delta_location = mathutils.Vector((test[3,0],test[3,1],test[3,0])) #test.A. #.transpose().A
+                new_translation =  origin_pose + (origin_pose - mathutils.Vector((test[3,0],test[3,1],test[3,0])))
+                bpy.context.selected_objects[0].matrix_basis.translation = new_translation
                 # bpy.context.selected_objects[0].location = test[0:2,3]
                 # print("translation" + str(test[0:3,3]))
-                bpy.context.selected_objects[0].location.x = test[3,0]
-                bpy.context.selected_objects[0].location.y = test[3,1]
-                bpy.context.selected_objects[0].location.z = test[3,2]
+                # bpy.context.selected_objects[0].location.x = test[3,0]
+                # bpy.context.selected_objects[0].location.y = test[3,1]
+                # bpy.context.selected_objects[0].location.z = test[3,2]
                 #bpy.context.selected_objects[0].
                 # print( bpy.data.objects['Cube'].matrix_basis)
                 #print(bpy.data.objects['Cube'].matrix_basis )
