@@ -170,29 +170,34 @@ class Imu extends Sensor {
         }.bind(this), true);
         this.enabled = true;
       }
-      return this.deviceOrientationData.w+'/'+this.deviceOrientationData.x+'/'+this.deviceOrientationData.y+'/'+this.deviceOrientationData.z;
+      // return this.deviceOrientationData.w+'/'+this.deviceOrientationData.x+'/'+this.deviceOrientationData.y+'/'+this.deviceOrientationData.z;
+      return this.deltaDeviceOrientationData.beta+'/'+this.deltaDeviceOrientationData.gamma+'/'+this.deltaDeviceOrientationData.alpha
     } else {
       return null;
     }
 
   }
     processGyro(event) {
-    var x = degToRad(event.beta); // beta value
-    var y = degToRad(event.gamma); // gamma value
-    var z = degToRad(event.alpha); // alpha value
 
-    //precompute to save on processing time
-    var cX = Math.cos(x / 2);
-    var cY = Math.cos(y / 2);
-    var cZ = Math.cos(z / 2);
-    var sX = Math.sin(x / 2);
-    var sY = Math.sin(y / 2);
-    var sZ = Math.sin(z / 2);
+    this.deltaDeviceOrientationData = event;
 
-    this.deviceOrientationData.w = cX * cY * cZ - sX * sY * sZ;
-    this.deviceOrientationData.x = sX * cY * cZ - cX * sY * sZ;
-    this.deviceOrientationData.y = cX * sY * cZ + sX * cY * sZ;
-    this.deviceOrientationData.z = cX * cY * sZ + sX * sY * cZ;
+
+    // var x = degToRad(event.beta); // beta value
+    // var y = degToRad(event.gamma); // gamma value
+    // var z = degToRad(event.alpha); // alpha value
+    //
+    // //precompute to save on processing time
+    // var cX = Math.cos(x / 2);
+    // var cY = Math.cos(y / 2);
+    // var cZ = Math.cos(z / 2);
+    // var sX = Math.sin(x / 2);
+    // var sY = Math.sin(y / 2);
+    // var sZ = Math.sin(z / 2);
+    //
+    // this.deviceOrientationData.w = cX * cY * cZ - sX * sY * sZ;
+    // this.deviceOrientationData.x = sX * cY * cZ - cX * sY * sZ;
+    // this.deviceOrientationData.y = cX * sY * cZ + sX * cY * sZ;
+    // this.deviceOrientationData.z = cX * cY * sZ + sX * sY * cZ;
 
     // this.deviceOrientationData.x
   }
@@ -225,6 +230,7 @@ class Action {
     //Setup data sender
     this.websocket = new WebSocket("ws://"+this.client+"/"+this.name);
 
+
     //Setup action GUI
     document.getElementById('_actions_list').innerHTML +=
     " <div id = \'"+this.name+"\' data-role=\'tile\' data-size=\'"+this.size+"\'  class=\'bg-darkSteel fg-white\'> \n" +
@@ -252,8 +258,9 @@ class Action {
     else if (this.status == _status_enum.ERROR) {
       console.log('Error on ' + this.name);
     }
-      this.update_skin();
+      // this.update_skin();
   }
+  init(){}
   play() {
     if (this.websocket.readyState == 1) {
       if (this.frequency != 0) {
@@ -347,11 +354,39 @@ class Tracking extends Action {
     super(name, size, icon, client, frequency);
     this.sensor = sensor;
 
+    this.websocket.onmessage = function(e){
+      var server_message = e.data;
+      console.log(server_message);
+
+      if(server_message == "ready"){
+        this.play();
+        console.log("go !");
+      }
+    }.bind(this)
+
     this.init_settings_pannel();
+  }
+  init(){
+    this.websocket.send("i");
+    console.log('Rrequest server init');
+  }
+  mousedown(){
+    if(this.status == _status_enum.NULL){
+        console.log('Error on ' + this.name+ " init");
+    }
+    else if (this.status == _status_enum.IDLE || this.status == _status_enum.STOPPED) {
+      this.init()
+    }
+    else if (this.status == _status_enum.PLAYING) {
+      this.stop();
+    }
+    else if (this.status == _status_enum.ERROR) {
+      console.log('Error on ' + this.name);
+    }
+      // this.update_skin();
   }
   play(){
     this.sensor.init();
-
     super.play();
   }
   core() {
@@ -360,6 +395,7 @@ class Tracking extends Action {
   stop(){
     super.stop();
     var t = this.sensor.remove();
+    this.websocket.send("s")
 
   }
   init_settings_pannel(){

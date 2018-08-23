@@ -17,6 +17,7 @@ import sys
 import socket
 import mathutils
 import numpy
+import math
 from bpy.app.handlers import persistent
 
 import bpy
@@ -29,12 +30,21 @@ _daemons = []
 _map = []
 _rotation = []
 _origins = []
+_origin = mathutils.Matrix()
 
 # _base = Matrix([[1,0,0],[0,0,1],[0,-1,0],[0,0,0]])
 # _dest = = Matrix([[0,1,0],[0,0,1],[-1,0,0],[0,0,0]])
 '''
     Utility functions
 '''
+def save_pose():
+    import copy
+
+    _origin= copy.copy(bpy.context.object.matrix_basis)
+    # for o in bpy.data.objects:
+    #     # t=
+    #     _origins.append((o.name,copy.copy(o.matrix_basis)))
+
 def GetCurrentIp():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
@@ -42,6 +52,16 @@ def GetCurrentIp():
     s.close()
     return ip
 
+def multiply_quat(q, r):
+    result = mathutils.Quaternion()
+
+    result.w = (r.w * q.w - r.x * q.x- r.y * q.y -r.z * q.z)
+    result.x = (r.w * q.x + r.x * q.w -r.y * q.z + r.z * q.y)
+    result.y = (r.w * q.y + r.x * q.z + r.y * q.w - r.z * q.x)
+    result.z = (r.w * q.z - r.x * q.y + r.y * q.x + r.z * q.w)
+
+
+    return result
 '''
     control functions
 '''
@@ -96,8 +116,7 @@ def setup_daemons():
 
     _ip = GetCurrentIp()
 
-    for o in bpy.data.objects:
-        _origins.append((o.name,o.matrix_basis.translation))
+    save_pose()
 
     if sys.platform == "win32":
         _loop = asyncio.ProactorEventLoop()
@@ -228,9 +247,9 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
 
     def pipe_data_received(self, fd, data):
         text = data.decode(locale.getpreferredencoding(False))
-        for o in _origins:
-            if o[0] == bpy.context.selected_objects[0].name:
-                origin_pose = o[1]
+        # for o in _origins:
+        #     if o[0] == bpy.context.selected_objects[0].name:
+        #         origin_pose = o[1]
         # origin_pose = bpy.context.selected_objects[0].matrix_basis.translation
 
         if text.split()[0][0] == 'p':
@@ -244,8 +263,10 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
                        pose[x][y] = test[x,y]'''
                 # print("test", sep=' ', end='n', file=sys.stdout, flush=False)
                 # bpy.context.selected_objects[0].delta_location = mathutils.Vector((test[3,0],test[3,1],test[3,0])) #test.A. #.transpose().A
-                new_translation =  origin_pose + (origin_pose - mathutils.Vector((test[3,0],test[3,1],test[3,0])))
-                bpy.context.selected_objects[0].matrix_basis.translation = new_translation
+                # new_translation =  (bpy.context.selected_objects[0].matrix_basis.translation - mathutils.Vector((test[3,0],test[3,1],test[3,0])))
+                bpy.context.selected_objects[0].matrix_basis.translation = _origin.translation + mathutils.Vector((test[3,0],test[3,1],test[3,0]))
+                # bpy.context.selected_objects[0].matrix_basis = origin_pose + mathutils.Matrix(test.A)
+                print(str(origin_pose))
                 # bpy.context.selected_objects[0].location = test[0:2,3]
                 # print("translation" + str(test[0:3,3]))
                 # bpy.context.selected_objects[0].location.x = test[3,0]
@@ -314,26 +335,76 @@ def get_frame(loop):
     data = bytes(protocol.output)
     return data.decode('ascii').rstrip()
 
+
 async def WebsocketRecv(websocket, path):
     import bpy
     print("starting websocket server on 5678")
+
+    _init_rotation = False
     offset = [0.0, 0.0, 0.0,0.0]
     while True:
         data = await websocket.recv()
         # print(data)
         if 'tracking' in path:
-            sensors = data.split('/')
-            # print(_rotation)
-            bpy.context.object.rotation_mode = 'QUATERNION'
+            if data == 'i':
+                print("init requested")
+                # _origin = copy.copy(bpy.context.selected_objects[0].matrix_basis)
+                save_pose()
+                await websocket.send("ready")
+            elif data == 's':
+                _init_rotation = False
+            else:
+                sensors = data.split('/')
 
-            bpy.context.selected_objects[0].rotation_quaternion[0] = float(
-                sensors[0])
-            bpy.context.selected_objects[0].rotation_quaternion[1] = float(
-                sensors[1])
-            bpy.context.selected_objects[0].rotation_quaternion[2] = float(
-                sensors[2])
-            bpy.context.selected_objects[0].rotation_quaternion[3] = float(
-                sensors[3])
+                if _init_rotation == False:
+                    import copy
+                    if float(sensors[0]) != 0:
+                        print("input rotation: " + str(sensors))
+                        print("before rotation: "+str(copy.copy(bpy.context.selected_objects[0].rotation_euler)))
+
+                        offset = [(float(sensors[0]) -copy.copy(math.degrees(bpy.context.selected_objects[0].rotation_euler.x))),
+                            (float(sensors[1]) - copy.copy(math.degrees(bpy.context.selected_objects[0].rotation_euler.y))),
+                            (float(sensors[2]) - copy.copy(math.degrees(bpy.context.selected_objects[0].rotation_euler.z)))]
+                        print("offset: "+ str(offset))
+                        _init_rotation = True
+                # print(_rotation)
+
+                # smartphoneRotation = mathutils.Quaternion([float(sensors[0]),float(sensors[1]),float(sensors[2]),float(sensors[3])])
+                 # print(str(sensors[0]))
+                else:
+                    # bpy.context.object.rotation_mode = 'QUATERNION'
+                    x =float(sensors[0]) - offset[0]; #(_origin.to_euler().x + float(sensors[0]))
+                    y =float(sensors[1]) - offset[1];#(_origin.to_euler().y + float(sensors[1]))
+                    z =float(sensors[2]) - offset[2];#(_origin.to_euler().z + float(sensors[2]))
+                    # print(str(_origin.to_euler()))
+                    #
+                    # precompute to save on processing time
+                    cX = math.cos(x / 2)
+                    cY = math.cos(y / 2)
+                    cZ = math.cos(z / 2)
+                    sX = math.sin(x / 2)
+                    sY = math.sin(y / 2)
+                    sZ = math.sin(z / 2)
+
+                    target_rotation = mathutils.Quaternion()
+                    target_rotation.w = cX * cY * cZ - sX * sY * sZ
+                    target_rotation.x = sX * cY * cZ - cX * sY * sZ
+                    target_rotation.y = cX * sY * cZ + sX * cY * sZ
+                    target_rotation.z = cX * cY * sZ + sX * sY * cZ
+                    #
+                    # # target_rotation = multiply_quat(smartphoneRotation,_origin.to_quaternion())
+                    bpy.context.selected_objects[0].rotation_quaternion =(math.radians(x),math.radians(y),math.radians(z))#target_rotation
+                    # bpy.context.selected_objects[0].rotation_quaternion[0] = float(
+                    #     sensors[0]) + _origin.to_quaternion().w
+                    # bpy.context.selected_objects[0].rotation_quaternion[1] = float(
+                    #     sensors[1]) + _origin.to_quaternion().x
+                    # bpy.context.selected_objects[0].rotation_quaternion[2] = float(
+                    #     sensors[2]) + _origin.to_quaternion().y
+                    # bpy.context.selected_objects[0].rotation_quaternion[3] = float(
+                    #     sensors[3]) + _origin.to_quaternion().z
+                    # bpy.context.selected_objects[0].delta_rotation_quaternion = smartphoneRotation
+                    #
+
         elif 'script' in path:
             eval(data)
         elif 'commands' in path:
