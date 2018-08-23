@@ -393,7 +393,7 @@ async def WebsocketRecv(websocket, path):
                     target_rotation.z = cX * cY * sZ + sX * sY * cZ
                     #
                     # # target_rotation = multiply_quat(smartphoneRotation,_origin.to_quaternion())
-                    bpy.context.selected_objects[0].rotation_quaternion =(math.radians(x),math.radians(y),math.radians(z))#target_rotation
+                    bpy.context.selected_objects[0].rotation_euler =(math.radians(x),math.radians(y),math.radians(z))#target_rotation
                     # bpy.context.selected_objects[0].rotation_quaternion[0] = float(
                     #     sensors[0]) + _origin.to_quaternion().w
                     # bpy.context.selected_objects[0].rotation_quaternion[1] = float(
