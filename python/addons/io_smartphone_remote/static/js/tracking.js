@@ -170,7 +170,7 @@ class Imu extends Sensor {
         }.bind(this), true);
         this.enabled = true;
       }
-      return this.deviceOrientationData.w+'/'+this.deviceOrientationData.x+'/'+this.deviceOrientationData.y+'/'+this.deviceOrientationData.z;
+      return 'p'+this.deviceOrientationData.w+'/'+this.deviceOrientationData.x+'/'+this.deviceOrientationData.y+'/'+this.deviceOrientationData.z;
       // return this.deltaDeviceOrientationData.beta+'/'+this.deltaDeviceOrientationData.gamma+'/'+this.deltaDeviceOrientationData.alpha
     } else {
       return null;
@@ -234,7 +234,7 @@ class Action {
     //Setup action GUI
     document.getElementById('_actions_list').innerHTML +=
     " <div id = \'"+this.name+"\' data-role=\'tile\' data-size=\'"+this.size+"\'  class=\'bg-darkSteel fg-white\'> \n" +
-    "<span id=\'"+this.name+"_icon\' class = \'"+this.icon+ " icon\'></span><span id=\'"+this.name+"_brand\' class=\'badge-bottom\'>"+this.status+"</span></div>"
+    "<span id=\'"+this.name+"_icon\' class = \'"+this.icon+ " icon\'></span><span id=\'"+this.name+"_brand_top\' class=\'badge-top bg-darkSteel\'><span id=\'"+this.name+"_connection_icon\' class = 'mif-power  fg-green '></span></span><span id=\'"+this.name+"_brand\' class=\'badge-bottom\'>"+this.status+" </span> </div>"
 
     $(document).on('mousedown', '#'+this.name, function() {
       this.mousedown();

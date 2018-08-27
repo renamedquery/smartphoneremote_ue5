@@ -194,7 +194,17 @@ public:
           M(3,2) = Tcw.at<float>(2,3);
           // M(2,3) = Tcw.at<float>(2,3);
           Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, ", ", ";\n", "[", "]", "[", "]");
-          std::cout << "p"<<M.format(HeavyFmt) <<std::endl ;
+          std::stringstream buffer;
+
+          // std::cout << "p"<<M.format(HeavyFmt) <<std::endl ;
+          set<WebSocket*>::iterator it;
+          it = _connections.begin();
+          WebSocket *connection = *it;
+          buffer << M.format(HeavyFmt);
+          connection->send(buffer.str());
+
+          buffer.str();
+
           /**/
       }
 

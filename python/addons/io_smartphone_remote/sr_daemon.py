@@ -40,6 +40,7 @@ _origin = mathutils.Matrix()
 def save_pose():
     import copy
 
+    print("saving relative pose matrix")
     _origin= copy.copy(bpy.context.object.matrix_basis)
     # for o in bpy.data.objects:
     #     # t=
@@ -96,9 +97,14 @@ def kill_daemons():
 
     _daemons.clear()
 
+def check_daemons(scene):
+    print("caca", sep=' ', end='n', file=sys.stdout, flush=False)
+
 @persistent
 def auto_launch_daemons(scene):
-    log.debug('Auto launch smartphone remote daemon')
+    print('Auto launch smartphone remote daemon')
+    if bpy.context.user_preferences.inputs.srDaemonRunning[1]['default']:
+        stop_daemons()
     setup_daemons()
     run_daemons()
     log.debug('Done.')
@@ -128,8 +134,6 @@ def setup_daemons():
 
     _ip = GetCurrentIp()
 
-    save_pose()
-
     if sys.platform == "win32":
         _loop = asyncio.ProactorEventLoop()
         asyncio.set_event_loop(_loop)
@@ -154,9 +158,11 @@ def setup_daemons():
     # date = _loop.ensure_future(get_slam_frame())
     websocket_task = asyncio.ensure_future(_wsd)
     httpd_task = asyncio.ensure_future(_httpd)
+    orbfeed_task = asyncio.ensure_future(orb_worker_feed())
     # camera_task = asyncio.ensure_future(get_frame(_loop))
     tracking_task = asyncio.ensure_future(get_slam_frame())
 
+    _daemons.append(orbfeed_task)
     _daemons.append(websocket_task)
     _daemons.append(httpd_task)
     _daemons.append(tracking_task)
@@ -253,6 +259,7 @@ class AsyncLoopModalOperator(bpy.types.Operator):
 
         return {'RUNNING_MODAL'}
 
+# Old version using asyncio SubprocessProtocol
 class CameraProcessProtocol(asyncio.SubprocessProtocol):
     def __init__(self, exit_future):
         self.exit_future = exit_future
@@ -267,7 +274,6 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
 
         if text.split()[0][0] == 'p':
             # print(text)
-            bpy.context.selected_objects[0].location
             try:
                 test = numpy.matrix(text.strip('p'))
 
@@ -325,23 +331,7 @@ class CameraProcessProtocol(asyncio.SubprocessProtocol):
     def process_exited(self):
         self.exit_future.set_result(True)
 
-
-async def get_slam_frame():
-    # Create the subprocess, redirect the standard output into a pipe
-    proc = await asyncio.create_subprocess_exec('/home/slumber/Repos/DeviceTracking/build/DeviceTracking',
-        stdout=asyncio.subprocess.PIPE)
-
-    _daemons.append(proc)
-    # Read one line of output
-    data = await proc.stdout.readline()
-    line = data.decode('ascii').rstrip()
-
-    print(line, sep=' ', end='n', file=sys.stdout, flush=False)
-
-    # Wait for the subprocess exit
-    await proc.wait()
-    return line
-
+# Old version using asyncio SubprocessProtocol
 @asyncio.coroutine
 def get_frame(loop):
     exit_future = asyncio.Future(loop=loop)
@@ -366,6 +356,21 @@ def get_frame(loop):
     data = bytes(protocol.output)
     return data.decode('ascii').rstrip()
 
+async def get_slam_frame():
+    # Create the subprocess, redirect the standard output into a pipe
+    proc = await asyncio.create_subprocess_exec('/home/slumber/Repos/DeviceTracking/build/DeviceTracking',
+        stdout=asyncio.subprocess.PIPE)
+
+    _daemons.append(proc)
+    # Read one line of output
+    data = await proc.stdout.readline()
+    line = data.decode('ascii').rstrip()
+
+    # Wait for the subprocess exit
+    await proc.wait()
+
+    return line
+
 
 async def WebsocketRecv(websocket, path):
     import bpy
@@ -375,7 +380,6 @@ async def WebsocketRecv(websocket, path):
     offset = mathutils.Quaternion()
     while True:
         data = await websocket.recv()
-        # print(data)
         if 'tracking' in path:
             if data == 'i':
                 print("init requested")
@@ -384,7 +388,7 @@ async def WebsocketRecv(websocket, path):
                 await websocket.send("ready")
             elif data == 's':
                 _init_rotation = False
-            else:
+            elif data[0]=='p':
                 sensors = data.split('/')
 
                 if _init_rotation == False:
@@ -450,7 +454,7 @@ async def WebsocketRecv(websocket, path):
                  bpy.context.selected_objects[0].rotation_euler[1]),
                 (float(sensors[1]) - bpy.context.selected_objects[0].rotation_euler[2])]
 
-async def CameraFeed():
+async def orb_worker_feed():
     # Wait for ImageProcess
     await asyncio.sleep(2)
     async with websockets.connect(
@@ -458,9 +462,43 @@ async def CameraFeed():
         print("connecting")
         cli.send("start_slam")
         while True:
-            t = await cli.recv()
-            print(t)
+            text = await cli.recv()
+            try:
+                test = numpy.matrix(text)
 
+                '''for x in range(0,3):
+                    for y in range(0,3):
+                       pose[x][y] = test[x,y]'''
+                # print("test", sep=' ', end='n', file=sys.stdout, flush=False)
+                # bpy.context.selected_objects[0].delta_location = mathutils.Vector((test[3,0],test[3,1],test[3,0])) #test.A. #.transpose().A
+                # new_translation =  (bpy.context.selected_objects[0].matrix_basis.translation - mathutils.Vector((test[3,0],test[3,1],test[3,0])))
+                bpy.context.selected_objects[0].matrix_basis.translation = _origin.translation + mathutils.Vector((test[3,0],test[3,1],test[3,0]))
+                # bpy.context.selected_objects[0].matrix_basis = origin_pose + mathutils.Matrix(test.A)
+                print(str(origin_pose))
+                # bpy.context.selected_objects[0].location = test[0:2,3]
+                # print("translation" + str(test[0:3,3]))
+                # bpy.context.selected_objects[0].location.x = test[3,0]
+                # bpy.context.selected_objects[0].location.y = test[3,1]
+                # bpy.context.selected_objects[0].location.z = test[3,2]
+                #bpy.context.selected_objects[0].
+                # print( bpy.data.objects['Cube'].matrix_basis)
+                #print(bpy.data.objects['Cube'].matrix_basis )
+
+                #bpy.data.objects['Cube'].matrix_world = pose * bpy.data.objects['Cube'].matrix_world
+                #print("Translation:"+test[0,3]*10+" - "+test[1,3]*10+" - "+test[2,3]*10)
+
+                #print(pose.rotation)
+            except:
+                print("no pose")
+                # try:
+                #     # if text.split()[0][0] == 'p':
+                #     #     print("Point map buffer detected", sep=' ', end='n', file=sys.stdout, flush=False)
+                #     #     _map.append(text.strip('[]p').split(';'))
+                #     #     print("map state:"+ _map)
+                #     #     #bpy.ops.object.empty_add(type='PLAIN_AXES', radius=0.1, view_align=False, location=(p[0], p[1], p[2]))
+                #
+                # except:
+                pass
 def register():
     bpy.utils.register_class(StopBlenderRemote)
     bpy.utils.register_class(RestartBlenderRemote)

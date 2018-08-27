@@ -7,6 +7,8 @@ var _commandButton;
 var _isCommandStreamInit;
 var _actions = [];
 var _client;
+var _timout ;
+var _connexionAttempt;
 
 function StartuInfoBoxEvents() {
   return Metro.infobox.create(
@@ -35,7 +37,7 @@ function initRemote() {
     type: 'cycle',
     style: 'light',
     overlayColor: '#585B5D',
-    // text: '<div class=\'mt-2 text-small\'>connecting to server</div>',
+     text: '<div class=\'mt-2 text-small\'>reaching local blender instance.</div>',
     overlayAlpha: 1
   });
 
@@ -63,11 +65,18 @@ function initRemote() {
         break;
       case 2:
         displayed_status = "closing";
-        displayed_status_color = "fg-orange";
+        Metro.toast.create("Can't reach blender instance, please reload", null, null, "alert");
+
+        _connexionAttempt++;
+        displayed_status_color = "fg-red";
+
         break;
       case 3:
         displayed_status = "closed";
-        displayed_status_color = "fg-grey";
+        Metro.toast.create("Can't reach blender instance, please reload", null, 5000, "alert");
+        displayed_status_color = "fg-red";
+
+        _connexionAttempt++;
         break;
       default:
         displayed_status = "none";
@@ -81,7 +90,7 @@ function initRemote() {
   var cam = new Camera(_trackingUnit);
 
   _actions.push(new Tracking("tracking", "medium", "mif-play", _client,30, imu));
-  _actions.push(new Tracking('camera','wide','mif-compass',_client,25,cam));
+  _actions.push(new Tracking('camera_tracking','wide','mif-compass',_client,25,cam));
 
   var translate_local = "bpy.ops.transform.translate(value=(0, 0.5, 0), constraint_axis=(False, True, False), constraint_orientation='LOCAL')"
   _actions.push(new Script("test", "medium", "mif-airplane", _client,30,translate_local));
