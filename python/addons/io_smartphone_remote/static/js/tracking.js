@@ -170,8 +170,8 @@ class Imu extends Sensor {
         }.bind(this), true);
         this.enabled = true;
       }
-      // return this.deviceOrientationData.w+'/'+this.deviceOrientationData.x+'/'+this.deviceOrientationData.y+'/'+this.deviceOrientationData.z;
-      return this.deltaDeviceOrientationData.beta+'/'+this.deltaDeviceOrientationData.gamma+'/'+this.deltaDeviceOrientationData.alpha
+      return this.deviceOrientationData.w+'/'+this.deviceOrientationData.x+'/'+this.deviceOrientationData.y+'/'+this.deviceOrientationData.z;
+      // return this.deltaDeviceOrientationData.beta+'/'+this.deltaDeviceOrientationData.gamma+'/'+this.deltaDeviceOrientationData.alpha
     } else {
       return null;
     }
@@ -179,25 +179,25 @@ class Imu extends Sensor {
   }
     processGyro(event) {
 
-    this.deltaDeviceOrientationData = event;
+    // this.deltaDeviceOrientationData = event;
 
 
-    // var x = degToRad(event.beta); // beta value
-    // var y = degToRad(event.gamma); // gamma value
-    // var z = degToRad(event.alpha); // alpha value
-    //
-    // //precompute to save on processing time
-    // var cX = Math.cos(x / 2);
-    // var cY = Math.cos(y / 2);
-    // var cZ = Math.cos(z / 2);
-    // var sX = Math.sin(x / 2);
-    // var sY = Math.sin(y / 2);
-    // var sZ = Math.sin(z / 2);
-    //
-    // this.deviceOrientationData.w = cX * cY * cZ - sX * sY * sZ;
-    // this.deviceOrientationData.x = sX * cY * cZ - cX * sY * sZ;
-    // this.deviceOrientationData.y = cX * sY * cZ + sX * cY * sZ;
-    // this.deviceOrientationData.z = cX * cY * sZ + sX * sY * cZ;
+    var x = degToRad(event.beta); // beta value
+    var y = degToRad(event.gamma); // gamma value
+    var z = degToRad(event.alpha); // alpha value
+
+    //precompute to save on processing time
+    var cX = Math.cos(x / 2);
+    var cY = Math.cos(y / 2);
+    var cZ = Math.cos(z / 2);
+    var sX = Math.sin(x / 2);
+    var sY = Math.sin(y / 2);
+    var sZ = Math.sin(z / 2);
+
+    this.deviceOrientationData.w = cX * cY * cZ - sX * sY * sZ;
+    this.deviceOrientationData.x = sX * cY * cZ - cX * sY * sZ;
+    this.deviceOrientationData.y = cX * sY * cZ + sX * cY * sZ;
+    this.deviceOrientationData.z = cX * cY * sZ + sX * sY * cZ;
 
     // this.deviceOrientationData.x
   }

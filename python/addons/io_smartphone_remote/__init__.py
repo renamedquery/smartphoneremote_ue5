@@ -11,6 +11,7 @@ bl_info = {
 import bpy
 import sys
 import os
+import atexit
 
 thirdPartyDir = os.path.dirname(os.path.abspath(__file__))+"/libs"
 
@@ -34,6 +35,7 @@ def register():
     sr_settings.register()
     # sr_daemon.Launch()
     sr_daemon.register()
+    atexit.register(sr_daemon.kill_daemons)
 
 def unregister():
     if thirdPartyDir in sys.path:
@@ -45,8 +47,10 @@ def unregister():
     from . import (sr_settings,sr_daemon)
     import async_loop
 
-    async_loop.unregister();
+    sr_daemon.stop_daemons()
+    async_loop.unregister()
     sr_settings.unregister()
+
 
 
 
