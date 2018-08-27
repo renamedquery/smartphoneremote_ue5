@@ -75,6 +75,7 @@ public:
             return;
         }
 
+
         /*int value = atoi(data) + 1;
         if (value > _currentValue) {
             setValue(value);
@@ -109,6 +110,7 @@ public:
     }
 
 private:
+    WebSocket* _blenderInstanceConnexion;
     set<WebSocket*> _connections;
     Server* _server;
     int _currentValue;

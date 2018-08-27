@@ -92,6 +92,10 @@ public:
       _currentTime = atof(subbuff);
       return;
     }
+    if (0 == strcmp("blender_instance_login", data)) {
+      _blenderInstanceConnexion = connection;
+      std::cout<<"blender instance registered looged"<<std::endl;
+    }
     if (0 == strcmp("start_slam", data)) {
       _slam = new ORB_SLAM2::System(
           "/home/slumber/Repos/ORB_SLAM2/Vocabulary/ORBvoc.txt",
@@ -197,11 +201,11 @@ public:
           std::stringstream buffer;
 
           // std::cout << "p"<<M.format(HeavyFmt) <<std::endl ;
-          set<WebSocket*>::iterator it;
-          it = _connections.begin();
-          WebSocket *connection = *it;
+          // set<WebSocket*>::iterator it;
+          // it = _connections.begin();
+          // WebSocket *connection = *it;
           buffer << M.format(HeavyFmt);
-          connection->send(buffer.str());
+          _blenderInstanceConnexion->send(buffer.str());
 
           buffer.str();
 
@@ -227,6 +231,7 @@ public:
   }
 
 private:
+  WebSocket* _blenderInstanceConnexion;
   set<WebSocket *> _connections;
   Server *_server;
   ORB_SLAM2::System *_slam;
