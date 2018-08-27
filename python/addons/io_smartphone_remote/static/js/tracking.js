@@ -390,7 +390,13 @@ class Tracking extends Action {
     super.play();
   }
   core() {
-      this.websocket.send(this.sensor.get_data());
+    var data = this.sensor.get_data()
+    if(data == 1){
+    }
+    else{
+      this.websocket.send(data)
+    }
+      // this.websocket.send(this.sensor.get_data());
   }
   stop(){
     super.stop();

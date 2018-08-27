@@ -41,7 +41,9 @@ def save_pose():
     import copy
 
     print("saving relative pose matrix")
-    _origin= copy.copy(bpy.context.object.matrix_basis)
+    global _origin
+    _origin = copy.copy(bpy.context.selected_objects[0].matrix_basis)
+    print(str(_origin))
     # for o in bpy.data.objects:
     #     # t=
     #     _origins.append((o.name,copy.copy(o.matrix_basis)))
@@ -91,8 +93,11 @@ def kill_daemons():
             print("cancelling " + str(i))
             i.cancel()
         except:
-            print("killing child process" + str(i))
-            i.kill()
+            try:
+                print("killing child process" + str(i))
+                i.kill()
+            except:
+                print("no process to kill", sep=' ', end='n', file=sys.stdout, flush=False)
 
 
     _daemons.clear()
@@ -155,22 +160,19 @@ def setup_daemons():
                                  8080)
 
     _wsd = websockets.serve(WebsocketRecv, '0.0.0.0', 5678)
-    # date = _loop.ensure_future(get_slam_frame())
+
     websocket_task = asyncio.ensure_future(_wsd)
     httpd_task = asyncio.ensure_future(_httpd)
-    orbfeed_task = asyncio.ensure_future(orb_worker_feed())
-    # camera_task = asyncio.ensure_future(get_frame(_loop))
-    tracking_task = asyncio.ensure_future(get_slam_frame())
+    orb_task = asyncio.ensure_future(orb_worker_feed())
+    tracking_task = asyncio.ensure_future(slam_worker())
 
-    _daemons.append(orbfeed_task)
+    _daemons.append(orb_task)
     _daemons.append(websocket_task)
     _daemons.append(httpd_task)
     _daemons.append(tracking_task)
 
     #_loop.run_forever()
     bpy.app.handlers.load_post.clear()
-
-
 
 class StopBlenderRemote(bpy.types.Operator):
     """Tooltip"""
@@ -259,104 +261,7 @@ class AsyncLoopModalOperator(bpy.types.Operator):
 
         return {'RUNNING_MODAL'}
 
-# Old version using asyncio SubprocessProtocol
-class CameraProcessProtocol(asyncio.SubprocessProtocol):
-    def __init__(self, exit_future):
-        self.exit_future = exit_future
-        self.output = bytearray()
-
-    def pipe_data_received(self, fd, data):
-        text = data.decode(locale.getpreferredencoding(False))
-        # for o in _origins:
-        #     if o[0] == bpy.context.selected_objects[0].name:
-        #         origin_pose = o[1]
-        # origin_pose = bpy.context.selected_objects[0].matrix_basis.translation
-
-        if text.split()[0][0] == 'p':
-            # print(text)
-            try:
-                test = numpy.matrix(text.strip('p'))
-
-                '''for x in range(0,3):
-                    for y in range(0,3):
-                       pose[x][y] = test[x,y]'''
-                # print("test", sep=' ', end='n', file=sys.stdout, flush=False)
-                # bpy.context.selected_objects[0].delta_location = mathutils.Vector((test[3,0],test[3,1],test[3,0])) #test.A. #.transpose().A
-                # new_translation =  (bpy.context.selected_objects[0].matrix_basis.translation - mathutils.Vector((test[3,0],test[3,1],test[3,0])))
-                bpy.context.selected_objects[0].matrix_basis.translation = _origin.translation + mathutils.Vector((test[3,0],test[3,1],test[3,0]))
-                # bpy.context.selected_objects[0].matrix_basis = origin_pose + mathutils.Matrix(test.A)
-                print(str(origin_pose))
-                # bpy.context.selected_objects[0].location = test[0:2,3]
-                # print("translation" + str(test[0:3,3]))
-                # bpy.context.selected_objects[0].location.x = test[3,0]
-                # bpy.context.selected_objects[0].location.y = test[3,1]
-                # bpy.context.selected_objects[0].location.z = test[3,2]
-                #bpy.context.selected_objects[0].
-                # print( bpy.data.objects['Cube'].matrix_basis)
-                #print(bpy.data.objects['Cube'].matrix_basis )
-
-                #bpy.data.objects['Cube'].matrix_world = pose * bpy.data.objects['Cube'].matrix_world
-                #print("Translation:"+test[0,3]*10+" - "+test[1,3]*10+" - "+test[2,3]*10)
-
-                #print(pose.rotation)
-            except:
-                print("no pose")
-                # try:
-                #     # if text.split()[0][0] == 'p':
-                #     #     print("Point map buffer detected", sep=' ', end='n', file=sys.stdout, flush=False)
-                #     #     _map.append(text.strip('[]p').split(';'))
-                #     #     print("map state:"+ _map)
-                #     #     #bpy.ops.object.empty_add(type='PLAIN_AXES', radius=0.1, view_align=False, location=(p[0], p[1], p[2]))
-                #
-                # except:
-                pass
-        elif text.split()[0][0] == 'm':
-            #t = numpy.asfarray(text.split('p', 1)[0].strip('m[]\n').)
-            mbuffer = text.split('p', 1)[0].replace("m","").replace('\r', '').replace('\n', '').replace('[', '').replace(']', '').rstrip('\n').split(';')
-
-            for c in mbuffer:
-                _map.append(c)
-
-            for i in range(0,len(_map),3):
-                try:
-                    print(str(_map[i]) + str(_map[i+1])+ str(_map[i+2]))
-                    bpy.ops.object.empty_add(type='PLAIN_AXES', radius=0.1, view_align=False, location=(float(_map[i]),float(_map[i+1]), float(_map[i+2])), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
-
-                except:
-                    print("too far..")
-            print("Map len:" + str(len(_map)))
-
-        self.output.extend(data)
-
-    def process_exited(self):
-        self.exit_future.set_result(True)
-
-# Old version using asyncio SubprocessProtocol
-@asyncio.coroutine
-def get_frame(loop):
-    exit_future = asyncio.Future(loop=loop)
-
-    # Create the subprocess controlled by the protocol CameraProcessProtocol,
-    # redirect the standard output into a pipe
-    create = loop.subprocess_exec(lambda: CameraProcessProtocol(exit_future),
-                                  '/home/slumber/Repos/DeviceTracking/build/DeviceTracking',
-                                  stdin=None, stderr=None)
-    _daemons.append(create)
-    transport, protocol = yield from create
-
-    # Wait for the subprocess exit using the process_exited() method
-    # of the protocol
-    yield from exit_future
-
-    # Close the stdout pipe
-    transport.close()
-
-    # Read the output which was collected by the pipe_data_received()
-    # method of the protocol
-    data = bytes(protocol.output)
-    return data.decode('ascii').rstrip()
-
-async def get_slam_frame():
+async def slam_worker():
     # Create the subprocess, redirect the standard output into a pipe
     proc = await asyncio.create_subprocess_exec('/home/slumber/Repos/DeviceTracking/build/DeviceTracking',
         stdout=asyncio.subprocess.PIPE)
@@ -368,9 +273,8 @@ async def get_slam_frame():
 
     # Wait for the subprocess exit
     await proc.wait()
-
+    print(line)
     return line
-
 
 async def WebsocketRecv(websocket, path):
     import bpy
@@ -389,7 +293,8 @@ async def WebsocketRecv(websocket, path):
             elif data == 's':
                 _init_rotation = False
             elif data[0]=='p':
-                sensors = data.split('/')
+
+                sensors = data.strip('p').split('/')
 
                 if _init_rotation == False:
                     bpy.context.object.rotation_mode = 'QUATERNION'
@@ -439,7 +344,7 @@ async def WebsocketRecv(websocket, path):
                     #     sensors[2]) + _origin.to_quaternion().y
                     # bpy.context.selected_objects[0].rotation_quaternion[3] = float(
                     #     sensors[3]) + _origin.to_quaternion().z
-                    bpy.context.selected_objects[0].rotation_quaternion =  multiply_quat(offset,smartphoneRotation.inverted())
+                    bpy.context.selected_objects[0].rotation_quaternion =  smartphoneRotation#multiply_quat(offset,smartphoneRotation.inverted())
                     #
 
         elif 'script' in path:
@@ -459,22 +364,28 @@ async def orb_worker_feed():
     await asyncio.sleep(2)
     async with websockets.connect(
             'ws://localhost:6302/ws') as cli:
-        print("connecting")
-        cli.send("start_slam")
-        while True:
-            text = await cli.recv()
-            try:
-                test = numpy.matrix(text)
 
-                '''for x in range(0,3):
-                    for y in range(0,3):
-                       pose[x][y] = test[x,y]'''
+        print("connected" + str(cli))
+        await cli.send("blender_instance_login")
+        print("done")
+        while True:
+            data = await cli.recv()
+
+            try:
+                slamTransmorm = numpy.matrix(data)
+
+
                 # print("test", sep=' ', end='n', file=sys.stdout, flush=False)
                 # bpy.context.selected_objects[0].delta_location = mathutils.Vector((test[3,0],test[3,1],test[3,0])) #test.A. #.transpose().A
                 # new_translation =  (bpy.context.selected_objects[0].matrix_basis.translation - mathutils.Vector((test[3,0],test[3,1],test[3,0])))
-                bpy.context.selected_objects[0].matrix_basis.translation = _origin.translation + mathutils.Vector((test[3,0],test[3,1],test[3,0]))
+                bpy.context.selected_objects[0].matrix_basis.translation = _origin.translation + mathutils.Vector((slamTransmorm[3,0],slamTransmorm[3,2],slamTransmorm[3,1]))
+                # print(str(mathutils.Vector((test[3,0],test[3,1],test[3,2]))))
+
+                # blenderTransform = mathutils.Matrix(slamTransmorm.A)
+                # bpy.context.selected_objects[0].rotation_quaternion = blenderTransform.to_quaternion()
+
+                # bpy.context.selected_objects[0].matrix_basis = mathutils.Matrix(slamTransmorm.A)
                 # bpy.context.selected_objects[0].matrix_basis = origin_pose + mathutils.Matrix(test.A)
-                print(str(origin_pose))
                 # bpy.context.selected_objects[0].location = test[0:2,3]
                 # print("translation" + str(test[0:3,3]))
                 # bpy.context.selected_objects[0].location.x = test[3,0]
@@ -489,7 +400,6 @@ async def orb_worker_feed():
 
                 #print(pose.rotation)
             except:
-                print("no pose")
                 # try:
                 #     # if text.split()[0][0] == 'p':
                 #     #     print("Point map buffer detected", sep=' ', end='n', file=sys.stdout, flush=False)
@@ -499,6 +409,7 @@ async def orb_worker_feed():
                 #
                 # except:
                 pass
+
 def register():
     bpy.utils.register_class(StopBlenderRemote)
     bpy.utils.register_class(RestartBlenderRemote)
