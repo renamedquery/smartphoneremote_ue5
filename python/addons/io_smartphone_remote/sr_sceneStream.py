@@ -45,6 +45,26 @@ class Accessor():
         self.min = [0.0,0.0]
         self.max = [0.9,0.8]
 
+class Primitive():
+    """ glTF basic primitive
+
+    A primitive can contain:
+    - an array of Node
+    """
+    def __init__(self, *args, **kwargs):
+        if 'mode' in kwargs:
+            self.mode = kwargs['mode']
+        if 'indices' in kwargs:
+            self.indices = kwargs['indices']
+        if 'attributes' in kwargs:
+            self.attributes = kwargs['attributes']
+        if 'material' in kwargs:
+            self.material = kwargs['material']
+        if 'target' in kwargs:
+            self.target = kwargs['target']
+        if 'weights' in kwargs:
+            self.weights = kwargs['weights']
+
 
 class Camera():
     """ glTF basic scenes
@@ -55,15 +75,20 @@ class Camera():
     def __init__(self):
         self.type = ''
 
-
 class Mesh():
     """ glTF basic scenes
 
     A scene can contain:
     - an array of Node
     """
-    def __init__(self):
-        self.primitives = []
+    def __init__(self, *args, **kwargs):
+        if 'primitives' in kwargs:
+            self.primitives = kwargs['primitives']
+        else:
+            self.primitives = []
+
+        if 'name' in kwargs:
+            self.name = kwargs['name']
 
 class Scene(object):
     """ glTF basic scenes
@@ -119,6 +144,7 @@ class glTF():
         self.scene = 0
         self.scenes = []
         self.nodes = []
+        self.meshes = []
 
         if path is not None:
             with open(path) as f:
@@ -169,6 +195,45 @@ class glTF():
 #             if n.name == name:
 #                 return n
 
+def b_load_mesh(obj):
+    import array
+    if obj.type == 'MESH':
+        print("loading "+obj.name+" mesh")
+
+        new_mesh = Mesh(name=obj.name+"_shape")
+        attr = {}
+        attr["POSITION"] = 1
+        new_primitive  = Primitive(mode=4,attributes=attr, indices=0)
+        indice_buffer = array.array('H')
+        position_buffer = array.array('f')
+
+        for triangle in obj.data.polygons:
+                for vertex in triangle.vertices:
+                    indice_buffer.append(vertex)
+                    # print(obj.data.vertices[vertex].co)
+
+        for vertex in obj.data.vertices:
+            position_buffer.append(vertex.co.x)
+            position_buffer.append(vertex.co.y)
+            position_buffer.append(vertex.co.z)
+
+        print(indice_buffer)
+        print(len(indice_buffer)*indice_buffer.itemsize)
+        print(position_buffer)
+        print(len(position_buffer)*position_buffer.itemsize)
+
+        geometry_buffer = indice_buffer.tobytes() + position_buffer.tobytes()
+        print(len(geometry_buffer))
+        file = open("test.bin", "wb")
+        file.write(geometry_buffer)
+        file.close()
+        new_mesh.primitives.append(new_primitive)
+
+        return new_mesh
+    else:
+        return -1
+
+
 def load_blender(glft):
     import bpy, mathutils
 
@@ -189,8 +254,7 @@ def load_blender(glft):
             if obj.matrix_basis != m:
                 node.matrix = MatrixToArray(obj.matrix_local)
             if obj.type == 'MESH':
-                print("load mesh")
-                node.mesh = 0
+                glft.meshes.append(b_load_mesh(obj))
 
 
             elif  obj.type == 'CAMERA':
@@ -226,34 +290,11 @@ def MatrixToArray(mat):
 
     return array
 
-def fill_node(gltf, object):
-
-    node = Node(name=object.name,
-                matrix = MatrixToArray(object.matrix_basis))
-    print(node.name)
-    if node in gltf.nodes:
-            print(" already added")
-    else:
-        if object.children:
-            node.children = []
-
-            print("found child")
-            for o in object.children:
-                node.children.append(gltf.nodes.index(fill_node(gltf,o)))
-        gltf.nodes.append(node)
-    #if object.type = 'MESH'
-
-
-
-
-
-    return node
-
 
 if __name__ == '__main__':
     import bpy
 
-    #bpy.ops.wm.open_mainfile(filepath="/home/slumber/Repos/DeviceTracking/examples/parent.blend")
+    bpy.ops.wm.open_mainfile(filepath="/home/slumber/Repos/DeviceTracking/examples/parent.blend")
     gltf = glTF()#'/home/slumber/Downloads/Duck.gltf')
     # gltf.scenes.append(Scene())
     # gltf.nodes.append(Node())
