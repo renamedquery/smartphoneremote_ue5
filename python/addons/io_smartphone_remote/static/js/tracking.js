@@ -60,17 +60,17 @@ class Camera extends Sensor {
       var server_message = e.data;
       console.log(server_message);
 
-      if (server_message == "slam_ready") {
+      if (server_message == "aruko_ready") {
         this.enabled = true;
-        this.canvas.height = 480;
-        this.canvas.width = 640;
+        this.canvas.height = 640;
+        this.canvas.width =480 ;
       }
     }.bind(this);
   }
   init() {
     super.init();
 
-    this.wsComputeUnite.send("start_slam");
+    this.wsComputeUnite.send("start_aruko");
     this.supported /*= navigator.getUserMedia*/ = navigator.getUserMedia ||
       navigator.webkitGetUserMedia ||
       navigator.mozGetUserMedia;

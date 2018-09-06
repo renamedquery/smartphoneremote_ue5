@@ -27,7 +27,7 @@ else()
 endif()
 
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
-find_package( OpenCV REQUIRED )
+find_package( OpenCV 3.4 REQUIRED )
 find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
 

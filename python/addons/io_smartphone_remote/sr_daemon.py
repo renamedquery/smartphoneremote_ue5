@@ -37,6 +37,8 @@ _origin = mathutils.Matrix()
 '''
     Utility functions
 '''
+
+
 def save_pose():
     import copy
 
@@ -48,6 +50,7 @@ def save_pose():
     #     # t=
     #     _origins.append((o.name,copy.copy(o.matrix_basis)))
 
+
 def GetCurrentIp():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
@@ -55,19 +58,23 @@ def GetCurrentIp():
     s.close()
     return ip
 
+
 def multiply_quat(q, r):
     result = mathutils.Quaternion()
 
-    result.w = (r.w * q.w - r.x * q.x- r.y * q.y -r.z * q.z)
-    result.x = (r.w * q.x + r.x * q.w -r.y * q.z + r.z * q.y)
+    result.w = (r.w * q.w - r.x * q.x - r.y * q.y - r.z * q.z)
+    result.x = (r.w * q.x + r.x * q.w - r.y * q.z + r.z * q.y)
     result.y = (r.w * q.y + r.x * q.z + r.y * q.w - r.z * q.x)
     result.z = (r.w * q.z - r.x * q.y + r.y * q.x + r.z * q.w)
 
-
     return result
+
+
 '''
     control functions
 '''
+
+
 def setup_asyncio_executor():
     """Sets up AsyncIO to run properly on each platform."""
 
@@ -86,9 +93,10 @@ def setup_asyncio_executor():
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
     loop.set_default_executor(executor)
 
+
 def kill_daemons():
     for i in _daemons:
-        #UGLY, TODO: add better process managment
+        # UGLY, TODO: add better process managment
         try:
             print("cancelling " + str(i))
             i.cancel()
@@ -97,13 +105,15 @@ def kill_daemons():
                 print("killing child process" + str(i))
                 i.kill()
             except:
-                print("no process to kill", sep=' ', end='n', file=sys.stdout, flush=False)
-
+                print("no process to kill", sep=' ',
+                      end='n', file=sys.stdout, flush=False)
 
     _daemons.clear()
 
+
 def check_daemons(scene):
     print("caca", sep=' ', end='n', file=sys.stdout, flush=False)
+
 
 @persistent
 def auto_launch_daemons(scene):
@@ -114,11 +124,13 @@ def auto_launch_daemons(scene):
     run_daemons()
     log.debug('Done.')
 
+
 def run_daemons():
     log.debug('Starting  smartphone remote daemon')
     bpy.context.user_preferences.inputs.srDaemonRunning[1]['default'] = True
     result = bpy.ops.asyncio.loop()
     log.debug('Result of starting modal operator is %r', result)
+
 
 def stop_daemons():
     global _loop_kicking_operator_running
@@ -133,6 +145,7 @@ def stop_daemons():
         loop.stop()
     else:
         pass
+
 
 def setup_daemons():
     logging.basicConfig(level=logging.INFO)
@@ -153,8 +166,8 @@ def setup_daemons():
         print("async_loop already setup")
         pass
 
-    root = os.path.dirname(os.path.abspath(__file__))+"/static"
-    print("launch server on " + _ip+ root)
+    root = os.path.dirname(os.path.abspath(__file__)) + "/static"
+    print("launch server on " + _ip + root)
     _httpd = _loop.create_server(lambda: httpd.HttpProtocol(_ip, root),
                                  '0.0.0.0',
                                  8080)
@@ -171,8 +184,9 @@ def setup_daemons():
     _daemons.append(httpd_task)
     _daemons.append(tracking_task)
 
-    #_loop.run_forever()
+    # _loop.run_forever()
     bpy.app.handlers.load_post.clear()
+
 
 class StopBlenderRemote(bpy.types.Operator):
     """Tooltip"""
@@ -186,6 +200,7 @@ class StopBlenderRemote(bpy.types.Operator):
     def execute(self, context):
         stop_daemons()
         return {'FINISHED'}
+
 
 class RestartBlenderRemote(bpy.types.Operator):
     """Tooltip"""
@@ -201,6 +216,7 @@ class RestartBlenderRemote(bpy.types.Operator):
         setup_daemons()
         run_daemons()
         return {'FINISHED'}
+
 
 class AsyncLoopModalOperator(bpy.types.Operator):
     bl_idname = 'asyncio.loop'
@@ -231,7 +247,8 @@ class AsyncLoopModalOperator(bpy.types.Operator):
         _loop_kicking_operator_running = True
 
         wm = context.window_manager
-        self.timer = wm.event_timer_add(0.00001, context.window)
+        # BLENDER2.8
+        self.timer = wm.event_timer_add(0.00001, window=context.window)
 
         return {'RUNNING_MODAL'}
 
@@ -258,13 +275,13 @@ class AsyncLoopModalOperator(bpy.types.Operator):
             self.log.debug('Stopped asyncio loop kicking')
             return {'FINISHED'}
 
-
         return {'RUNNING_MODAL'}
+
 
 async def slam_worker():
     # Create the subprocess, redirect the standard output into a pipe
     proc = await asyncio.create_subprocess_exec('/home/slumber/Repos/DeviceTracking/build/DeviceTracking',
-        stdout=asyncio.subprocess.PIPE)
+                                                stdout=asyncio.subprocess.PIPE)
 
     _daemons.append(proc)
     # Read one line of output
@@ -275,6 +292,7 @@ async def slam_worker():
     await proc.wait()
     print(line)
     return line
+
 
 async def WebsocketRecv(websocket, path):
     import bpy
@@ -292,7 +310,7 @@ async def WebsocketRecv(websocket, path):
                 await websocket.send("ready")
             elif data == 's':
                 _init_rotation = False
-            elif data[0]=='p':
+            elif data[0] == 'p':
 
                 sensors = data.strip('p').split('/')
 
@@ -300,20 +318,22 @@ async def WebsocketRecv(websocket, path):
                     bpy.context.object.rotation_mode = 'QUATERNION'
                     import copy
                     if float(sensors[0]) != 0:
+                        bpy.context.object.rotation_mode = 'QUATERNION'
                         # print("input rotation: " + str(sensors))
                         # print("before rotation: "+str(copy.copy(bpy.context.selected_objects[0].rotation_euler)))
-                        offset = bpy.context.selected_objects[0].matrix_basis.to_quaternion()
+                        offset = bpy.context.selected_objects[0].matrix_basis.to_quaternion(
+                        )
                         # offset = [(float(sensors[0]) -copy.copy(math.degrees(bpy.context.selected_objects[0].rotation_euler.x))),
                         #     (float(sensors[1]) - copy.copy(math.degrees(bpy.context.selected_objects[0].rotation_euler.y))),
                         #     (float(sensors[2]) - copy.copy(math.degrees(bpy.context.selected_objects[0].rotation_euler.z)))]
-                        print("offset: "+ str(offset))
+                        print("offset: " + str(offset))
                         _init_rotation = True
                 # print(_rotation)
 
-
                  # print(str(sensors[0]))
                 else:
-                    smartphoneRotation = mathutils.Quaternion([float(sensors[0]),float(sensors[1]),float(sensors[2]),float(sensors[3])])
+                    smartphoneRotation = mathutils.Quaternion(
+                        [float(sensors[0]), float(sensors[1]), float(sensors[2]), float(sensors[3])])
                     # x =float(sensors[0]) - offset[0]; #(_origin.to_euler().x + float(sensors[0]))
                     # y =float(sensors[1]) - offset[1];#(_origin.to_euler().y + float(sensors[1]))
                     # z =float(sensors[2]) - offset[2];#(_origin.to_euler().z + float(sensors[2]))
@@ -344,7 +364,8 @@ async def WebsocketRecv(websocket, path):
                     #     sensors[2]) + _origin.to_quaternion().y
                     # bpy.context.selected_objects[0].rotation_quaternion[3] = float(
                     #     sensors[3]) + _origin.to_quaternion().z
-                    bpy.context.selected_objects[0].rotation_quaternion =  smartphoneRotation#multiply_quat(offset,smartphoneRotation.inverted())
+                    # multiply_quat(offset,smartphoneRotation.inverted())
+                    bpy.context.selected_objects[0].rotation_quaternion = smartphoneRotation
                     #
 
         elif 'script' in path:
@@ -359,6 +380,7 @@ async def WebsocketRecv(websocket, path):
                  bpy.context.selected_objects[0].rotation_euler[1]),
                 (float(sensors[1]) - bpy.context.selected_objects[0].rotation_euler[2])]
 
+
 async def orb_worker_feed():
     # Wait for ImageProcess
     await asyncio.sleep(2)
@@ -372,17 +394,18 @@ async def orb_worker_feed():
             data = await cli.recv()
 
             try:
+                print(data)
                 slamTransmorm = numpy.matrix(data)
-
 
                 # print("test", sep=' ', end='n', file=sys.stdout, flush=False)
                 # bpy.context.selected_objects[0].delta_location = mathutils.Vector((test[3,0],test[3,1],test[3,0])) #test.A. #.transpose().A
-                # new_translation =  (bpy.context.selected_objects[0].matrix_basis.translation - mathutils.Vector((test[3,0],test[3,1],test[3,0])))
-                bpy.context.selected_objects[0].matrix_basis.translation = _origin.translation + mathutils.Vector((slamTransmorm[3,0],slamTransmorm[3,2],slamTransmorm[3,1]))
+                #new_translation =  (bpy.context.selected_objects[0].matrix_basis.translation - mathutils.Vector((test[3,0],test[3,1],test[3,0])))
+                bpy.context.selected_objects[0].matrix_basis.translation = _origin.translation + mathutils.Vector(
+                    (slamTransmorm[3, 0] * 10, slamTransmorm[3, 1] * 10, slamTransmorm[3, 2] * 10))
                 # print(str(mathutils.Vector((test[3,0],test[3,1],test[3,2]))))
 
                 # blenderTransform = mathutils.Matrix(slamTransmorm.A)
-                # bpy.context.selected_objects[0].rotation_quaternion = blenderTransform.to_quaternion()
+                #bpy.context.selected_objects[0].rotation_quaternion = mathutils.Matrix(slamTransmorm.A).to_quaternion()
 
                 # bpy.context.selected_objects[0].matrix_basis = mathutils.Matrix(slamTransmorm.A)
                 # bpy.context.selected_objects[0].matrix_basis = origin_pose + mathutils.Matrix(test.A)
@@ -391,14 +414,10 @@ async def orb_worker_feed():
                 # bpy.context.selected_objects[0].location.x = test[3,0]
                 # bpy.context.selected_objects[0].location.y = test[3,1]
                 # bpy.context.selected_objects[0].location.z = test[3,2]
-                #bpy.context.selected_objects[0].
+                #bpy.context.selected_objects[0].matrix_basis = slamTransmorm.A
                 # print( bpy.data.objects['Cube'].matrix_basis)
                 #print(bpy.data.objects['Cube'].matrix_basis )
 
-                #bpy.data.objects['Cube'].matrix_world = pose * bpy.data.objects['Cube'].matrix_world
-                #print("Translation:"+test[0,3]*10+" - "+test[1,3]*10+" - "+test[2,3]*10)
-
-                #print(pose.rotation)
             except:
                 # try:
                 #     # if text.split()[0][0] == 'p':
@@ -409,6 +428,7 @@ async def orb_worker_feed():
                 #
                 # except:
                 pass
+
 
 def register():
     bpy.utils.register_class(StopBlenderRemote)

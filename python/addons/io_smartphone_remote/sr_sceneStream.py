@@ -1,5 +1,15 @@
 import json
 
+class Asset():
+    """ glTF basic asset
+
+    A asset can contain:
+    - asset version
+    """
+
+    def __init__(self,*args, **kwargs):
+        self.version = '2.0'
+
 class Buffer():
     """ glTF basic buffer
 
@@ -105,7 +115,8 @@ class glTF():
     """basic glTF file structure."""
 
     def __init__(self, path = None):
-        self.scene = '0'
+        self.asset = Asset()
+        self.scene = 0
         self.scenes = []
         self.nodes = []
 
@@ -135,6 +146,7 @@ class glTF():
             if n.name == node_name:
                 return n
 
+
     def  __str__(self):
         return json.dumps(self, default=lambda o: o.__dict__,
             indent=4)
@@ -158,10 +170,12 @@ class glTF():
 #                 return n
 
 def load_blender(glft):
-    import bpy
+    import bpy, mathutils
+
+    m = mathutils.Matrix()
 
     print("Exporting tree : ")
-    glft.scene  = '0'
+    glft.scene  = 0
     for scene in bpy.data.scenes:
         print("-"+scene.name)
         gltf_scene = Scene()
@@ -170,8 +184,19 @@ def load_blender(glft):
         for obj in scene.objects:
             #print("--"+obj.name)
             #node = Node(obj.name)
-            node = Node(name=obj.name,
-                        matrix = MatrixToArray(obj.matrix_basis))
+
+            node = Node(name=obj.name)
+            if obj.matrix_basis != m:
+                node.matrix = MatrixToArray(obj.matrix_local)
+            if obj.type == 'MESH':
+                print("load mesh")
+                node.mesh = 0
+
+
+            elif  obj.type == 'CAMERA':
+                print("load camera")
+                node.camera = 0
+
 
             gltf.nodes.append(node)
 
@@ -188,37 +213,21 @@ def load_blender(glft):
 
         gltf.scenes.append(gltf_scene)
 
-        #
-        #
-        #
-        # glft.scenes.append(gltf_scene)
-        #
-        # #Fill relations
-        # for node in glft.nodes:
-        #     #print("--"+obj.name)
-        #     #node = Node(obj.name)
-        #
-        #     child_list =  scene.objects[node.name].children
-        #     if child_list:
-        #         node.children = []
-        #         for child in child_list:
-        #             node.children.append(gltf.nodes)
-        #
-        #
-        #
-        # glft.scenes.append(gltf_scene)
-        #     #fill_node(gltf, obj)
-
+        file = open("test.gltf", "w", encoding="utf8", newline="\n")
+        file.write(str(glft))
+        file.write("\n")
+        file.close()
 
 def MatrixToArray(mat):
     array = []
-    for r in mat.row:
+    for r in mat.col:
         for i in r:
             array.append(i)
 
     return array
 
 def fill_node(gltf, object):
+
     node = Node(name=object.name,
                 matrix = MatrixToArray(object.matrix_basis))
     print(node.name)
@@ -238,15 +247,13 @@ def fill_node(gltf, object):
 
 
 
-
-
     return node
 
 
 if __name__ == '__main__':
     import bpy
 
-    bpy.ops.wm.open_mainfile(filepath="/home/slumber/Repos/DeviceTracking/examples/parent.blend")
+    #bpy.ops.wm.open_mainfile(filepath="/home/slumber/Repos/DeviceTracking/examples/parent.blend")
     gltf = glTF()#'/home/slumber/Downloads/Duck.gltf')
     # gltf.scenes.append(Scene())
     # gltf.nodes.append(Node())
