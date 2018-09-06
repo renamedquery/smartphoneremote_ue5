@@ -394,20 +394,23 @@ async def orb_worker_feed():
             data = await cli.recv()
 
             try:
-                print(data)
+                #print(data)
                 slamTransmorm = numpy.matrix(data)
+                P = mathutils.Matrix(slamTransmorm.A)
+                # print(P)
 
                 # print("test", sep=' ', end='n', file=sys.stdout, flush=False)
                 # bpy.context.selected_objects[0].delta_location = mathutils.Vector((test[3,0],test[3,1],test[3,0])) #test.A. #.transpose().A
                 #new_translation =  (bpy.context.selected_objects[0].matrix_basis.translation - mathutils.Vector((test[3,0],test[3,1],test[3,0])))
-                bpy.context.selected_objects[0].matrix_basis.translation = _origin.translation + mathutils.Vector(
-                    (slamTransmorm[3, 0] * 10, slamTransmorm[3, 1] * 10, slamTransmorm[3, 2] * 10))
+                # bpy.context.selected_objects[0].matrix_basis.translation = _origin.translation + mathutils.Vector(
+                    # (slamTransmorm[3, 0] * 10, slamTransmorm[3, 1] * 10, slamTransmorm[3, 2] * 10))
                 # print(str(mathutils.Vector((test[3,0],test[3,1],test[3,2]))))
 
                 # blenderTransform = mathutils.Matrix(slamTransmorm.A)
                 #bpy.context.selected_objects[0].rotation_quaternion = mathutils.Matrix(slamTransmorm.A).to_quaternion()
 
-                # bpy.context.selected_objects[0].matrix_basis = mathutils.Matrix(slamTransmorm.A)
+                bpy.context.selected_objects[0].rotation_quaternion = P.to_quaternion()
+                bpy.context.selected_objects[0].location = P.to_translation()
                 # bpy.context.selected_objects[0].matrix_basis = origin_pose + mathutils.Matrix(test.A)
                 # bpy.context.selected_objects[0].location = test[0:2,3]
                 # print("translation" + str(test[0:3,3]))

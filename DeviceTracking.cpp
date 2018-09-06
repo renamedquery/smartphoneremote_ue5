@@ -182,9 +182,19 @@ public:
         //cv::aruco::detectMarkers(img, board.dictionary, corners, ids);
         // if at least one marker detected
         if (ids.size() > 0) {
-          cv::Vec3d rvec, tvec;
+          cv::Mat rvec, tvec;
           int valid = cv::aruco::estimatePoseBoard(
               corners, ids, board, cameraMatrix, distCoeffs, rvec, tvec);
+
+          cv::Mat R;
+          cv::Rodrigues(rvec, R);
+
+          // R = R.t();  // rotation of inverse
+          // tvec = -R * tvec; // translation of inverse
+
+          cv::Mat T = cv::Mat::eye(4, 4, R.type());
+          T( cv::Range(0,3), cv::Range(0,3) ) = R * 1;
+          T( cv::Range(0,3), cv::Range(3,4) ) = tvec * 10;
           // cv::aruco::drawDetectedMarkers(img, corners, ids);
           // std::vector<cv::Vec3d> rvecs, tvecs;
           // cv::aruco::estimatePoseSingleMarkers(corners, 0.05, cameraMatrix,
@@ -209,10 +219,11 @@ public:
 
           //  cv::Mat crvec(3,1,cv::DataType<double>::type);
           //  cv::Mat ctvec(3,1,cv::DataType<double>::type);
-          // solvePnP(points,p2,cameraMatrix,distCoeffs,crvec,ctvec);
-          // buffer << "test";//crvec;
-          // _blenderInstanceConnexion->send(buffer.str());
-          //  buffer.str();
+          //solvePnP(points,p2,cameraMatrix,distCoeffs,crvec,ctvec);
+          buffer << T;//crvec;
+          _blenderInstanceConnexion->send(buffer.str());
+            buffer.str();
+  
           // if at least one board marker detected
           if (valid > 0) {
             cv::aruco::drawAxis(img, cameraMatrix, distCoeffs, rvec, tvec, 0.1);
