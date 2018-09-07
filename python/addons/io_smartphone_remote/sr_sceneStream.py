@@ -17,33 +17,47 @@ class Buffer():
     - byte byteLength
     - a URI pointing raw data
     """
-    def __init__(self):
-        self.byteLength = 0
-        self.uri = ""
+    def __init__(self,*args, **kwargs):
+        if 'byteLength' in kwargs:
+            self.byteLength = kwargs['byteLength']
+        if 'uri' in kwargs:
+            self.uri = kwargs['uri']
 
-class BufferViews():
+class BufferView():
     """ glTF basic bufferViews
 
     A scene can contain:
     - an array of Node
     """
-    def __init__(self):
-        self.buffer = 0
-        self.byteOffset = 0,
-        self.byteLength = 0,
-        self.byteStride = 0,
-        self.target = ""
+    def __init__(self, *args, **kwargs):
+        if 'buffer' in kwargs:
+            self.buffer = kwargs['buffer']
+        if 'byteOffset' in kwargs:
+            self.byteOffset = kwargs['byteOffset']
+        if 'byteLength' in kwargs:
+            self.byteLength = kwargs['byteLength']
+        if 'byteStride' in kwargs:
+            self.byteStride = kwargs['byteStride']
+        if 'target' in kwargs:
+            self.target = kwargs['target']
 
 class Accessor():
     """glTF basic accessor"""
-    def __init__(self):
-        self.bufferView = 0
-        self.byteOffset = 0
-        self.type = "VEC2"
-        self.componentType = 5126
-        self.count = 2
-        self.min = [0.0,0.0]
-        self.max = [0.9,0.8]
+    def __init__(self, *args, **kwargs):
+        if 'bufferView' in kwargs:
+            self.bufferView = kwargs['bufferView']
+        if 'byteOffset' in kwargs:
+            self.byteOffset = kwargs['byteOffset']
+        if 'type' in kwargs:
+            self.type = kwargs['type']
+        if 'componentType' in kwargs:
+            self.componentType = kwargs['componentType']
+        if 'count' in kwargs:
+            self.count = kwargs['count']
+        if 'min' in kwargs:
+            self.min = kwargs['min']
+        if 'max' in kwargs:
+            self.max = kwargs['max']
 
 class Primitive():
     """ glTF basic primitive
@@ -145,6 +159,9 @@ class glTF():
         self.scenes = []
         self.nodes = []
         self.meshes = []
+        self.bufferViews = []
+        self.accessors = []
+        self.buffers = []
 
         if path is not None:
             with open(path) as f:
@@ -195,7 +212,36 @@ class glTF():
 #             if n.name == name:
 #                 return n
 
-def b_load_mesh(obj):
+def get_scalar_min_max(array):
+    min = max = array[0]
+    for e in array:
+        if e < min:
+            min = e
+        if e > max:
+            max = e
+
+    return [min,max]
+
+def get_vec3_min_max(array):
+    amin = [array[0],array[1],array[2]]
+    amax = [array[0],array[1],array[2]]
+    
+    for i in range(0,len(array),3):
+        elem = [array[i],array[i+1],array[i+2]]
+
+        for c in range(0,3):
+            print(elem[c])
+            if elem[c] < amin[c]:
+                amin[c] = elem[c]
+            if elem[c] > amax[c]:
+                amax[c] = elem[c]
+        print(elem )
+        print("min:"+str(amin) )
+        print("max:"+str(amax) )
+    return [amin,amax]
+
+    return [min,max]
+def b_load_mesh(obj,gltf):
     import array
     if obj.type == 'MESH':
         print("loading "+obj.name+" mesh")
@@ -203,31 +249,64 @@ def b_load_mesh(obj):
         new_mesh = Mesh(name=obj.name+"_shape")
         attr = {}
         attr["POSITION"] = 1
-        new_primitive  = Primitive(mode=4,attributes=attr, indices=0)
+        new_primitive  = Primitive(attributes=attr, indices=0)
+
+        # Extract geometry to binary buffer
         indice_buffer = array.array('H')
         position_buffer = array.array('f')
 
         for triangle in obj.data.polygons:
                 for vertex in triangle.vertices:
                     indice_buffer.append(vertex)
-                    # print(obj.data.vertices[vertex].co)
+        indice_buffer_size  = len(indice_buffer)
+        # t= len(indice_buffer)*indice_buffer.itemsize
+        # print("test:"+str(t % indice_buffer.itemsize))
+        indice_offset_length = 0
+        while ((len(indice_buffer)*indice_buffer.itemsize) % 4) != 0:
+            print("competing buffer with 0...")
+            indice_buffer.append(0)
+            indice_offset_length+=indice_buffer.itemsize
 
         for vertex in obj.data.vertices:
             position_buffer.append(vertex.co.x)
             position_buffer.append(vertex.co.y)
             position_buffer.append(vertex.co.z)
 
+        geometry_buffer = indice_buffer.tobytes() + position_buffer.tobytes()
+
+
+        # Generate corresponding accessor and bufferView
+        # Indices
+        indice_buffer_length = len(indice_buffer)*indice_buffer.itemsize
+        indice_bufferView = BufferView(buffer=0,byteOffset=0,byteLength=indice_buffer_length-indice_offset_length)
+        gltf.bufferViews.append(indice_bufferView)
+        indice_interval = get_scalar_min_max(indice_buffer)
+        indice_accessor = Accessor(bufferView=len(gltf.bufferViews)-1,byteOffset=0,componentType=5123,count=indice_buffer_size,type="SCALAR",max=[indice_interval[1]],min=[indice_interval[0]])
+        gltf.accessors.append(indice_accessor)
+
+        # Position
+        position_buffer_length = len(position_buffer)*position_buffer.itemsize
+        position_bufferView = BufferView(buffer=0,byteOffset=indice_buffer_length,byteLength=position_buffer_length)
+        gltf.bufferViews.append(position_bufferView)
+        position_interval = get_vec3_min_max(position_buffer)
+        position_accessor = Accessor(bufferView=len(gltf.bufferViews)-1,byteOffset=0,componentType=5126,count=len(position_buffer)/3,type="VEC3",max=position_interval[1],min=position_interval[0])
+        gltf.accessors.append(position_accessor)
+
+
         print(indice_buffer)
         print(len(indice_buffer)*indice_buffer.itemsize)
         print(position_buffer)
         print(len(position_buffer)*position_buffer.itemsize)
-
-        geometry_buffer = indice_buffer.tobytes() + position_buffer.tobytes()
         print(len(geometry_buffer))
-        file = open("test.bin", "wb")
+
+        # Write the buffer to files (gltf and bin)
+        file_name = bpy.path.basename(bpy.context.blend_data.filepath).split('.')[0] + ".bin"
+        file = open(file_name, "wb")
         file.write(geometry_buffer)
         file.close()
         new_mesh.primitives.append(new_primitive)
+        object_buffer = Buffer(uri=file_name,byteLength=len(geometry_buffer))
+        gltf.buffers.append(object_buffer)
 
         return new_mesh
     else:
@@ -254,7 +333,8 @@ def load_blender(glft):
             if obj.matrix_basis != m:
                 node.matrix = MatrixToArray(obj.matrix_local)
             if obj.type == 'MESH':
-                glft.meshes.append(b_load_mesh(obj))
+                glft.meshes.append(b_load_mesh(obj,gltf))
+                node.mesh = len(glft.meshes)-1
 
 
             elif  obj.type == 'CAMERA':
@@ -276,8 +356,8 @@ def load_blender(glft):
                     parent_node.children.append(glft.nodes.index(glft.find_node(child.name)))
 
         gltf.scenes.append(gltf_scene)
-
-        file = open("test.gltf", "w", encoding="utf8", newline="\n")
+        file_name = bpy.path.basename(bpy.context.blend_data.filepath).split('.')[0] + ".gltf"
+        file = open(file_name, "w", encoding="utf8", newline="\n")
         file.write(str(glft))
         file.write("\n")
         file.close()
