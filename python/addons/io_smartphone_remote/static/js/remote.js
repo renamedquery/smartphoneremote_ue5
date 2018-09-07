@@ -30,7 +30,7 @@ function initRemote() {
       console.log("The orientation of the screen is: " + screen.orientation);
     });
   locOrientation = screen.lockOrientation || screen.mozLockOrientation || screen.msLockOrientation || screen.orientation.lock;
-  screen.orientation.lock('landscape');
+  // screen.orientation.lock('landscape');
   _client = document.URL.toString().split('/')[2].split(':')[0] + ':5678';
   _trackingUnit = document.URL.toString().split('/')[2].split(':')[0] + ':6302';
   var connectionActivity = Metro.activity.open({
@@ -40,7 +40,6 @@ function initRemote() {
      text: '<div class=\'mt-2 text-small\'>reaching local blender instance.</div>',
     overlayAlpha: 1
   });
-
 
   _ws_command = new WebSocket("ws://" + _client + "/command");
 
@@ -99,9 +98,20 @@ function initRemote() {
     setFullscreen();
   });
 
-  document.getElementById('viewSwitchCommand').addEventListener('click', function(e) {
-    setView();
+  //Windows buttons
+  //TODO: Clean that shit
+  document.getElementById('viewSwitchSettings').addEventListener('click', function(e) {
+    setView(0);
   });
+  document.getElementById('viewSwitchTiles').addEventListener('click', function(e) {
+    setView(1);
+  });
+  document.getElementById('viewSwitchScene').addEventListener('click', function(e) {
+    setView(2);
+  });
+
+
+
 
 
   //Video elements init
@@ -158,64 +168,42 @@ function setFullscreen() {
 //
 // }
 
-function setView(){
-  var displayed_status_icon = "mif-equalizer";
+function setView(target){
+
   action_view = $('#_action_window').data('collapse');
   tools_view = $('#_tool_window').data('collapse');
-  var collapsed = action_view.isCollapsed();
+  scene_view = $('#_scene_window').data('collapse');
 
-  if(collapsed){
-    action_view.expand();
-    tools_view.collapse();
+  switch (target) {
+    case 0:
+      action_view.collapse();
+      tools_view.expand();
+      scene_view.collapse();
 
+      document.getElementById('viewSwitchSettings').className = "brand bg-dark";
+      document.getElementById('viewSwitchScene').className = "brand ";
+      document.getElementById('viewSwitchTiles').className = "brand ";
+      break;
+    case 1:
+      action_view.expand();
+      tools_view.collapse();
+      scene_view.collapse();
 
-    displayed_status_icon = "mif-equalizer";
+      document.getElementById('viewSwitchSettings').className = "brand";
+      document.getElementById('viewSwitchScene').className = "brand";
+      document.getElementById('viewSwitchTiles').className = "brand  bg-dark ";
+      break;
+    case 2:
+      action_view.collapse();
+      tools_view.collapse();
+      scene_view.expand();
+
+      main();
+      document.getElementById('viewSwitchSettings').className = "brand";
+      document.getElementById('viewSwitchScene').className = "brand bg-dark";
+      document.getElementById('viewSwitchTiles').className = "brand ";
+      break;
+    default:
+
   }
-  else{
-    tools_view.expand();
-
-
-
-    displayed_status_icon = "mif-dashboard";
-    action_view.collapse();
-  }
-
-    document.getElementById('viewSwitchCommandIcon').className = "mif-3x "+ displayed_status_icon ;
 }
-//
-// function initCameraFeed() {
-//   video = document.querySelector("#videoElement");
-//   // check for getUserMedia support
-//   navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
-//
-//   if (navigator.getUserMedia) {
-//     // get webcam feed if available
-//     navigator.getUserMedia({
-//       audio: false,
-//       video: {
-//         width: 640,
-//         height: 480
-//       }
-//     }, handleVideo, videoError);
-//   }
-//
-//
-// }
-//
-// function handleVideo(stream) {
-//   // if found attach feed to video element
-//   video.srcObject = stream;
-// }
-//
-// function videoError(e) {
-//   // no webcam found - do something
-// }
-//
-// function RenderFrame(v, c) {
-//   if (v.paused || v.ended) return false; // if no video, exit here
-//   context.drawImage(v, 0, 0, v.videoWidth, v.videoHeight); // RenderFrame video feed to canvas
-//   canvas.toBlob(function(blob) {
-//     ws_cameraStream.send(blob);
-//     ws_cameraStream.send('t' + v.currentTime);
-//   }, 'image/jpeg', 1);
-// }

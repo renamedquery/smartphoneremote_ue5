@@ -11,9 +11,22 @@
 
   <link rel="stylesheet" href="https://cdn.metroui.org.ua/v4/css/metro-all.min.css" rel="stylesheet">
   <link id="color-scheme" href="https://metroui.org.ua/metro/css/schemes/darcula.css" rel="stylesheet">
+  <script src="js/libs/gl-matrix-min.js"></script>
+  <script src="js/libs/three.js"></script>
+  <script src="js/libs/Detector.js"></script>
+  <script src="js/libs/GLTFLoader.js"></script>
+  <script src="js/libs/OrbitControls.js"></script>
+  <script src="js/libs/stats.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script src="https://cdn.metroui.org.ua/v4/js/metro.min.js"></script>
+  <!-- <script src="js/mesh.js"></script>
+  <script src="js/scene.js"></script> -->
+  <script src="js/viewport.js"></script>
+
 
   <script src="js/tracking.js"></script>
   <script src="js/remote.js"></script>
+
 
   <title>Blender Remote</title>
 </head>
@@ -22,11 +35,14 @@
   <!-- <input type="checkbox" data-role="switch" data-caption=""> -->
   <div class="pos-fixed fixed-top app-bar-wrapper z-top d-flex flex-justify-between" data-role="appbar">
     <div class="app-bar-container float-none">
-      <a id="viewSwitchCommand" class="brand">
-    <span id="viewSwitchCommandIcon" class="mif-3x mif-equalizer"></span>
+      <a id="viewSwitchSettings" class="brand">
+    <span id="viewSwitchSettings" class="mif-3x mif-equalizer"></span>
       </a>
-      <a id="viewSceneCommand" class="brand">
-    <span id="viewSceneCommandIcon" class="mif-3x mif-codepen"></span>
+      <a id="viewSwitchTiles" class="brand">
+    <span id="viewSwitchTilesIcon" class="mif-3x mif-dashboard"></span>
+      </a>
+      <a id="viewSwitchScene" class="brand">
+    <span id="viewSwitchScene" class="mif-3x mif-codepen"></span>
       </a>
       <!-- <ul class="t-menu horizontal open">
         <li><a href="#" class="dropdown-toggle"><span class="icon mif-switch"></span></a>
@@ -50,7 +66,7 @@
   <div class="pos-fixed fixed-top pt-14" style="z-index: 10;"data-role="progress" data-value="0" data-buffer="0" data-small="true">
   </div>
   <div id="_action_window" class="container-fluid pt-16" data-role="collapse" data-duration="0">
-    <canvas id="glCanvas" width="640" height="480" class="pos-fixed pos-top-left"></canvas>
+    <!-- Scene view canvas -->
     <div id="_actions_list" class="tiles-grid d-flex flex-content-center flex-justify-center flex-wrap" style="height:86vh;" >
       <div class=" pos-fixed pos-bottom-left p-3">
         <div class="multi-action">
@@ -106,7 +122,9 @@
       </div>
     </div>
   </div>
-
+  <div id="_scene_window" class="container-fluid pt-16" data-role="collapse" data-duration="0">
+    <canvas id="viewportCanvas" width="640" height="480" class="pos-fixed pos-top-left"></canvas>
+  </div>
   <div id="_tool_window" data-role="collapse" class="container-fluid pt-16 p-2" data-collapsed="true" data-duration="0">
     <!-- <div data-role="panel"
         data-title-caption="Tracking settings"
@@ -137,8 +155,7 @@
   <canvas id="canvas"  width="480" height="640"  hidden ></canvas>
   <video id="video-canvas"  style="z-index: 100;" width="480" height="640" autoplay hidden></video>
 
-  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-  <script src="https://cdn.metroui.org.ua/v4/js/metro.min.js"></script>
+
 
 
 </body>
