@@ -25,6 +25,9 @@
       <a id="viewSwitchCommand" class="brand">
     <span id="viewSwitchCommandIcon" class="mif-3x mif-equalizer"></span>
       </a>
+      <a id="viewSceneCommand" class="brand">
+    <span id="viewSceneCommandIcon" class="mif-3x mif-codepen"></span>
+      </a>
       <!-- <ul class="t-menu horizontal open">
         <li><a href="#" class="dropdown-toggle"><span class="icon mif-switch"></span></a>
           <ul class="t-menu " data-role="dropdown">
@@ -47,9 +50,8 @@
   <div class="pos-fixed fixed-top pt-14" style="z-index: 10;"data-role="progress" data-value="0" data-buffer="0" data-small="true">
   </div>
   <div id="_action_window" class="container-fluid pt-16" data-role="collapse" data-duration="0">
+    <canvas id="glCanvas" width="640" height="480" class="pos-fixed pos-top-left"></canvas>
     <div id="_actions_list" class="tiles-grid d-flex flex-content-center flex-justify-center flex-wrap" style="height:86vh;" >
-
-
       <div class=" pos-fixed pos-bottom-left p-3">
         <div class="multi-action">
           <button class="action-button fg-white rotate-minus " style="background-color:#585B5D; //border-radius:0%;" onclick="$(this).toggleClass('active')">
@@ -103,7 +105,6 @@
           <button class="button  js-dialog-close">Cancel</button>
       </div>
     </div>
-
   </div>
 
   <div id="_tool_window" data-role="collapse" class="container-fluid pt-16 p-2" data-collapsed="true" data-duration="0">
@@ -131,9 +132,10 @@
     </div> -->
   </div>
   </div>
+
+  <!-- Video and video rendering canvas  -->
   <canvas id="canvas"  width="480" height="640"  hidden ></canvas>
   <video id="video-canvas"  style="z-index: 100;" width="480" height="640" autoplay hidden></video>
-  <img id="test"/>
 
   <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
   <script src="https://cdn.metroui.org.ua/v4/js/metro.min.js"></script>

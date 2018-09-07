@@ -225,7 +225,7 @@ def get_scalar_min_max(array):
 def get_vec3_min_max(array):
     amin = [array[0],array[1],array[2]]
     amax = [array[0],array[1],array[2]]
-    
+
     for i in range(0,len(array),3):
         elem = [array[i],array[i+1],array[i+2]]
 
@@ -374,7 +374,7 @@ def MatrixToArray(mat):
 if __name__ == '__main__':
     import bpy
 
-    bpy.ops.wm.open_mainfile(filepath="/home/slumber/Repos/DeviceTracking/examples/parent.blend")
+    bpy.ops.wm.open_mainfile(filepath="/home/slumber/Repos/DeviceTracking/examples/cube.blend")
     gltf = glTF()#'/home/slumber/Downloads/Duck.gltf')
     # gltf.scenes.append(Scene())
     # gltf.nodes.append(Node())
