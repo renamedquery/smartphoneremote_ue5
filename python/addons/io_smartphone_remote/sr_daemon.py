@@ -20,6 +20,8 @@ import numpy
 import math
 from bpy.app.handlers import persistent
 
+from . import sr_sceneStream
+
 import bpy
 
 log = logging.getLogger(__name__)
@@ -31,6 +33,8 @@ _map = []
 _rotation = []
 _origins = []
 _origin = mathutils.Matrix()
+_bscene = None #Gltf scene representation
+_baseDir = os.path.dirname(os.path.abspath(__file__))
 
 # _base = Matrix([[1,0,0],[0,0,1],[0,-1,0],[0,0,0]])
 # _dest = = Matrix([[0,1,0],[0,0,1],[-1,0,0],[0,0,0]])
@@ -185,6 +189,11 @@ def setup_daemons():
     _daemons.append(tracking_task)
 
     # _loop.run_forever()
+
+    _bscene = sr_sceneStream.glTF()
+    print(_bscene)
+    sr_sceneStream.load_bscene(_bscene,_baseDir+"/static/cache/")
+    print(_bscene)
     bpy.app.handlers.load_post.clear()
 
 
@@ -201,7 +210,6 @@ class StopBlenderRemote(bpy.types.Operator):
         stop_daemons()
         return {'FINISHED'}
 
-
 class RestartBlenderRemote(bpy.types.Operator):
     """Tooltip"""
     bl_idname = "scene.restart_blender_remote"
@@ -216,7 +224,6 @@ class RestartBlenderRemote(bpy.types.Operator):
         setup_daemons()
         run_daemons()
         return {'FINISHED'}
-
 
 class AsyncLoopModalOperator(bpy.types.Operator):
     bl_idname = 'asyncio.loop'
@@ -277,7 +284,6 @@ class AsyncLoopModalOperator(bpy.types.Operator):
 
         return {'RUNNING_MODAL'}
 
-
 async def slam_worker():
     # Create the subprocess, redirect the standard output into a pipe
     proc = await asyncio.create_subprocess_exec('/home/slumber/Repos/DeviceTracking/build/DeviceTracking',
@@ -292,7 +298,6 @@ async def slam_worker():
     await proc.wait()
     print(line)
     return line
-
 
 async def WebsocketRecv(websocket, path):
     import bpy
@@ -380,7 +385,6 @@ async def WebsocketRecv(websocket, path):
                  bpy.context.selected_objects[0].rotation_euler[1]),
                 (float(sensors[1]) - bpy.context.selected_objects[0].rotation_euler[2])]
 
-
 async def orb_worker_feed():
     # Wait for ImageProcess
     await asyncio.sleep(2)
@@ -431,7 +435,6 @@ async def orb_worker_feed():
                 #
                 # except:
                 pass
-
 
 def register():
     bpy.utils.register_class(StopBlenderRemote)

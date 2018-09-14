@@ -240,11 +240,14 @@ def get_vec3_min_max(array):
         print("max:"+str(amax) )
     return [amin,amax]
 
-    return [min,max]
-def b_load_mesh(obj,gltf):
-    import array
+def load_bmesh(obj,gltf,path=None):
+    import array, bpy
     if obj.type == 'MESH':
         print("loading "+obj.name+" mesh")
+        # triangulate the meshes
+        obj.modifiers.new('TRIANGULATE','TRIANGULATE')
+        bpy.ops.object.modifier_apply(modifier='TRIANGULATE')
+        tmp_mesh = obj.to_mesh(bpy.context.depsgraph, apply_modifiers = True)
 
         new_mesh = Mesh(name=obj.name+"_shape")
         attr = {}
@@ -255,7 +258,7 @@ def b_load_mesh(obj,gltf):
         indice_buffer = array.array('H')
         position_buffer = array.array('f')
 
-        for triangle in obj.data.polygons:
+        for triangle in tmp_mesh.polygons:
                 for vertex in triangle.vertices:
                     indice_buffer.append(vertex)
         indice_buffer_size  = len(indice_buffer)
@@ -267,7 +270,7 @@ def b_load_mesh(obj,gltf):
             indice_buffer.append(0)
             indice_offset_length+=indice_buffer.itemsize
 
-        for vertex in obj.data.vertices:
+        for vertex in tmp_mesh.vertices: #add .data if to_mesh is not used
             position_buffer.append(vertex.co.x)
             position_buffer.append(vertex.co.y)
             position_buffer.append(vertex.co.z)
@@ -293,19 +296,22 @@ def b_load_mesh(obj,gltf):
         gltf.accessors.append(position_accessor)
 
 
-        print(indice_buffer)
-        print(len(indice_buffer)*indice_buffer.itemsize)
-        print(position_buffer)
-        print(len(position_buffer)*position_buffer.itemsize)
-        print(len(geometry_buffer))
+        # print(indice_buffer)
+        # print(len(indice_buffer)*indice_buffer.itemsize)
+        # print(position_buffer)
+        # print(len(position_buffer)*position_buffer.itemsize)
+        # print(len(geometry_buffer))
 
         # Write the buffer to files (gltf and bin)
-        file_name = bpy.path.basename(bpy.context.blend_data.filepath).split('.')[0] + ".bin"
-        file = open(file_name, "wb")
-        file.write(geometry_buffer)
-        file.close()
+        if path != None:
+            file_name = path + "scene_cache.bin"
+            file = open(file_name, "wb")
+            file.write(geometry_buffer)
+            file.close()
+
+        # Buffer
         new_mesh.primitives.append(new_primitive)
-        object_buffer = Buffer(uri=file_name,byteLength=len(geometry_buffer))
+        object_buffer = Buffer(uri="scene_cache.bin",byteLength=len(geometry_buffer))
         gltf.buffers.append(object_buffer)
 
         return new_mesh
@@ -313,7 +319,7 @@ def b_load_mesh(obj,gltf):
         return -1
 
 
-def load_blender(glft):
+def load_bscene(glft,path=None):
     import bpy, mathutils
 
     m = mathutils.Matrix()
@@ -333,7 +339,7 @@ def load_blender(glft):
             if obj.matrix_basis != m:
                 node.matrix = MatrixToArray(obj.matrix_local)
             if obj.type == 'MESH':
-                glft.meshes.append(b_load_mesh(obj,gltf))
+                glft.meshes.append(load_bmesh(obj,glft,path))
                 node.mesh = len(glft.meshes)-1
 
 
@@ -342,10 +348,10 @@ def load_blender(glft):
                 node.camera = 0
 
 
-            gltf.nodes.append(node)
+            glft.nodes.append(node)
 
             if not obj.parent:
-                gltf_scene.nodes.append(gltf.nodes.index(node))
+                gltf_scene.nodes.append(glft.nodes.index(node))
 
         for obj in scene.objects:
             if obj.children:
@@ -355,12 +361,14 @@ def load_blender(glft):
                 for child in obj.children:
                     parent_node.children.append(glft.nodes.index(glft.find_node(child.name)))
 
-        gltf.scenes.append(gltf_scene)
-        file_name = bpy.path.basename(bpy.context.blend_data.filepath).split('.')[0] + ".gltf"
-        file = open(file_name, "w", encoding="utf8", newline="\n")
-        file.write(str(glft))
-        file.write("\n")
-        file.close()
+        glft.scenes.append(gltf_scene)
+        if path != None:
+            file_name = path + "scene_cache.gltf"
+            print(path)
+            file = open(file_name, "w", encoding="utf8", newline="\n")
+            file.write(str(glft))
+            file.write("\n")
+            file.close()
 
 def MatrixToArray(mat):
     array = []
@@ -378,5 +386,5 @@ if __name__ == '__main__':
     gltf = glTF()#'/home/slumber/Downloads/Duck.gltf')
     # gltf.scenes.append(Scene())
     # gltf.nodes.append(Node())
-    load_blender(gltf)
+    load_bscene(gltf)
     print(gltf)

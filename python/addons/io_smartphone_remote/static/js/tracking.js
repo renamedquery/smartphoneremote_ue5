@@ -330,7 +330,7 @@ class Script extends Action {
   }
 
   init_settings_pannel(){
-    document.getElementById('_tool_window').innerHTML += "<div class='mb-2' data-role='panel' data-title-caption='"+this.name+" settings' data-collapsed='true' data-collapsible='true'>"
+    document.getElementById('_tool_window').innerHTML += "<div class='mb-2' data-title-icon=\"<span class='"+this.icon+"'></span>\" data-role='panel' data-title-caption='"+this.name+" settings' data-collapsed='true' data-collapsible='true'>"
          +`<div class='row'>
               <label class='cell'>Frequency</label>`
             +"  <div class='cell'>"
@@ -405,7 +405,7 @@ class Tracking extends Action {
 
   }
   init_settings_pannel(){
-    document.getElementById('_tool_window').innerHTML += "<div data-role='panel' class='mb-2' data-title-caption='"+this.name+" settings' data-collapsed='true' data-collapsible='true'>"
+    document.getElementById('_tool_window').innerHTML += "<div data-role='panel' data-title-icon=\"<span class='"+this.icon+"'></span>\" class='mb-2' data-title-caption='"+this.name+" settings' data-collapsed='true' data-collapsible='true'>"
         +`<div class='row '>
            <label class='cell'>Sensor</label>
            <div class='cell'>

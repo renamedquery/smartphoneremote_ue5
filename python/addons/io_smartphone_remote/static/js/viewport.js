@@ -40,7 +40,7 @@ function init() {
 
   // model
   var loader = new THREE.GLTFLoader();
-  loader.load('./cache/cube.gltf', function(gltf) {
+  loader.load('./cache/scene_cache.gltf', function(gltf) {
     gltf.scene.traverse(function(child) {
       if (child.isMesh) {
          child.material.envMap = envMap;
