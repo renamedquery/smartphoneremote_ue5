@@ -41,8 +41,6 @@ _baseDir = os.path.dirname(os.path.abspath(__file__))
 '''
     Utility functions
 '''
-
-
 def save_pose():
     import copy
 
@@ -122,7 +120,7 @@ def check_daemons(scene):
 @persistent
 def auto_launch_daemons(scene):
     print('Auto launch smartphone remote daemon')
-    if bpy.context.user_preferences.inputs.srDaemonRunning[1]['default']:
+    if bpy.context.preferences.inputs.srDaemonRunning[1]['default']:
         stop_daemons()
     setup_daemons()
     run_daemons()
@@ -131,7 +129,7 @@ def auto_launch_daemons(scene):
 
 def run_daemons():
     log.debug('Starting  smartphone remote daemon')
-    bpy.context.user_preferences.inputs.srDaemonRunning[1]['default'] = True
+    bpy.context.preferences.inputs.srDaemonRunning[1]['default'] = True
     result = bpy.ops.asyncio.loop()
     log.debug('Result of starting modal operator is %r', result)
 
@@ -139,11 +137,11 @@ def run_daemons():
 def stop_daemons():
     global _loop_kicking_operator_running
 
-    if bpy.context.user_preferences.inputs.srDaemonRunning[1]['default']:
+    if bpy.context.preferences.inputs.srDaemonRunning[1]['default']:
         log.debug('Stopping')
         kill_daemons()
         _daemons.clear()
-        bpy.context.user_preferences.inputs.srDaemonRunning[1]['default'] = False
+        bpy.context.preferences.inputs.srDaemonRunning[1]['default'] = False
         _loop_kicking_operator_running = False
         loop = asyncio.get_event_loop()
         loop.stop()
@@ -224,65 +222,6 @@ class RestartBlenderRemote(bpy.types.Operator):
         setup_daemons()
         run_daemons()
         return {'FINISHED'}
-
-class AsyncLoopModalOperator(bpy.types.Operator):
-    bl_idname = 'asyncio.loop'
-    bl_label = 'Runs the asyncio main loop'
-
-    timer = None
-    log = logging.getLogger(__name__ + '.AsyncLoopModalOperator')
-
-    def __del__(self):
-        global _loop_kicking_operator_running
-
-        # This can be required when the operator is running while Blender
-        # (re)loads a file. The operator then doesn't get the chance to
-        # finish the async tasks, hence stop_after_this_kick is never True.
-        _loop_kicking_operator_running = False
-
-    def execute(self, context):
-        return self.invoke(context, None)
-
-    def invoke(self, context, event):
-        global _loop_kicking_operator_running
-
-        if _loop_kicking_operator_running:
-            self.log.debug('Another loop-kicking operator is already running.')
-            return {'PASS_THROUGH'}
-
-        context.window_manager.modal_handler_add(self)
-        _loop_kicking_operator_running = True
-
-        wm = context.window_manager
-        # BLENDER2.8
-        self.timer = wm.event_timer_add(0.00001, window=context.window)
-
-        return {'RUNNING_MODAL'}
-
-    def modal(self, context, event):
-        global _loop_kicking_operator_running
-
-        # If _loop_kicking_operator_running is set to False, someone called
-        # erase_async_loop(). This is a signal that we really should stop
-        # running.
-        if not _loop_kicking_operator_running:
-            context.window_manager.event_timer_remove(self.timer)
-            return {'FINISHED'}
-
-        if event.type != 'TIMER':
-            return {'PASS_THROUGH'}
-
-        loop = asyncio.get_event_loop()
-        loop.stop()
-        loop.run_forever()
-
-        if bpy.context.user_preferences.inputs.srDaemonRunning[1]['default'] == False:
-            context.window_manager.event_timer_remove(self.timer)
-            _loop_kicking_operator_running = False
-            self.log.debug('Stopped asyncio loop kicking')
-            return {'FINISHED'}
-
-        return {'RUNNING_MODAL'}
 
 async def slam_worker():
     # Create the subprocess, redirect the standard output into a pipe
@@ -439,13 +378,11 @@ async def orb_worker_feed():
 def register():
     bpy.utils.register_class(StopBlenderRemote)
     bpy.utils.register_class(RestartBlenderRemote)
-    bpy.utils.register_class(AsyncLoopModalOperator)
     bpy.app.handlers.load_post.append(auto_launch_daemons)
 
 
 def unregister():
     bpy.utils.unregister_class(StopBlenderRemote)
     bpy.utils.unregister_class(RestartBlenderRemote)
-    bpy.utils.unregister_class(AsyncLoopModalOperator)
     bpy.app.handlers.load_post.clear()
     print('test', sep=' ', end='n', file=sys.stdout, flush=False)

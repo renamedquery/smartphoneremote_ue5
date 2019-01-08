@@ -5,29 +5,21 @@ from bpy.types import (
     Panel,
     EnumProperty,
     WindowManager,
+    USERPREF_PT_input_devices,
+    PreferencePanel
 )
 import bpy.utils.previews
 
 import os
 
-class SmartphoneRemoteSettingsPanel(Panel):
+class USERPREF_PT_input_devices_smartphone(PreferencePanel):
     """Creates a Panel in the Object properties window"""
     bl_label = "Smartphone"
-    bl_idname = "PREF_Smratphone_Remote"
-    bl_space_type = 'USER_PREFERENCES'
-    bl_region_type = 'WINDOW'
-    bl_context = "Input"
-    bl_options = {'HIDE_HEADER'}
+    bl_idname = "USERPREF_PT_input_devices"
 
-    @classmethod
-    def poll(cls, context):
-        userpref = context.user_preferences
-        return (userpref.active_section == 'INPUT')
+    def draw_props(self, context, layout):
+        prefs = context.preferences
 
-    @staticmethod
-    def draw(self, context):
-        layout = self.layout
-        # wm = context.window_manager
         row = layout.row()
         col = row.column()
         sub = col.column()
@@ -35,8 +27,8 @@ class SmartphoneRemoteSettingsPanel(Panel):
         # This tells Blender to draw the my_previews window manager object
         # (Which is our preview)
         sub.template_icon_view(context.scene, "my_thumbnails")
-        sub.label(text = bpy.context.user_preferences.inputs.srLocalIp[1]['default'])
-        if bpy.context.user_preferences.inputs.srDaemonRunning[1]['default'] == False:
+        sub.label(text = bpy.context.preferences.inputs.srLocalIp[1]['default'])
+        if bpy.context.preferences.inputs.srDaemonRunning[1]['default'] == False:
             sub.operator("scene.restart_blender_remote")
         else:
             sub.operator("scene.stop_blender_remote")
@@ -48,10 +40,6 @@ class SmartphoneRemoteSettingsPanel(Panel):
         sub.label(text="   ")
         sub = row.column()
         sub.label(text="   ")
-
-
-        # Just a way to access which one is selected
-
 
 
 
@@ -97,18 +85,19 @@ def register():
     # You really can save it anywhere in bpy.types.*  Just make sure the location makes sense
     bpy.types.Scene.my_thumbnails = EnumProperty(
         items=generate_previews(),)
-    bpy.utils.register_class(SmartphoneRemoteSettingsPanel)
+    bpy.utils.register_class(USERPREF_PT_input_devices_smartphone)
 
 
 def unregister():
     from bpy.types import WindowManager
     for pcoll in preview_collections.values():
         bpy.utils.previews.remove(pcoll)
+        # bpy.utils.previews.remove()
     preview_collections.clear()
 
     del bpy.types.Scene.my_thumbnails
 
-    bpy.utils.unregister_class(SmartphoneRemoteSettingsPanel)
+    bpy.utils.unregister_class(USERPREF_PT_input_devices_smartphone)
 
 
 if __name__ == "__main__":

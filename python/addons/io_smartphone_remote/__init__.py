@@ -2,7 +2,7 @@ bl_info = {
     "name": "Blender remote",
     "author": "Gobelet Team: Samuel Bernou, Laure Le Sidaner, Swann Martinez",
     "version": (1, 0),
-    "blender": (2, 81, 0),
+    "blender": (2, 80, 0),
     "location": "View3D",
     "description": "Allow to use smartphone as a controller",
     "category": "System",
@@ -13,6 +13,7 @@ import os
 import sys
 import bpy
 
+    
 thirdPartyDir = os.path.dirname(os.path.abspath(__file__))+"/libs"
 
 
@@ -23,13 +24,14 @@ def register():
         print('Adding local modules dir to the path')
         sys.path.insert(0, thirdPartyDir)
 
-    from . import sr_settings, sr_daemon
+    import bsyncio
     import pyqrcode
+    from . import sr_settings, sr_daemon
 
     app = sr_daemon.GetCurrentIp()+":8080"
-    bpy.types.UserPreferencesInput.srLocalIp = bpy.props.StringProperty(
+    bpy.types.PreferencesInput.srLocalIp = bpy.props.StringProperty(
         name="Interface address", default=app)
-    bpy.types.UserPreferencesInput.srDaemonRunning = bpy.props.BoolProperty(
+    bpy.types.PreferencesInput.srDaemonRunning = bpy.props.BoolProperty(
         name="Daemon running", default=True)
     url = pyqrcode.create(app)
     url.png(os.path.dirname(os.path.abspath(__file__)) +
@@ -49,10 +51,7 @@ def unregister():
         print('Nothing to clean')
 
     from . import (sr_settings, sr_daemon)
-    import async_loop
-
     sr_daemon.stop_daemons()
-    async_loop.unregister()
     sr_settings.unregister()
 
 
