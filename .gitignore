@@ -2,3 +2,5 @@ build
 *.bin
 *.gltf
 .vscode
+__pycache__
+.vscode
