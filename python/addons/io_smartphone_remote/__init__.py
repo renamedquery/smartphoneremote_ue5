@@ -8,12 +8,13 @@ bl_info = {
     "category": "System",
 }
 
-import bpy
-import sys
-import os
 import atexit
+import os
+import sys
+import bpy
 
 thirdPartyDir = os.path.dirname(os.path.abspath(__file__))+"/libs"
+
 
 def register():
     if thirdPartyDir in sys.path:
@@ -22,20 +23,23 @@ def register():
         print('Adding local modules dir to the path')
         sys.path.insert(0, thirdPartyDir)
 
-    from . import sr_settings,sr_daemon
+    from . import sr_settings, sr_daemon
     import pyqrcode
 
-
     app = sr_daemon.GetCurrentIp()+":8080"
-    bpy.types.UserPreferencesInput.srLocalIp = bpy.props.StringProperty(name = "Interface address", default=app)
-    bpy.types.UserPreferencesInput.srDaemonRunning = bpy.props.BoolProperty(name = "Daemon running", default=True)
+    bpy.types.UserPreferencesInput.srLocalIp = bpy.props.StringProperty(
+        name="Interface address", default=app)
+    bpy.types.UserPreferencesInput.srDaemonRunning = bpy.props.BoolProperty(
+        name="Daemon running", default=True)
     url = pyqrcode.create(app)
-    url.png(os.path.dirname(os.path.abspath(__file__))+"/images/connect.png",  scale=4)
+    url.png(os.path.dirname(os.path.abspath(__file__)) +
+            "/images/connect.png",  scale=4)
 
     sr_settings.register()
     # sr_daemon.Launch()
     sr_daemon.register()
     atexit.register(sr_daemon.kill_daemons)
+
 
 def unregister():
     if thirdPartyDir in sys.path:
@@ -44,15 +48,12 @@ def unregister():
     else:
         print('Nothing to clean')
 
-    from . import (sr_settings,sr_daemon)
+    from . import (sr_settings, sr_daemon)
     import async_loop
 
     sr_daemon.stop_daemons()
     async_loop.unregister()
     sr_settings.unregister()
-
-
-
 
 
 if __name__ == "__main__":
