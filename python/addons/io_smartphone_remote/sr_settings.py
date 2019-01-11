@@ -4,20 +4,21 @@ from bpy.types import (
     Menu,
     Panel,
     EnumProperty,
-    WindowManager,
-    USERPREF_PT_input_devices,
-    PreferencePanel
+    WindowManager
 )
 import bpy.utils.previews
 
 import os
 
-class USERPREF_PT_input_devices_smartphone(PreferencePanel):
+class USERPREF_PT_input_devices_smartphone(Panel):
     """Creates a Panel in the Object properties window"""
     bl_label = "Smartphone"
     bl_idname = "USERPREF_PT_input_devices"
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
 
-    def draw_props(self, context, layout):
+    def draw(self, context):
+        layout = self.layout
         prefs = context.preferences
 
         row = layout.row()
