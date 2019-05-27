@@ -24,7 +24,6 @@ def register():
         print('Adding local modules dir to the path')
         sys.path.insert(0, thirdPartyDir)
 
-    import bsyncio
     import pyqrcode
     from . import sr_settings, sr_daemon
 
@@ -39,8 +38,8 @@ def register():
 
     sr_settings.register()
     # sr_daemon.Launch()
-    sr_daemon.register()
-    atexit.register(sr_daemon.kill_daemons)
+    # sr_daemon.register()
+    # atexit.register(sr_daemon.kill_daemons)
 
 
 def unregister():
@@ -51,7 +50,7 @@ def unregister():
         print('Nothing to clean')
 
     from . import (sr_settings, sr_daemon)
-    sr_daemon.stop_daemons()
+    # sr_daemon.stop_daemons()
     sr_settings.unregister()
 
 

@@ -1,26 +1,16 @@
 
-import asyncio
-import traceback
-import concurrent.futures
 import logging
 import gc
-
-import websockets
-import subprocess
 import os
 
 import locale
 import logging
-import httpd
 import bpy
 import sys
-import socket
 import mathutils
 import numpy
 import math
-from bpy.app.handlers import persistent
-
-from . import sr_sceneStream
+import socket 
 
 import bpy
 
@@ -117,7 +107,7 @@ def check_daemons(scene):
     print("caca", sep=' ', end='n', file=sys.stdout, flush=False)
 
 
-@persistent
+
 def auto_launch_daemons(scene):
     print('Auto launch smartphone remote daemon')
     if bpy.context.preferences.inputs.srDaemonRunning[1]['default']:
@@ -376,13 +366,15 @@ async def orb_worker_feed():
                 pass
 
 def register():
-    bpy.utils.register_class(StopBlenderRemote)
-    bpy.utils.register_class(RestartBlenderRemote)
-    bpy.app.handlers.load_post.append(auto_launch_daemons)
+    pass
+    # bpy.utils.register_class(StopBlenderRemote)
+    # bpy.utils.register_class(RestartBlenderRemote)
+    # bpy.app.handlers.load_post.append(auto_launch_daemons)
 
 
 def unregister():
-    bpy.utils.unregister_class(StopBlenderRemote)
-    bpy.utils.unregister_class(RestartBlenderRemote)
-    bpy.app.handlers.load_post.clear()
-    print('test', sep=' ', end='n', file=sys.stdout, flush=False)
+    pass
+    # bpy.utils.unregister_class(StopBlenderRemote)
+    # bpy.utils.unregister_class(RestartBlenderRemote)
+    # bpy.app.handlers.load_post.clear()
+    # print('test', sep=' ', end='n', file=sys.stdout, flush=False)

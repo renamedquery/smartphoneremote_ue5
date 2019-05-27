@@ -29,10 +29,10 @@ class USERPREF_PT_input_devices_smartphone(Panel):
         # (Which is our preview)
         sub.template_icon_view(context.scene, "my_thumbnails")
         sub.label(text = bpy.context.preferences.inputs.srLocalIp[1]['default'])
-        if bpy.context.preferences.inputs.srDaemonRunning[1]['default'] == False:
-            sub.operator("scene.restart_blender_remote")
-        else:
-            sub.operator("scene.stop_blender_remote")
+        # if bpy.context.preferences.inputs.srDaemonRunning[1]['default'] == False:
+        #     sub.operator("scene.restart_blender_remote")
+        # else:
+        #     sub.operator("scene.stop_blender_remote")
 
         #UGLY
         sub = row.column()
