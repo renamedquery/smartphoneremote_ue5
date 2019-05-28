@@ -16,7 +16,12 @@ import subprocess
 import sys
 import os
 import bpy
-    
+
+DEPENDENCIES = {
+    "zmq",
+    "umsgpack",
+}
+
 thirdPartyDir = os.path.dirname(os.path.abspath(__file__))+"/libs"
 def module_can_be_imported(name):
     try:
@@ -42,8 +47,9 @@ def install_pip():
 
 def install_package(name):
     target = get_package_install_directory()
-    subprocess.run([str(python_path), "-m", "pip", "install", name, '--target', target], cwd=cwd_for_subprocesses)
-
+    
+    subprocess.run([str(python_path), "-m", "pip", "install",
+                        name, '--target', target], cwd=cwd_for_subprocesses)
 def generate_connexion_qrcode(app_address):
     import pyqrcode
 
@@ -61,15 +67,14 @@ def register():
 
     if not module_can_be_imported("pip"):
         install_pip()
-       
-    if not module_can_be_imported("zmq"):
-        subprocess.run([str(python_path), "-m", "pip", "install",
-                        "zmq", '--target', target], cwd=cwd_for_subprocesses)
 
+    for dep in DEPENDENCIES:
+        if not module_can_be_imported(dep):
+            install_package(dep)
     
-    from . import sr_settings, sr_daemon
+    from . import settings, operators
 
-    app_address = sr_daemon.GetCurrentIp()+":8080"
+    app_address = operators.GetCurrentIp()+":8080"
 
     generate_connexion_qrcode(app_address)
     
@@ -79,10 +84,11 @@ def register():
         name="Daemon running", default=True)
     
 
-    sr_settings.register()
-    # sr_daemon.Launch()
-    # sr_daemon.register()
-    # atexit.register(sr_daemon.kill_daemons)
+    settings.register()
+    operators.register()
+    # operators.Launch()
+    # operators.register()
+    # atexit.register(operators.kill_daemons)
 
 
 def unregister():
@@ -92,9 +98,10 @@ def unregister():
     else:
         print('Nothing to clean')
 
-    from . import (sr_settings, sr_daemon)
-    # sr_daemon.stop_daemons()
-    sr_settings.unregister()
+    from . import settings, operators
+    # operators.stop_daemons()
+    settings.unregister()
+    operators.unregister()
 
 
 if __name__ == "__main__":

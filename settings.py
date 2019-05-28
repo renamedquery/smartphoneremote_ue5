@@ -19,6 +19,7 @@ class USERPREF_PT_input_devices_smartphone(Panel):
 
     def draw(self, context):
         layout = self.layout
+
         prefs = context.preferences
 
         row = layout.row()
@@ -87,5 +88,3 @@ def unregister():
     bpy.utils.unregister_class(USERPREF_PT_input_devices_smartphone)
 
 
-if __name__ == "__main__":
-    register()
