@@ -13,6 +13,7 @@ import math
 import socket
 
 import bpy
+import mathutils
 from .arcore import ArCoreInterface, ArEventHandler
 
 logging.basicConfig(level=logging.DEBUG)
@@ -41,6 +42,7 @@ def multiply_quat(q, r):
     result.z = (r.w * q.z - r.x * q.y + r.y * q.x + r.z * q.w)
 
     return result
+
 
 
 def apply_camera(frame):
