@@ -48,13 +48,12 @@ preview_collections = {}
 
 
 def generate_previews():
-    # We are accessing all of the information that we generated in the register function below
     pcoll = preview_collections["thumbnail_previews"]
     image_location = pcoll.images_location
     VALID_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
     enum_items = []
-
+    
     # Generate the thumbnails
     for i, image in enumerate(os.listdir(image_location)):
         if image.endswith(VALID_EXTENSIONS):
@@ -69,21 +68,10 @@ def register():
     from bpy.types import Scene
     from bpy.props import StringProperty, EnumProperty
 
-    # Create a new preview collection (only upon register)
     pcoll = bpy.utils.previews.new()
-
-    # This line needs to be uncommented if you install as an addon
     pcoll.images_location = os.path.join(os.path.dirname(__file__), "images")
-
-    # This line is for running as a script. Make sure images are in a folder called images in the same
-    # location as the Blender file. Comment out if you install as an addon
-    # pcoll.images_location = bpy.path.abspath('//images')
-
-    # Enable access to our preview collection outside of this function
     preview_collections["thumbnail_previews"] = pcoll
 
-    # This is an EnumProperty to hold all of the images
-    # You really can save it anywhere in bpy.types.*  Just make sure the location makes sense
     bpy.types.Scene.my_thumbnails = EnumProperty(
         items=generate_previews(),)
     bpy.utils.register_class(USERPREF_PT_input_devices_smartphone)
@@ -93,11 +81,9 @@ def unregister():
     from bpy.types import WindowManager
     for pcoll in preview_collections.values():
         bpy.utils.previews.remove(pcoll)
-        # bpy.utils.previews.remove()
+
     preview_collections.clear()
-
     del bpy.types.Scene.my_thumbnails
-
     bpy.utils.unregister_class(USERPREF_PT_input_devices_smartphone)
 
 

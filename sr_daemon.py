@@ -28,6 +28,7 @@ _baseDir = os.path.dirname(os.path.abspath(__file__))
 
 # _base = Matrix([[1,0,0],[0,0,1],[0,-1,0],[0,0,0]])
 # _dest = = Matrix([[0,1,0],[0,0,1],[-1,0,0],[0,0,0]])
+
 '''
     Utility functions
 '''
@@ -62,128 +63,6 @@ def multiply_quat(q, r):
     return result
 
 
-'''
-    control functions
-'''
-
-
-def setup_asyncio_executor():
-    """Sets up AsyncIO to run properly on each platform."""
-
-    import sys
-
-    if sys.platform == 'win32':
-        asyncio.get_event_loop().close()
-        # On Windows, the default event loop is SelectorEventLoop, which does
-        # not support subprocesses. ProactorEventLoop should be used instead.
-        # Source: https://docs.python.org/3/library/asyncio-subprocess.html
-        loop = asyncio.ProactorEventLoop()
-        asyncio.set_event_loop(loop)
-    else:
-        loop = asyncio.get_event_loop()
-
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
-    loop.set_default_executor(executor)
-
-
-def kill_daemons():
-    for i in _daemons:
-        # UGLY, TODO: add better process managment
-        try:
-            print("cancelling " + str(i))
-            i.cancel()
-        except:
-            try:
-                print("killing child process" + str(i))
-                i.kill()
-            except:
-                print("no process to kill", sep=' ',
-                      end='n', file=sys.stdout, flush=False)
-
-    _daemons.clear()
-
-
-def check_daemons(scene):
-    print("caca", sep=' ', end='n', file=sys.stdout, flush=False)
-
-
-
-def auto_launch_daemons(scene):
-    print('Auto launch smartphone remote daemon')
-    if bpy.context.preferences.inputs.srDaemonRunning[1]['default']:
-        stop_daemons()
-    setup_daemons()
-    run_daemons()
-    log.debug('Done.')
-
-
-def run_daemons():
-    log.debug('Starting  smartphone remote daemon')
-    bpy.context.preferences.inputs.srDaemonRunning[1]['default'] = True
-    result = bpy.ops.asyncio.loop()
-    log.debug('Result of starting modal operator is %r', result)
-
-
-def stop_daemons():
-    global _loop_kicking_operator_running
-
-    if bpy.context.preferences.inputs.srDaemonRunning[1]['default']:
-        log.debug('Stopping')
-        kill_daemons()
-        _daemons.clear()
-        bpy.context.preferences.inputs.srDaemonRunning[1]['default'] = False
-        _loop_kicking_operator_running = False
-        loop = asyncio.get_event_loop()
-        loop.stop()
-    else:
-        pass
-
-
-def setup_daemons():
-    logging.basicConfig(level=logging.INFO)
-
-    _ip = GetCurrentIp()
-
-    if sys.platform == "win32":
-        _loop = asyncio.ProactorEventLoop()
-        asyncio.set_event_loop(_loop)
-    else:
-        _loop = asyncio.get_event_loop()
-
-    try:
-        setup_asyncio_executor()
-
-        print("async_loop setuping")
-    except:
-        print("async_loop already setup")
-        pass
-
-    root = os.path.dirname(os.path.abspath(__file__)) + "/static"
-    print("launch server on " + _ip + root)
-    _httpd = _loop.create_server(lambda: httpd.HttpProtocol(_ip, root),
-                                 '0.0.0.0',
-                                 8080)
-
-    _wsd = websockets.serve(WebsocketRecv, '0.0.0.0', 5678)
-
-    websocket_task = asyncio.ensure_future(_wsd)
-    httpd_task = asyncio.ensure_future(_httpd)
-    orb_task = asyncio.ensure_future(orb_worker_feed())
-    tracking_task = asyncio.ensure_future(slam_worker())
-
-    _daemons.append(orb_task)
-    _daemons.append(websocket_task)
-    _daemons.append(httpd_task)
-    _daemons.append(tracking_task)
-
-    # _loop.run_forever()
-
-    _bscene = sr_sceneStream.glTF()
-    print(_bscene)
-    sr_sceneStream.load_bscene(_bscene,_baseDir+"/static/cache/")
-    print(_bscene)
-    bpy.app.handlers.load_post.clear()
-
 
 class StopBlenderRemote(bpy.types.Operator):
     """Tooltip"""
@@ -213,20 +92,6 @@ class RestartBlenderRemote(bpy.types.Operator):
         run_daemons()
         return {'FINISHED'}
 
-async def slam_worker():
-    # Create the subprocess, redirect the standard output into a pipe
-    proc = await asyncio.create_subprocess_exec('/home/slumber/Repos/DeviceTracking/build/DeviceTracking',
-                                                stdout=asyncio.subprocess.PIPE)
-
-    _daemons.append(proc)
-    # Read one line of output
-    data = await proc.stdout.readline()
-    line = data.decode('ascii').rstrip()
-
-    # Wait for the subprocess exit
-    await proc.wait()
-    print(line)
-    return line
 
 async def WebsocketRecv(websocket, path):
     import bpy
@@ -365,16 +230,13 @@ async def orb_worker_feed():
                 # except:
                 pass
 
+
+
 def register():
     pass
-    # bpy.utils.register_class(StopBlenderRemote)
-    # bpy.utils.register_class(RestartBlenderRemote)
-    # bpy.app.handlers.load_post.append(auto_launch_daemons)
+
 
 
 def unregister():
     pass
-    # bpy.utils.unregister_class(StopBlenderRemote)
-    # bpy.utils.unregister_class(RestartBlenderRemote)
-    # bpy.app.handlers.load_post.clear()
-    # print('test', sep=' ', end='n', file=sys.stdout, flush=False)
+
