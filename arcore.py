@@ -54,6 +54,8 @@ class AppLink(threading.Thread):
         self.context = context
         self.data_socket = self.context.socket(zmq.PULL)
         self.data_socket.bind("tcp://*:5556")
+        self.ttl_socket = self.context.socket(zmq.REP)
+        self.ttl_socket.bind("tcp://*:5555")
 
         self.exit_event = threading.Event()
         self.handler = handler
@@ -63,7 +65,7 @@ class AppLink(threading.Thread):
 
         poller = zmq.Poller()
         poller.register(self.data_socket, zmq.POLLIN)
-
+        poller.register(self.ttl_socket, zmq.POLLIN)
         while not self.exit_event.is_set():
             items = dict(poller.poll(TIMEOUT))
             
@@ -79,9 +81,13 @@ class AppLink(threading.Thread):
                     received_frame = Frame(camera=frame_cam)
                 
                     self.handler.OnFrameReceived(received_frame)
-                         
+            if self.ttl_socket in items:
+                request = self.ttl_socket.recv()
+
+                self.ttl_socket.send_string("toto")
         log.debug("Exiting App link")
         self.data_socket.close()
+        self.ttl_socket.close()
         self.exit_event.clear()
 
     def stop(self):

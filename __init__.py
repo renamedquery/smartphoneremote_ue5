@@ -55,7 +55,7 @@ def generate_connexion_qrcode(app_address):
 
     url = pyqrcode.create(app_address)
     url.png(os.path.dirname(os.path.abspath(__file__)) +
-            "/images/connect.png",  scale=4)
+            "\\images\\connect.png",  scale=4)
     
 
 def register():
@@ -74,9 +74,9 @@ def register():
     
     from . import settings, operators
 
-    app_address = operators.GetCurrentIp()+":8080"
+    app_address = operators.GetCurrentIp()+":5556"
 
-    generate_connexion_qrcode(app_address)
+    # generate_connexion_qrcode(app_address)
     
     bpy.types.PreferencesInput.srLocalIp = bpy.props.StringProperty(
         name="Interface address", default=app_address)
