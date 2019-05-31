@@ -53,9 +53,9 @@ class AppLink(threading.Thread):
 
         self.context = context
         self.data_socket = self.context.socket(zmq.PULL)
-        self.data_socket.bind("tcp://*:5556")
+        self.data_socket.bind("tcp://*:5558")
         self.ttl_socket = self.context.socket(zmq.REP)
-        self.ttl_socket.bind("tcp://*:5555")
+        self.ttl_socket.bind("tcp://*:5557")
 
         self.exit_event = threading.Event()
         self.handler = handler
