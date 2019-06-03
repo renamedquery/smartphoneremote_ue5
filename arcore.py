@@ -23,13 +23,13 @@ class Frame():
 
 class ArEventHandler():
     def __init__(self):
-        self.bindings = []
+        self.listeners = []
     
     def append(self,f):
-        self.bindings.append(f)
+        self.listeners.append(f)
 
     def OnFrameReceived(self, frame):
-        for f in self.bindings:
+        for f in self.listeners:
             f(frame)
 
 
@@ -71,20 +71,26 @@ class AppLink(threading.Thread):
             
             if self.data_socket in items:
                 frame_buffer = self.data_socket.recv_multipart()
-                
-                if frame_buffer[0] == b"CAMERA":
-                    frame_cam = Camera(
-                        rotation=umsgpack.unpackb(frame_buffer[1]),
-                        translation=umsgpack.unpackb(frame_buffer[2])
-                        )
+                frame = Frame()
+
+                while len(frame_buffer)>0:
+                    header =  frame_buffer.pop(0)
+
                     
-                    received_frame = Frame(camera=frame_cam)
+
+                    if header == b"CAMERA":
+                        arCamera = Camera(
+                            rotation=umsgpack.unpackb(frame_buffer.pop(0)),
+                            translation=umsgpack.unpackb(frame_buffer.pop(0))
+                            )
+                        frame.camera = arCamera        
                 
-                    self.handler.OnFrameReceived(received_frame)
+                    self.handler.OnFrameReceived(frame)
+
             if self.ttl_socket in items:
                 request = self.ttl_socket.recv()
+                self.ttl_socket.send_string("pong")
 
-                self.ttl_socket.send_string("toto")
         log.debug("Exiting App link")
         self.data_socket.close()
         self.ttl_socket.close()
