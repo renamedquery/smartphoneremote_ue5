@@ -46,10 +46,18 @@ def multiply_quat(q, r):
 
 
 def apply_camera(frame):
+    from mathutils import Vector
+
     camera = bpy.context.scene.camera
-    if camera:
-        camera.location = frame.camera.translation 
-        camera.rotation_quaternion = frame.camera.rotation  
+    origin = bpy.data.objects.get("origin")
+    if camera and origin: 
+
+        cam_location = (Vector(frame.camera.translation) - Vector(frame.root.translation))*(10/frame.root.scale[0])
+        camera.location = cam_location
+        camera.rotation_quaternion = frame.camera.rotation
+    
+    # if origin:
+    #     origin.location = frame.root.translation
         
 
 

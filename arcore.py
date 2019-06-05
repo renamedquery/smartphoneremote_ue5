@@ -15,10 +15,16 @@ class Camera():
         self.rotation= rotation
         self.translation = translation
 
+class Node():
+    def __init__(self, translation = [0,0,0], rotation=[0,0,0,0],scale = [1,1,1]):
+        self.rotation= rotation
+        self.translation = translation
+        self.scale = scale
 
 class Frame():
-    def __init__(self, camera = Camera()):
+    def __init__(self, camera = Camera(),root = Node()):
         self.camera = camera
+        self.root = root
 
 
 class ArEventHandler():
@@ -75,17 +81,21 @@ class AppLink(threading.Thread):
 
                 while len(frame_buffer)>0:
                     header =  frame_buffer.pop(0)
-
-                    
-
                     if header == b"CAMERA":
                         arCamera = Camera(
                             rotation=umsgpack.unpackb(frame_buffer.pop(0)),
                             translation=umsgpack.unpackb(frame_buffer.pop(0))
                             )
                         frame.camera = arCamera        
-                
-                    self.handler.OnFrameReceived(frame)
+                    if header == b"NODE":
+                        arNode = Node(
+                            rotation=umsgpack.unpackb(frame_buffer.pop(0)),
+                            translation=umsgpack.unpackb(frame_buffer.pop(0)),
+                            scale=umsgpack.unpackb(frame_buffer.pop(0))
+                            )
+                        frame.root = arNode
+
+                self.handler.OnFrameReceived(frame)
 
             if self.ttl_socket in items:
                 request = self.ttl_socket.recv()
