@@ -1,5 +1,6 @@
 import zmq
 import umsgpack
+import numpy as np
 
 import threading
 import logging
@@ -11,9 +12,16 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 class Camera():
-    def __init__(self, translation = [0,0,0], rotation=[0,0,0,0]):
+    def __init__(self, translation = [0,0,0], rotation=[0,0,0,0],vm= None):
         self.rotation= rotation
         self.translation = translation
+        if vm:
+            self.view_matrix =  np.matrix([[vm[0],vm[1],vm[2],vm[3]],
+                                        [vm[4],vm[5],vm[6],vm[7]],
+                                        [vm[8],vm[9],vm[10],vm[11]],
+                                        [vm[12],vm[13],vm[14],vm[15]]])
+        else:
+            self.view_matrix = np.matrix(np.zeros((4, 4)))
 
 class Node():
     def __init__(self, translation = [0,0,0], rotation=[0,0,0,0],scale = [1,1,1]):
@@ -84,7 +92,8 @@ class AppLink(threading.Thread):
                     if header == b"CAMERA":
                         arCamera = Camera(
                             rotation=umsgpack.unpackb(frame_buffer.pop(0)),
-                            translation=umsgpack.unpackb(frame_buffer.pop(0))
+                            translation=umsgpack.unpackb(frame_buffer.pop(0)),
+                            vm=umsgpack.unpackb(frame_buffer.pop(0))
                             )
                         frame.camera = arCamera        
                     if header == b"NODE":

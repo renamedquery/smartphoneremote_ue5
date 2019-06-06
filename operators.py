@@ -46,15 +46,19 @@ def multiply_quat(q, r):
 
 
 def apply_camera(frame):
-    from mathutils import Vector
+    from mathutils import Matrix
 
     camera = bpy.context.scene.camera
     origin = bpy.data.objects.get("origin")
-    if camera and origin: 
+    if camera: 
+        # cam_location = (Vector(frame.camera.translation) - Vector(frame.root.translation))*(10/frame.root.scale[0])
+        # camera.location = cam_location
+        # camera.rotation_quaternion = frame.camera.rotation
 
-        cam_location = (Vector(frame.camera.translation) - Vector(frame.root.translation))*(10/frame.root.scale[0])
-        camera.location = cam_location
-        camera.rotation_quaternion = frame.camera.rotation
+        # P = mathutils.Matrix(frame.camera.view_matrix.A)
+        
+        camera.matrix_basis = frame.camera.view_matrix.A
+        # log.info(frame.camera.view_matrix)
     
     # if origin:
     #     origin.location = frame.root.translation
