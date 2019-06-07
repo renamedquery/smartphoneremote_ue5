@@ -19,19 +19,11 @@ from .arcore import ArCoreInterface, ArEventHandler
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
-ARCORE  = np.matrix([[1, 0, 0, 0],
-                      [0, 1, 0, 0],
+BLENDER  =  np.matrix([[-1, 0, 0, 0],
                       [0, 0, 1, 0],
-                      [0, 0, 0, 1]])
+                      [0, 1, 0, 0],
+                      [ 0, 0, 0, 1]])
 
-BLENDER  =  np.matrix([[1, 0, 0, 0],
-                      [0, 0, 1, 0],
-                      [0, 1, 0, 0],
-                      [ 0, 0, 0, 1]])
-_BLENDER  =  np.matrix([[-1, 0, 0, 0],
-                      [0, 1, 0, 0],
-                      [0, 0, 1, 0],
-                      [ 0, 0, 0, 1]])
 app = None
 
 
@@ -72,7 +64,7 @@ def apply_camera(frame):
 
             # P = mathutils.Matrix(frame.camera.view_matrix.A)
             
-            pose = ARCORE * frame.camera.view_matrix * BLENDER * _BLENDER
+            pose = frame.camera.view_matrix * BLENDER 
             camera.matrix_world = pose.A 
             # log.info(frame.camera.view_matrix)
             # log.info(pose)
