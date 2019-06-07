@@ -8,7 +8,7 @@ import logging
 import bpy
 import sys
 import mathutils
-import numpy
+import numpy as np
 import math
 import socket
 
@@ -19,7 +19,21 @@ from .arcore import ArCoreInterface, ArEventHandler
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
+ARCORE  = np.matrix([[1, 0, 0, 0],
+                      [0, 1, 0, 0],
+                      [0, 0, 1, 0],
+                      [0, 0, 0, 1]])
+
+BLENDER  =  np.matrix([[1, 0, 0, 0],
+                      [0, 0, 1, 0],
+                      [0, 1, 0, 0],
+                      [ 0, 0, 0, 1]])
+_BLENDER  =  np.matrix([[-1, 0, 0, 0],
+                      [0, 1, 0, 0],
+                      [0, 0, 1, 0],
+                      [ 0, 0, 0, 1]])
 app = None
+
 
 '''
     Utility functions
@@ -48,20 +62,27 @@ def multiply_quat(q, r):
 def apply_camera(frame):
     from mathutils import Matrix
 
-    camera = bpy.context.scene.camera
-    origin = bpy.data.objects.get("origin")
-    if camera: 
-        # cam_location = (Vector(frame.camera.translation) - Vector(frame.root.translation))*(10/frame.root.scale[0])
-        # camera.location = cam_location
-        # camera.rotation_quaternion = frame.camera.rotation
+    try:
+        camera = bpy.context.scene.camera
+        origin = bpy.data.objects.get("origin")
+        if camera: 
+            # cam_location = (Vector(frame.camera.translation) - Vector(frame.root.translation))*(10/frame.root.scale[0])
+            # camera.location = cam_location
+            # camera.rotation_quaternion = frame.camera.rotation
 
-        # P = mathutils.Matrix(frame.camera.view_matrix.A)
+            # P = mathutils.Matrix(frame.camera.view_matrix.A)
+            
+            pose = ARCORE * frame.camera.view_matrix * BLENDER * _BLENDER
+            camera.matrix_world = pose.A 
+            # log.info(frame.camera.view_matrix)
+            # log.info(pose)
+            # camera.translation = frame.camera.translation
+            # log.info(frame.camera.view_matrix)
         
-        camera.matrix_basis = frame.camera.view_matrix.A
-        # log.info(frame.camera.view_matrix)
-    
-    # if origin:
-    #     origin.location = frame.root.translation
+        # if origin:
+        #     origin.location = frame.root.translation
+    except:
+        log.info("apply camera error")
         
 
 
@@ -261,6 +282,12 @@ def register():
 
 def unregister():
     from bpy.utils import unregister_class
+    global app
+
+    if app:
+        if app.is_running():
+            app.stop()
+            del app 
 
     for cls in classes:
         unregister_class(cls)

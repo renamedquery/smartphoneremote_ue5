@@ -50,9 +50,13 @@ class ArEventHandler():
 class ArCoreInterface(object):
     def __init__(self, handler):
         self._net_link = AppLink(handler)
-        self.handler = handler 
+        self.handler = handler
+
     def start(self):
         self._net_link.start()
+  
+    def is_running(self):
+        return self._net_link.is_alive()
 
     def stop(self):
         self._net_link.stop()
