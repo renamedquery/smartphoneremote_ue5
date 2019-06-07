@@ -64,7 +64,17 @@ def apply_camera(frame):
 
             # P = mathutils.Matrix(frame.camera.view_matrix.A)
             
-            pose = frame.camera.view_matrix * BLENDER 
+            bpose = frame.camera.view_matrix * BLENDER 
+            worigin = frame.root.world_matrix * BLENDER 
+            pose = bpose * worigin
+            pose[3] = bpose[3] - worigin[3]
+            
+          
+            
+            
+            # bpose.translation = t - borigin.translation  
+
+
             camera.matrix_world = pose.A 
             # log.info(frame.camera.view_matrix)
             # log.info(pose)
@@ -72,7 +82,8 @@ def apply_camera(frame):
             # log.info(frame.camera.view_matrix)
         
         # if origin:
-        #     origin.location = frame.root.translation
+        #     pose = frame.root.world_matrix * BLENDER 
+        #     origin.matrix_world = pose.A
     except:
         log.info("apply camera error")
         

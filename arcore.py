@@ -24,10 +24,19 @@ class Camera():
             self.view_matrix = np.matrix(np.zeros((4, 4)))
 
 class Node():
-    def __init__(self, translation = [0,0,0], rotation=[0,0,0,0],scale = [1,1,1]):
+    def __init__(self, translation = [0,0,0], rotation=[0,0,0,0],scale = [1,1,1], wm = None):
         self.rotation= rotation
         self.translation = translation
         self.scale = scale
+
+        if wm:
+            self.world_matrix =  np.matrix([[wm[0],wm[1],wm[2],wm[3]],
+                                        [wm[4],wm[5],wm[6],wm[7]],
+                                        [wm[8],wm[9],wm[10],wm[11]],
+                                        [wm[12],wm[13],wm[14],wm[15]]])
+        else:
+            self.world_matrix = np.matrix(np.zeros((4, 4)))
+
 
 class Frame():
     def __init__(self, camera = Camera(),root = Node()):
@@ -104,7 +113,8 @@ class AppLink(threading.Thread):
                         arNode = Node(
                             rotation=umsgpack.unpackb(frame_buffer.pop(0)),
                             translation=umsgpack.unpackb(frame_buffer.pop(0)),
-                            scale=umsgpack.unpackb(frame_buffer.pop(0))
+                            scale=umsgpack.unpackb(frame_buffer.pop(0)),
+                            wm=umsgpack.unpackb(frame_buffer.pop(0))
                             )
                         frame.root = arNode
 
