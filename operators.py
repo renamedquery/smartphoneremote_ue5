@@ -65,16 +65,16 @@ def apply_camera(frame):
             # P = mathutils.Matrix(frame.camera.view_matrix.A)
             
             bpose = frame.camera.view_matrix * BLENDER 
-            worigin = frame.root.world_matrix * BLENDER 
+            worigin = frame.root.world_matrix  * BLENDER 
             
-            # T1  =  np.matrix([[1, 0, 0, 0],
-            #                 [0, 1, 0, 0],
-            #                 [0, 0, 1, 0],
-            #                 [ 0, 0, 0, 1]])
+            # T1  =  np.matrix([[1.0, 0.0, 0.0, 0.0],
+            #                     [0.0, 1.0, 0.0, 0.0],
+            #                     [0.0, 0.0, 1.0, 0.0],
+            #                     [ 0.0, 0.0, 0.0, 1.0]])
             # T1[3] = (bpose[3] - worigin[3])
 
             # R0 = worigin
-            # R0[3] = [0,0,0,1]
+            
 
             # T=T1
             # T[3] =  (bpose[3] - worigin[3]) * (-1)
@@ -82,9 +82,9 @@ def apply_camera(frame):
             # R1 = bpose
             # R1[3] = [0,0,0,1]
 
-            # pose = R1 * T1 * R0 * T
+            # pose = R1 * T1 * R0  * T 
             bpose[3] = (bpose[3] - worigin[3])*(1/np.linalg.norm(worigin[1]))
-            camera.matrix_world = pose.A 
+            camera.matrix_world = bpose.A 
             # log.info(frame.camera.view_matrix)
             # camera.translation = frame.camera.translation
             # log.info(frame.camera.view_matrix)

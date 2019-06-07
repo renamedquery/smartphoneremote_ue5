@@ -79,13 +79,17 @@ class AppLink(threading.Thread):
         self.status = 0  # 0: idle, 1: Connecting, 2: Connected\
 
         self.context = context
+        self.command_socket = self.context.socket(zmq.REP)
+        self.command_socket.bind("tcp://*:5559")
         self.data_socket = self.context.socket(zmq.PULL)
         self.data_socket.bind("tcp://*:5558")
         self.ttl_socket = self.context.socket(zmq.REP)
         self.ttl_socket.bind("tcp://*:5557")
+        self.client_addr = None
 
         self.exit_event = threading.Event()
         self.handler = handler
+        
 
     def run(self):
         log.debug("Running App link")
@@ -93,6 +97,8 @@ class AppLink(threading.Thread):
         poller = zmq.Poller()
         poller.register(self.data_socket, zmq.POLLIN)
         poller.register(self.ttl_socket, zmq.POLLIN)
+        poller.register(self.command_socket, zmq.POLLIN)
+
         while not self.exit_event.is_set():
             items = dict(poller.poll(TIMEOUT))
             
@@ -122,11 +128,31 @@ class AppLink(threading.Thread):
 
             if self.ttl_socket in items:
                 request = self.ttl_socket.recv()
-                self.ttl_socket.send_string("pong")
+
+                if self.client_addr is None:
+                    self.client_addr = request.decode()
+                    # self.push_socket.connect("tcp://{}:5559".format(self.client_addr))
+                    self.ttl_socket.send_string("pong")
+                else:
+                    log.info(request.decode())
+                    frame = [b"SCENE",b"TOTOT"]
+                    self.ttl_socket.send_multipart(frame)
+                # if self.client_addr and self.client_addr != request.decode():
+            
+            if self.command_socket in items:
+                command = self.command_socket.recv()
+
+                if command == b"SCENE":
+                    log.info("request scene")
+                else:
+                    log.info("request peon")
+                
+                
 
         log.debug("Exiting App link")
         self.data_socket.close()
         self.ttl_socket.close()
+        self.command_socket.close()
         self.exit_event.clear()
 
     def stop(self):
