@@ -66,18 +66,16 @@ def apply_camera(frame):
             
             bpose = frame.camera.view_matrix * BLENDER 
             worigin = frame.root.world_matrix * BLENDER 
-            pose = bpose * worigin
-            pose[3] = bpose[3] - worigin[3]
+            
+            bpose[3] = (bpose[3] - worigin[3])*(1/np.linalg.norm(worigin[1]))
             
           
             
-            
-            # bpose.translation = t - borigin.translation  
 
 
-            camera.matrix_world = pose.A 
+            camera.matrix_world = bpose.A 
             # log.info(frame.camera.view_matrix)
-            # log.info(pose)
+            log.info(np.linalg.norm(worigin[1]))
             # camera.translation = frame.camera.translation
             # log.info(frame.camera.view_matrix)
         
