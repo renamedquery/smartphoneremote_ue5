@@ -56,7 +56,7 @@ def apply_camera(frame):
 
     try:
         camera = bpy.context.scene.camera
-        origin = bpy.data.objects.get("origin")
+        origin = bpy.data.objects.get("root")
         if camera: 
             # cam_location = (Vector(frame.camera.translation) - Vector(frame.root.translation))*(10/frame.root.scale[0])
             # camera.location = cam_location
@@ -67,21 +67,31 @@ def apply_camera(frame):
             bpose = frame.camera.view_matrix * BLENDER 
             worigin = frame.root.world_matrix * BLENDER 
             
+            # T1  =  np.matrix([[1, 0, 0, 0],
+            #                 [0, 1, 0, 0],
+            #                 [0, 0, 1, 0],
+            #                 [ 0, 0, 0, 1]])
+            # T1[3] = (bpose[3] - worigin[3])
+
+            # R0 = worigin
+            # R0[3] = [0,0,0,1]
+
+            # T=T1
+            # T[3] =  (bpose[3] - worigin[3]) * (-1)
+
+            # R1 = bpose
+            # R1[3] = [0,0,0,1]
+
+            # pose = R1 * T1 * R0 * T
             bpose[3] = (bpose[3] - worigin[3])*(1/np.linalg.norm(worigin[1]))
-            
-          
-            
-
-
-            camera.matrix_world = bpose.A 
+            camera.matrix_world = pose.A 
             # log.info(frame.camera.view_matrix)
-            log.info(np.linalg.norm(worigin[1]))
             # camera.translation = frame.camera.translation
             # log.info(frame.camera.view_matrix)
         
-        # if origin:
-        #     pose = frame.root.world_matrix * BLENDER 
-        #     origin.matrix_world = pose.A
+        if origin:
+            pose = frame.root.world_matrix * BLENDER 
+            origin.matrix_world = pose.A
     except:
         log.info("apply camera error")
         
