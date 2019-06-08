@@ -106,7 +106,7 @@ class RemoteStartOperator(bpy.types.Operator):
         global app
         handler =  ArEventHandler()
     
-        handler.append(apply_camera)
+        handler.bindOnFrameReceived(apply_camera)
 
         app = ArCoreInterface(handler)
         app.start()

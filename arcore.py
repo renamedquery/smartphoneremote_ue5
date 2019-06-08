@@ -46,14 +46,21 @@ class Frame():
 
 class ArEventHandler():
     def __init__(self):
-        self.listeners = []
+        self._frameListeners = []
+        self._getScene = None
     
-    def append(self,f):
-        self.listeners.append(f)
+    def bindOnFrameReceived(self,f):
+        self._frameListeners.append(f)
 
     def OnFrameReceived(self, frame):
-        for f in self.listeners:
+        for f in self._frameListeners:
             f(frame)
+    
+    def GetScene(self):
+        if self._getScene:
+            return self._getScene()
+        else:
+            return None
 
 
 class ArCoreInterface(object):
@@ -143,6 +150,13 @@ class AppLink(threading.Thread):
                 command = self.command_socket.recv()
 
                 if command == b"SCENE":
+                    scene_data = self.handler.GetScene()
+
+                    if scene_data:
+                        command.send(scene_data)
+                    else:
+                        log.info("GetScene not implemented")
+
                     log.info("request scene")
                 else:
                     log.info("request peon")
