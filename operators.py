@@ -129,7 +129,6 @@ def export_cached_scene():
 def get_cached_scene():
     file = open(SCENE_CACHE, "rb")
 
-            
     return file.read()
 
 
