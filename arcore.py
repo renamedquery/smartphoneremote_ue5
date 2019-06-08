@@ -51,6 +51,9 @@ class ArEventHandler():
     
     def bindOnFrameReceived(self,f):
         self._frameListeners.append(f)
+    
+    def bindGetScene(self, f):
+        self._getScene = f
 
     def OnFrameReceived(self, frame):
         for f in self._frameListeners:
@@ -153,7 +156,7 @@ class AppLink(threading.Thread):
                     scene_data = self.handler.GetScene()
 
                     if scene_data:
-                        command.send(scene_data)
+                        self.command_socket.send(scene_data)
                     else:
                         log.info("GetScene not implemented")
 
