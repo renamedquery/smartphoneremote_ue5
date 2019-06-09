@@ -118,7 +118,7 @@ def export_cached_scene():
             export_morph=True,
             export_morph_normal=True,
             export_morph_tangent=False,
-            export_lights=False,
+            export_lights=True,
             export_displacement=False,
             will_save_settings=False,
             filepath=SCENE_CACHE,
