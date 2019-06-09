@@ -20,14 +20,13 @@ from .arcore import ArCoreInterface, ArEventHandler
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
-SCENE_CACHE = "cache.gltf"
+SCENE_CACHE = "cache.glb"
 BLENDER  =  np.matrix([[-1, 0, 0, 0],
                       [0, 0, 1, 0],
                       [0, 1, 0, 0],
                       [ 0, 0, 0, 1]])
 
 app = None
-
 
 '''
     Utility functions
@@ -88,7 +87,8 @@ def apply_camera(frame):
 
 def export_cached_scene():
     bpy.ops.export_scene.gltf(
-            export_format='GLTF_EMBEDDED',
+            
+            export_format='GLB',
             ui_tab='GENERAL',
             export_copyright="",
             export_image_format='NAME',
