@@ -1,6 +1,7 @@
 build
 *.bin
 *.gltf
+*.glb
 .vscode
 __pycache__
 .vscode

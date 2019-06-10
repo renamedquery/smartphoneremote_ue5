@@ -23,6 +23,7 @@ class Camera():
         else:
             self.view_matrix = np.matrix(np.zeros((4, 4)))
 
+
 class Node():
     def __init__(self, translation = [0,0,0], rotation=[0,0,0,0],scale = [1,1,1], wm = None):
         self.rotation= rotation
@@ -48,16 +49,26 @@ class ArEventHandler():
     def __init__(self):
         self._frameListeners = []
         self._getScene = None
+        self._record = None
     
     def bindOnFrameReceived(self,f):
         self._frameListeners.append(f)
     
     def bindGetScene(self, f):
         self._getScene = f
+    
+    def bindRecord(self, f):
+        self._record = f
 
     def OnFrameReceived(self, frame):
         for f in self._frameListeners:
             f(frame)
+
+    def OnRecord(self, frame):
+        if self._record:
+            self._record()
+        else:
+            log.info("Record not implemented")
     
     def GetScene(self):
         if self._getScene:
@@ -159,8 +170,10 @@ class AppLink(threading.Thread):
                         self.command_socket.send(scene_data)
                     else:
                         log.info("GetScene not implemented")
-
-                    log.info("request scene")
+                
+                if command == b"RECORD":
+                    self.handler._record()
+                    self.command_socket.send_string("done")
                 else:
                     log.info("request peon")
                 
