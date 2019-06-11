@@ -18,7 +18,6 @@ import mathutils
 from .arcore import ArCoreInterface, ArEventHandler
 import queue
 
-
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
@@ -30,7 +29,6 @@ BLENDER = np.matrix([[-1, 0, 0, 0],
                      [0, 0, 0, 1]])
 
 app = None
-app_ctx = None
 execution_queue = queue.Queue()
 execution_result_queue = queue.Queue()
 
@@ -39,6 +37,10 @@ execution_result_queue = queue.Queue()
 '''
 
 def GetCurrentIp():
+    """
+    Retrieve the main network interface IP.
+
+    """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     ip = s.getsockname()[0]
@@ -46,11 +48,17 @@ def GetCurrentIp():
     return ip
 
 def getContext():
+    """
+    Load the current blender context and fill it 
+    with missing informations.
+    """
     import bpy
 
     override = bpy.context.copy()
+
+    # Fix the missing active_object error in GLTF exporter 
     override["active_object"] = None
-    print(override)
+    
     # for window in context.window_manager.windows:
     #     screen = window.screen
 
@@ -61,26 +69,38 @@ def getContext():
                 
     return override
     
-# This function can savely be called in another thread.
-# The function will be executed when the timer runs the next time.
+
 def run_in_main_thread(function):
+    """
+    Queue a function in order to run it 
+    into the blender main thread.
+    
+    
+    """
     execution_queue.put(function)
     
     return execution_result_queue.get()
 
 
-
 def execute_queued_functions():
+    """
+    Execute queued functions into the blender main thread.
+    """
     while not execution_queue.empty():
         function = execution_queue.get()
         function()
         execution_result_queue.put("done")
     return 1.0
 
+
 '''
    Camera managment
 '''
 def apply_camera(frame):
+    """Apply frame camera pose into blender scene active camera
+
+        TODO: load camera intrinsec    
+    """
     getContext()
     from mathutils import Matrix
 
@@ -123,7 +143,13 @@ def apply_camera(frame):
     except:
         log.info("apply camera error")
 
+
 def record_camera():
+    """
+    Record camera animation callback.
+
+    TODO: Record config
+    """
     global app_ctx        
     import bpy
 
@@ -135,13 +161,18 @@ def record_camera():
     # Launch record 
     bpy.data.scenes[0].tool_settings.use_keyframe_insert_auto = True
     bpy.ops.screen.animation_play(app_ctx)
-    
+
 
 '''
    Scene export
 '''
 
-def export_cached_scene():    
+def export_cached_scene():
+    """
+    Export the current scene to SCENE_CACHE
+    
+    TODO: export config
+    """
     bpy.ops.export_scene.gltf(
         getContext(),
         export_format='GLB',
@@ -183,6 +214,9 @@ def export_cached_scene():
 
 
 def get_cached_scene():
+    """
+    Export the scene and return the cache file stream.
+    """
     run_in_main_thread(export_cached_scene)
     
     file = open(SCENE_CACHE, "rb")
@@ -194,15 +228,13 @@ def get_cached_scene():
    Operators
 '''
 class RemoteStartOperator(bpy.types.Operator):
-    """Tooltip"""
+    """Start the blender remote"""
     bl_idname = "remote.start"
     bl_label = "Start remote link"
 
     def execute(self, context):
         global app
-        handler = ArEventHandler()
-
-        
+        handler = ArEventHandler()      
 
         # Arcore interface setup
         handler.bindOnFrameReceived(apply_camera)
@@ -211,10 +243,6 @@ class RemoteStartOperator(bpy.types.Operator):
 
         app = ArCoreInterface(handler)
         app.start()
-
-        # global app_ctx
-
-        # app_ctx = context.copy()
 
         # generate scene cache
         export_cached_scene()
@@ -225,7 +253,7 @@ class RemoteStartOperator(bpy.types.Operator):
 
 
 class RemoteStopOperator(bpy.types.Operator):
-    """Tooltip"""
+    """Stop the remote daemon"""
     bl_idname = "remote.stop"
     bl_label = "Stop remote link"
 
@@ -242,7 +270,7 @@ class RemoteStopOperator(bpy.types.Operator):
 
 
 class RemoteRestartOperator(bpy.types.Operator):
-    """Tooltip"""
+    """Reboot the remote daemon"""
     bl_idname = "remote.restart"
     bl_label = "Reboot remote link"
 
