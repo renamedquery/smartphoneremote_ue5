@@ -47,6 +47,7 @@ def GetCurrentIp():
     s.close()
     return ip
 
+
 def getContext():
     """
     Load the current blender context and fill it 
@@ -58,14 +59,15 @@ def getContext():
 
     # Fix the missing active_object error in GLTF exporter 
     override["active_object"] = None
-    
-    # for window in context.window_manager.windows:
-    #     screen = window.screen
+    # override["scene"] = bpy.data.scenes[0] # TODO: fix current scene
 
-    #     for area in screen.areas:
-    #         if area.type == 'VIEW_3D':
-    #             override = bpy.context.copy()
-    #             override.update(window=window, screen=screen, area=area)
+    for window in bpy.context.window_manager.windows:
+        screen = window.screen
+
+        for area in screen.areas:
+            if area.type == 'VIEW_3D':
+                override.update(window=window, screen=screen, area=area)
+               
                 
     return override
     
@@ -88,8 +90,13 @@ def execute_queued_functions():
     """
     while not execution_queue.empty():
         function = execution_queue.get()
-        function()
-        execution_result_queue.put("done")
+        output = function()
+
+        if output:
+            execution_result_queue.put(output)
+        else:
+            execution_result_queue.put("done")
+
     return 1.0
 
 
@@ -101,7 +108,6 @@ def apply_camera(frame):
 
         TODO: load camera intrinsec    
     """
-    getContext()
     from mathutils import Matrix
 
     try:
@@ -139,28 +145,53 @@ def apply_camera(frame):
             # log.info(frame.camera.view_matrix)
             # camera.translation = frame.camera.translation
             # log.info(frame.camera.view_matrix)
-
+            
     except:
         log.info("apply camera error")
 
+def setup_camera_animation():
+    import bpy
 
-def record_camera():
+    ctx = getContext().copy()
+    scene = ctx["scene"]
+
+    # Create and setup new action
+    new_action =  bpy.data.actions.new("camera_0")
+    scene.camera.animation_data_create()
+    scene.camera.animation_data.action = new_action
+
+    # Launch record 
+    scene.tool_settings.use_keyframe_insert_auto = True
+    bpy.ops.screen.animation_play(ctx)
+
+def update_camera_animation():
+    import bpy
+
+    ctx = getContext().copy()
+    
+    return ctx['scene'].frame_current
+
+
+def record_camera(status):
     """
     Record camera animation callback.
 
     TODO: Record config
-    """
-    global app_ctx        
-    import bpy
+    """      
+    log.info(status)
+    blender_state = "NONE"
+    if status == "START":
+        run_in_main_thread(setup_camera_animation)
+        blender_state = "STARTED"
+    elif status == "STATE":
+        blender_state = str(run_in_main_thread(update_camera_animation))
+        log.info(str(blender_state))
+    elif status == "STOP":
+        blender_state = "STATE"
 
-    # Create and setup new action
-    new_action =  bpy.data.actions.new("camera_0")
-    bpy.data.scenes[0].camera.animation_data_create()
-    bpy.data.scenes[0].camera.animation_data.action = new_action
 
-    # Launch record 
-    bpy.data.scenes[0].tool_settings.use_keyframe_insert_auto = True
-    bpy.ops.screen.animation_play(app_ctx)
+    return blender_state
+
 
 
 '''
