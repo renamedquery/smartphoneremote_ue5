@@ -38,7 +38,6 @@ execution_result_queue = queue.Queue()
     Utility functions
 '''
 
-
 def GetCurrentIp():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
@@ -46,10 +45,43 @@ def GetCurrentIp():
     s.close()
     return ip
 
+def getContext():
+    import bpy
+
+    override = bpy.context.copy()
+    override["active_object"] = None
+    print(override)
+    # for window in context.window_manager.windows:
+    #     screen = window.screen
+
+    #     for area in screen.areas:
+    #         if area.type == 'VIEW_3D':
+    #             override = bpy.context.copy()
+    #             override.update(window=window, screen=screen, area=area)
+                
+    return override
+    
+# This function can savely be called in another thread.
+# The function will be executed when the timer runs the next time.
+def run_in_main_thread(function):
+    execution_queue.put(function)
+    
+    return execution_result_queue.get()
+
+
+
+def execute_queued_functions():
+    while not execution_queue.empty():
+        function = execution_queue.get()
+        function()
+        execution_result_queue.put("done")
+    return 1.0
+
 '''
    Camera managment
 '''
 def apply_camera(frame):
+    getContext()
     from mathutils import Matrix
 
     try:
@@ -83,6 +115,7 @@ def apply_camera(frame):
             # pose = R1 * T1 * R0  * T
             bpose[3] = (bpose[3] - worigin[3])*(1/np.linalg.norm(worigin[1]))
             camera.matrix_world = bpose.A
+            
             # log.info(frame.camera.view_matrix)
             # camera.translation = frame.camera.translation
             # log.info(frame.camera.view_matrix)
@@ -104,13 +137,13 @@ def record_camera():
     bpy.ops.screen.animation_play(app_ctx)
     
 
-
 '''
    Scene export
 '''
 
-def export_cached_scene():
+def export_cached_scene():    
     bpy.ops.export_scene.gltf(
+        getContext(),
         export_format='GLB',
         ui_tab='GENERAL',
         export_copyright="",
@@ -150,11 +183,16 @@ def export_cached_scene():
 
 
 def get_cached_scene():
+    run_in_main_thread(export_cached_scene)
+    
     file = open(SCENE_CACHE, "rb")
 
     return file.read()
 
 
+'''
+   Operators
+'''
 class RemoteStartOperator(bpy.types.Operator):
     """Tooltip"""
     bl_idname = "remote.start"
@@ -164,8 +202,7 @@ class RemoteStartOperator(bpy.types.Operator):
         global app
         handler = ArEventHandler()
 
-        # generate scene cache
-        export_cached_scene()
+        
 
         # Arcore interface setup
         handler.bindOnFrameReceived(apply_camera)
@@ -175,9 +212,14 @@ class RemoteStartOperator(bpy.types.Operator):
         app = ArCoreInterface(handler)
         app.start()
 
-        global app_ctx
+        # global app_ctx
 
-        app_ctx = context.copy()
+        # app_ctx = context.copy()
+
+        # generate scene cache
+        export_cached_scene()
+
+        bpy.app.timers.register(execute_queued_functions)
 
         return {'FINISHED'}
 
@@ -193,6 +235,9 @@ class RemoteStopOperator(bpy.types.Operator):
         if app:
             app.stop()
             del app
+
+        bpy.app.timers.unregister(execute_queued_functions)
+
         return {'FINISHED'}
 
 
