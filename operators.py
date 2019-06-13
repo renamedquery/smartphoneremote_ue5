@@ -2,7 +2,6 @@
 import logging
 import gc
 import os
-import umsgpack
 
 import locale
 import logging
@@ -21,8 +20,8 @@ import queue
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
-TASKS_FREQUENCY = .5
-SCENE_CACHE = "cache.glb"
+TASKS_FREQUENCY = .0001
+SCENE_CACHE = "scene_cache.glb"
 BLENDER = np.matrix([[-1, 0, 0, 0],
                      [0, 0, 1, 0],
                      [0, 1, 0, 0],
@@ -31,6 +30,7 @@ BLENDER = np.matrix([[-1, 0, 0, 0],
 app = None
 execution_queue = queue.Queue()
 execution_result_queue = queue.Queue()
+stop_modal_executor = False
 
 '''
     Utility functions
@@ -53,33 +53,35 @@ def getContext():
     Load the current blender context and fill it 
     with missing informations.
     """
+    log.info("getContext()")
     import bpy
-
+    
     override = bpy.context.copy()
+    
 
     # Fix the missing active_object error in GLTF exporter 
-    override["active_object"] = None
+    # override["active_object"] = None
     # override["scene"] = bpy.data.scenes[0] # TODO: fix current scene
 
-    for window in bpy.context.window_manager.windows:
-        screen = window.screen
+    # for window in bpy.context.window_manager.windows:
+    #     screen = window.screen
 
-        for area in screen.areas:
-            if area.type == 'VIEW_3D':
-                override.update(window=window, screen=screen, area=area)
+    #     for area in screen.areas:
+    #         if area.type == 'VIEW_3D':
+    #             override.update(window=window, screen=screen, area=area)
                
                 
     return override
     
 
-def run_in_main_thread(function):
+def run_in_main_thread(function, args=None):
     """
     Queue a function in order to run it 
     into the blender main thread.
     
     
     """
-    execution_queue.put(function)
+    execution_queue.put((function,args))
     
     return execution_result_queue.get()
 
@@ -90,12 +92,8 @@ def execute_queued_functions():
     """
     while not execution_queue.empty():
         function = execution_queue.get()
-        output = function()
-
-        if output:
-            execution_result_queue.put(output)
-        else:
-            execution_result_queue.put("done")
+        function()
+        execution_result_queue.put("done")
 
     return 1.0
 
@@ -103,6 +101,10 @@ def execute_queued_functions():
 '''
    Camera managment
 '''
+def apply_ar_frame(frame):
+    run_in_main_thread(apply_camera,frame)
+
+
 def apply_camera(frame):
     """Apply frame camera pose into blender scene active camera
 
@@ -141,18 +143,20 @@ def apply_camera(frame):
             # pose = R1 * T1 * R0  * T
             bpose[3] = (bpose[3] - worigin[3])*(1/np.linalg.norm(worigin[1]))
             camera.matrix_world = bpose.A
+
             
             # log.info(frame.camera.view_matrix)
             # camera.translation = frame.camera.translation
             # log.info(frame.camera.view_matrix)
             
-    except:
-        log.info("apply camera error")
+    except Exception as e:
+        log.info("apply camera error: {}".format(e))
+
 
 def setup_camera_animation():
     import bpy
 
-    ctx = getContext().copy()
+    ctx = getContext()
     scene = ctx["scene"]
 
     # Create and setup new action
@@ -163,6 +167,7 @@ def setup_camera_animation():
     # Launch record 
     scene.tool_settings.use_keyframe_insert_auto = True
     bpy.ops.screen.animation_play(ctx)
+
 
 def update_camera_animation():
     import bpy
@@ -204,6 +209,8 @@ def export_cached_scene():
     
     TODO: export config
     """
+
+
     bpy.ops.export_scene.gltf(
         getContext(),
         export_format='GLB',
@@ -235,7 +242,7 @@ def export_cached_scene():
         export_morph=True,
         export_morph_normal=True,
         export_morph_tangent=False,
-        export_lights=True,
+        export_lights=False,
         export_displacement=False,
         will_save_settings=False,
         filepath=SCENE_CACHE,
@@ -249,7 +256,7 @@ def get_cached_scene():
     Export the scene and return the cache file stream.
     """
     run_in_main_thread(export_cached_scene)
-    
+
     file = open(SCENE_CACHE, "rb")
 
     return file.read()
@@ -268,7 +275,7 @@ class RemoteStartOperator(bpy.types.Operator):
         handler = ArEventHandler()      
 
         # Arcore interface setup
-        handler.bindOnFrameReceived(apply_camera)
+        handler.bindOnFrameReceived(apply_ar_frame)
         handler.bindGetScene(get_cached_scene)
         handler.bindRecord(record_camera)
 
@@ -278,7 +285,8 @@ class RemoteStartOperator(bpy.types.Operator):
         # generate scene cache
         export_cached_scene()
 
-        bpy.app.timers.register(execute_queued_functions)
+        bpy.ops.wm.modal_executor_operator()
+        # bpy.app.timers.register(execute_queued_functions)
 
         return {'FINISHED'}
 
@@ -289,13 +297,14 @@ class RemoteStopOperator(bpy.types.Operator):
     bl_label = "Stop remote link"
 
     def execute(self, context):
-        global app
+        global app, stop_modal_executor
 
         if app:
             app.stop()
             del app
 
-        bpy.app.timers.unregister(execute_queued_functions)
+        stop_modal_executor = True
+        # bpy.app.timers.unregister(execute_queued_functions)
 
         return {'FINISHED'}
 
@@ -310,10 +319,48 @@ class RemoteRestartOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class RemoteModalExecutorOperator(bpy.types.Operator):
+    """Modal operator used to execute tasks that required a VALID context (like operators)"""
+    bl_idname = "wm.modal_executor_operator"
+    bl_label = "Modal Executor Operator"
+
+    _timer = None
+
+    def modal(self, context, event):
+        global stop_modal_executor, execution_queue
+
+        if stop_modal_executor:
+            self.cancel(context)
+            return {'CANCELLED'}
+
+        if event.type == 'TIMER':
+            if not execution_queue.empty():
+                function,args = execution_queue.get()
+
+                if args:
+                    function(args)
+                else:
+                    function()
+                execution_result_queue.put("done")
+            
+
+        return {'PASS_THROUGH'}
+
+    def execute(self, context):
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(TASKS_FREQUENCY, window=context.window)
+        wm.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+    def cancel(self, context):
+        wm = context.window_manager
+        wm.event_timer_remove(self._timer)
+
 classes = {
     RemoteStartOperator,
     RemoteStopOperator,
     RemoteRestartOperator,
+    RemoteModalExecutorOperator,
 }
 
 

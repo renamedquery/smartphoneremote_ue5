@@ -12,6 +12,9 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 class Camera():
+    """ ARCore camera
+
+    """
     def __init__(self, translation = [0,0,0], rotation=[0,0,0,0],vm= None):
         self.rotation= rotation
         self.translation = translation
@@ -25,6 +28,10 @@ class Camera():
 
 
 class Node():
+    """Sceneform Node
+
+    """
+    
     def __init__(self, translation = [0,0,0], rotation=[0,0,0,0],scale = [1,1,1], wm = None):
         self.rotation= rotation
         self.translation = translation
@@ -40,23 +47,31 @@ class Node():
 
 
 class Frame():
+    """ ARCore frame
+
+    """
     def __init__(self, camera = Camera(),root = Node()):
         self.camera = camera
         self.root = root
 
 
 class ArEventHandler():
+    """ Application Event handler
+
+    Used to link Android Application event with 
+    the local application(ex: blender).  
+    """
     def __init__(self):
         self._frameListeners = []
         self._getScene = None
         self._record = None
-    
+
     def bindOnFrameReceived(self,f):
         self._frameListeners.append(f)
-    
+
     def bindGetScene(self, f):
         self._getScene = f
-    
+
     def bindRecord(self, f):
         self._record = f
 
@@ -70,7 +85,7 @@ class ArEventHandler():
         else:
             log.info("Record not implemented")
             return None
-    
+
     def GetScene(self):
         if self._getScene:
             return self._getScene()
@@ -79,13 +94,18 @@ class ArEventHandler():
 
 
 class ArCoreInterface(object):
+    """ Application Ar interface
+
+    Interface in charge to manage the network bridge 
+    between local application and the remote app.
+    """
     def __init__(self, handler):
         self._net_link = AppLink(handler)
         self.handler = handler
 
     def start(self):
         self._net_link.start()
-  
+
     def is_running(self):
         return self._net_link.is_alive()
 
@@ -94,6 +114,13 @@ class ArCoreInterface(object):
 
 
 class AppLink(threading.Thread):
+    """ Application network link
+
+    Thread use to listen android remote application.
+
+    TODO: complete this area
+
+    """
     def __init__(self, handler, context=zmq.Context.instance(), name="Applink"):
         threading.Thread.__init__(self)
         self.name = name
@@ -101,7 +128,7 @@ class AppLink(threading.Thread):
         self.status = 0  # 0: idle, 1: Connecting, 2: Connected\
 
         self.context = context
-        self.command_socket = self.context.socket(zmq.ROUTER)
+        self.command_socket = self.context.socket(zmq.DEALER)
         self.command_socket.setsockopt(zmq.IDENTITY, b'SERVER')
         self.command_socket.setsockopt(zmq.RCVHWM, 60)
         self.command_socket.bind("tcp://*:5559")
@@ -113,7 +140,7 @@ class AppLink(threading.Thread):
 
         self.exit_event = threading.Event()
         self.handler = handler
-        
+
 
     def run(self):
         log.debug("Running App link")
@@ -125,7 +152,8 @@ class AppLink(threading.Thread):
 
         while not self.exit_event.is_set():
             items = dict(poller.poll(TIMEOUT))
-            
+
+            # Handle arcord data replication
             if self.data_socket in items:
                 frame_buffer = self.data_socket.recv_multipart()
                 frame = Frame()
@@ -138,7 +166,7 @@ class AppLink(threading.Thread):
                             translation=umsgpack.unpackb(frame_buffer.pop(0)),
                             vm=umsgpack.unpackb(frame_buffer.pop(0))
                             )
-                        frame.camera = arCamera        
+                        frame.camera = arCamera
                     if header == b"NODE":
                         arNode = Node(
                             rotation=umsgpack.unpackb(frame_buffer.pop(0)),
@@ -150,32 +178,33 @@ class AppLink(threading.Thread):
 
                 self.handler.OnFrameReceived(frame)
 
+            # Handle live link heartbeat
             if self.ttl_socket in items:
                 request = self.ttl_socket.recv()
 
                 if self.client_addr is None:
                     self.client_addr = request.decode()
-                    # self.push_socket.connect("tcp://{}:5559".format(self.client_addr))
-                    self.ttl_socket.send_string("pong")
-                else:
-                    log.info(request.decode())
-                    frame = [b"SCENE",b"TOTOT"]
-                    self.ttl_socket.send_multipart(frame)
-                # if self.client_addr and self.client_addr != request.decode():
+                    
+                self.ttl_socket.send_string("pong")
             
+            # Handle remote command
             if self.command_socket in items:
                 command = self.command_socket.recv_multipart()
-                log.info(command)
-                if command[1] == b"SCENE":
+
+                if command[0] == b"SCENE":
+                    log.info("Try to get scene")
                     scene_data = self.handler.GetScene()
 
                     if scene_data:
-                        self.command_socket.send_multipart([scene_data])
+                        log.info("sending scene")
+                        try:
+                            self.command_socket.send_multipart([b"test",scene_data])
+                        except:
+                            log.info("Fail to send scene")
                     else:
                         log.info("GetScene not implemented")
-                
-                if command[1] == b"RECORD":
-                    result = self.handler.OnRecord(command[2].decode())
+                elif command[0] == b"RECORD":
+                    result = self.handler.OnRecord(command[1].decode())
                     response = [b"RECORD"]
                     log.info(result)
                     if result:
@@ -185,20 +214,20 @@ class AppLink(threading.Thread):
                     self.command_socket.send_multipart(response)
                 else:
                     log.info("request peon")
-                
-                
+
+
 
         log.debug("Exiting App link")
         self.data_socket.close()
         self.ttl_socket.close()
         self.command_socket.close()
         self.exit_event.clear()
-    
+
 
 
     def stop(self):
         self.exit_event.set()
-        
+
         #Wait the end of the run
         while self.exit_event.is_set():
             time.sleep(.1)
@@ -209,9 +238,9 @@ if __name__ == "__main__":
 
     def test(frame):
         log.debug(frame.camera.translation)
-    
+
     ar_handler.append(test)
-    
+
     ar = ArCoreInterface(ar_handler)
 
     ar.start()
