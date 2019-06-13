@@ -16,6 +16,7 @@ import bpy
 import mathutils
 from .arcore import ArCoreInterface, ArEventHandler
 import queue
+from mathutils import Matrix, Vector
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ BLENDER = np.matrix([[-1, 0, 0, 0],
                      [0, 0, 0, 1]])
 
 app = None
+is_recording = False
 execution_queue = queue.Queue()
 execution_result_queue = queue.Queue()
 stop_modal_executor = False
@@ -57,19 +59,7 @@ def getContext():
     import bpy
     
     override = bpy.context.copy()
-    
-
-    # Fix the missing active_object error in GLTF exporter 
-    # override["active_object"] = None
-    # override["scene"] = bpy.data.scenes[0] # TODO: fix current scene
-
-    # for window in bpy.context.window_manager.windows:
-    #     screen = window.screen
-
-    #     for area in screen.areas:
-    #         if area.type == 'VIEW_3D':
-    #             override.update(window=window, screen=screen, area=area)
-               
+       
                 
     return override
     
@@ -110,18 +100,12 @@ def apply_camera(frame):
 
         TODO: load camera intrinsec    
     """
-    from mathutils import Matrix
-
+    global is_recording
     try:
         camera = bpy.context.scene.camera
         
         if camera:
-            # cam_location = (Vector(frame.camera.translation) - Vector(frame.root.translation))*(10/frame.root.scale[0])
-            # camera.location = cam_location
-            # camera.rotation_quaternion = frame.camera.rotation
-
-            # P = mathutils.Matrix(frame.camera.view_matrix.A)
-
+            
 
             bpose = frame.camera.view_matrix * BLENDER
             worigin = frame.root.world_matrix * BLENDER
@@ -142,9 +126,15 @@ def apply_camera(frame):
 
             # pose = R1 * T1 * R0  * T
             bpose[3] = (bpose[3] - worigin[3])*(1/np.linalg.norm(worigin[1]))
-            camera.matrix_world = bpose.A
 
+        
+            camera.matrix_world = bpose.A
             
+            if is_recording:
+                camera.keyframe_insert(data_path="location")
+                camera.keyframe_insert(data_path="rotation_quaternion")
+           
+
             # log.info(frame.camera.view_matrix)
             # camera.translation = frame.camera.translation
             # log.info(frame.camera.view_matrix)
@@ -154,8 +144,7 @@ def apply_camera(frame):
 
 
 def setup_camera_animation():
-    import bpy
-
+    global is_recording
     ctx = getContext()
     scene = ctx["scene"]
 
@@ -165,8 +154,16 @@ def setup_camera_animation():
     scene.camera.animation_data.action = new_action
 
     # Launch record 
-    scene.tool_settings.use_keyframe_insert_auto = True
     bpy.ops.screen.animation_play(ctx)
+    is_recording = True
+
+
+def stop_camera_animation():
+    global is_recording
+
+    bpy.ops.screen.animation_cancel()
+    bpy.context.scene.frame_current = 1
+    is_recording = False
 
 
 def update_camera_animation():
@@ -192,7 +189,8 @@ def record_camera(status):
         blender_state = str(run_in_main_thread(update_camera_animation))
         log.info(str(blender_state))
     elif status == "STOP":
-        blender_state = "STATE"
+        blender_state = "STOPPED"
+        stop_camera_animation()
 
 
     return blender_state
@@ -263,8 +261,21 @@ def get_cached_scene():
 
 
 '''
+    Handlers
+'''
+def record(scene):
+    global is_recording
+
+    if is_recording:
+        if scene.frame_current == (scene.frame_end-1):
+            stop_camera_animation()
+
+            
+
+'''
    Operators
 '''
+
 class RemoteStartOperator(bpy.types.Operator):
     """Start the blender remote"""
     bl_idname = "remote.start"
@@ -286,6 +297,7 @@ class RemoteStartOperator(bpy.types.Operator):
         export_cached_scene()
 
         bpy.ops.wm.modal_executor_operator()
+        bpy.app.handlers.frame_change_post.append(record)
         # bpy.app.timers.register(execute_queued_functions)
 
         return {'FINISHED'}
@@ -304,6 +316,7 @@ class RemoteStopOperator(bpy.types.Operator):
             del app
 
         stop_modal_executor = True
+        bpy.app.handlers.frame_change_post.remove(record)
         # bpy.app.timers.unregister(execute_queued_functions)
 
         return {'FINISHED'}
@@ -338,10 +351,14 @@ class RemoteModalExecutorOperator(bpy.types.Operator):
                 function,args = execution_queue.get()
 
                 if args:
-                    function(args)
+                    result = function(args)
                 else:
-                    function()
-                execution_result_queue.put("done")
+                    result = function()
+                
+                if result:
+                    execution_result_queue.put(result)
+                else:
+                    execution_result_queue.put("done")
             
 
         return {'PASS_THROUGH'}

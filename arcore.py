@@ -210,7 +210,7 @@ class AppLink(threading.Thread):
                     if result:
                         response.append(result.encode())
                     else:
-                        response.append(b"STOP")
+                        response.append(b"STOPPED")
                     self.command_socket.send_multipart(response)
                 else:
                     log.info("request peon")
