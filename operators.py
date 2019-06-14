@@ -167,12 +167,15 @@ def stop_camera_animation():
 
 
 def update_camera_animation():
+    global is_recording
     import bpy
 
     ctx = getContext().copy()
     
-    return ctx['scene'].frame_current
-
+    if is_recording:
+        return ctx['scene'].frame_current
+    else:
+        return "STOPPED"
 
 def record_camera(status):
     """
