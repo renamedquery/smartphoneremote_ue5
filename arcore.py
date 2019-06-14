@@ -128,9 +128,8 @@ class AppLink(threading.Thread):
         self.status = 0  # 0: idle, 1: Connecting, 2: Connected\
 
         self.context = context
-        self.command_socket = self.context.socket(zmq.DEALER)
+        self.command_socket = self.context.socket(zmq.ROUTER)
         self.command_socket.setsockopt(zmq.IDENTITY, b'SERVER')
-        self.command_socket.setsockopt(zmq.RCVHWM, 60)
         self.command_socket.bind("tcp://*:5559")
         self.data_socket = self.context.socket(zmq.PULL)
         self.data_socket.bind("tcp://*:5558")
@@ -190,27 +189,32 @@ class AppLink(threading.Thread):
             # Handle remote command
             if self.command_socket in items:
                 command = self.command_socket.recv_multipart()
+                log.info(command)
+                identity = command[0]
 
-                if command[0] == b"SCENE":
+                if command[1] == b"SCENE":
                     log.info("Try to get scene")
                     scene_data = self.handler.GetScene()
-
+                   
                     if scene_data:
                         log.info("sending scene")
                         try:
-                            self.command_socket.send_multipart([b"test",scene_data])
+                            self.command_socket.send(identity, zmq.SNDMORE)
+                            self.command_socket.send_multipart([b"SCENE",scene_data])
                         except:
                             log.info("Fail to send scene")
                     else:
                         log.info("GetScene not implemented")
-                elif command[0] == b"RECORD":
-                    result = self.handler.OnRecord(command[1].decode())
+                elif command[1] == b"RECORD":
+                    result = self.handler.OnRecord(command[2].decode())
                     response = [b"RECORD"]
                     log.info(result)
                     if result:
                         response.append(result.encode())
                     else:
                         response.append(b"STOPPED")
+
+                    self.command_socket.send(identity, zmq.SNDMORE)
                     self.command_socket.send_multipart(response)
                 else:
                     log.info("request peon")
@@ -222,7 +226,6 @@ class AppLink(threading.Thread):
         self.ttl_socket.close()
         self.command_socket.close()
         self.exit_event.clear()
-
 
 
     def stop(self):

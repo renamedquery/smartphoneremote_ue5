@@ -189,8 +189,8 @@ def record_camera(status):
         blender_state = str(run_in_main_thread(update_camera_animation))
         log.info(str(blender_state))
     elif status == "STOP":
+        run_in_main_thread(stop_camera_animation)
         blender_state = "STOPPED"
-        stop_camera_animation()
 
 
     return blender_state
