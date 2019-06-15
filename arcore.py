@@ -134,7 +134,10 @@ class AppLink(threading.Thread):
         self.command_socket.bind("tcp://*:5559")
         self.data_socket = self.context.socket(zmq.PULL)
         self.data_socket.bind("tcp://*:5558")
-        self.ttl_socket = self.context.socket(zmq.REP)
+        self.ttl_socket = self.context.socket(zmq.ROUTER)
+        self.ttl_socket.setsockopt(zmq.IDENTITY, b'SERVERTTL')
+        self.ttl_socket.setsockopt(zmq.RCVHWM, 0)   
+        self.ttl_socket.linger = 0
         self.ttl_socket.bind("tcp://*:5557")
         self.client_addr = None
 
@@ -180,12 +183,14 @@ class AppLink(threading.Thread):
 
             # Handle live link heartbeat
             if self.ttl_socket in items:
-                request = self.ttl_socket.recv()
+                request = self.ttl_socket.recv_multipart()
+                identity = request[0]
 
                 if self.client_addr is None:
-                    self.client_addr = request.decode()
-                    
-                self.ttl_socket.send_string("pong")
+                    self.client_addr = request[2].decode()
+                
+                self.ttl_socket.send(identity, zmq.SNDMORE)
+                self.ttl_socket.send_multipart([b"pong"])
             
             # Handle remote command
             if self.command_socket in items:
