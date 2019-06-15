@@ -149,6 +149,8 @@ def setup_camera_animation():
     scene = ctx["scene"]
 
     # Create and setup new action
+    scene.camera.rotation_mode = 'QUATERNION'
+
     new_action =  bpy.data.actions.new("camera_0")
     scene.camera.animation_data_create()
     scene.camera.animation_data.action = new_action
@@ -313,12 +315,9 @@ class RemoteStartOperator(bpy.types.Operator):
         app = ArCoreInterface(handler)
         app.start()
 
-        # generate scene cache
-        export_cached_scene()
-
         bpy.ops.wm.modal_executor_operator()
         bpy.app.handlers.frame_change_post.append(record)
-        # bpy.app.timers.register(execute_queued_functions)
+
 
         return {'FINISHED'}
 

@@ -67,6 +67,7 @@ def register():
 
     if not module_can_be_imported("pip"):
         install_pip()
+        
 
     for dep in DEPENDENCIES:
         if not module_can_be_imported(dep):
@@ -74,9 +75,9 @@ def register():
     
     from . import settings, operators
 
-    app_address = operators.GetCurrentIp()+":5556"
+    app_address = operators.GetCurrentIp()
 
-    # generate_connexion_qrcode(app_address)
+    generate_connexion_qrcode(app_address)
     
     bpy.types.PreferencesInput.srLocalIp = bpy.props.StringProperty(
         name="Interface address", default=app_address)

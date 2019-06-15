@@ -12,36 +12,28 @@ import os
 
 class USERPREF_PT_input_devices_smartphone(Panel):
     """Creates a Panel in the Object properties window"""
-    bl_label = "Smartphone"
-    bl_idname = "USERPREF_PT_input_devices"
-    bl_space_type = 'PREFERENCES'
-    bl_region_type = 'WINDOW'
+    bl_idname = "SMARTPHONE_SETTINGS_PT_panel"
+    bl_label = "Connexion"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Remote"
 
     def draw(self, context):
         layout = self.layout
 
         prefs = context.preferences
 
-        row = layout.row()
-        col = row.column()
-        sub = col.column()
-        sub.label(text="Smartphone:")
         # This tells Blender to draw the my_previews window manager object
         # (Which is our preview)
-        # sub.template_icon_view(context.scene, "my_thumbnails")
-        sub.label(text = bpy.context.preferences.inputs.srLocalIp[1]['default'])
+        row = layout.row()
+        row.template_icon_view(context.scene, "my_thumbnails")
+        row = layout.row()
+        row.label(text = bpy.context.preferences.inputs.srLocalIp[1]['default'])
         # if bpy.context.preferences.inputs.srDaemonRunning[1]['default'] == False:
         #     sub.operator("scene.restart_blender_remote")
         # else:
         #     sub.operator("scene.stop_blender_remote")
 
-        #UGLY
-        sub = row.column()
-        sub.label(text="   ")
-        sub = row.column()
-        sub.label(text="   ")
-        sub = row.column()
-        sub.label(text="   ")
 
 
 
@@ -69,12 +61,12 @@ def register():
     from bpy.types import Scene
     from bpy.props import StringProperty, EnumProperty
 
-    # pcoll = bpy.utils.previews.new()
-    # pcoll.images_location = os.path.join(os.path.dirname(__file__), "images")
-    # preview_collections["thumbnail_previews"] = pcoll
+    pcoll = bpy.utils.previews.new()
+    pcoll.images_location = os.path.join(os.path.dirname(__file__), "images")
+    preview_collections["thumbnail_previews"] = pcoll
 
-    # bpy.types.Scene.my_thumbnails = EnumProperty(
-    #     items=generate_previews(),)
+    bpy.types.Scene.my_thumbnails = EnumProperty(
+        items=generate_previews(),)
     bpy.utils.register_class(USERPREF_PT_input_devices_smartphone)
 
 
@@ -83,8 +75,8 @@ def unregister():
     for pcoll in preview_collections.values():
         bpy.utils.previews.remove(pcoll)
 
-    # preview_collections.clear()
-    # del bpy.types.Scene.my_thumbnails
+    preview_collections.clear()
+    del bpy.types.Scene.my_thumbnails
     bpy.utils.unregister_class(USERPREF_PT_input_devices_smartphone)
 
 
