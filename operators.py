@@ -252,15 +252,32 @@ def export_cached_scene():
     )
 
 
-def get_cached_scene():
+def get_cached_scene(offset,chunk_size):
     """
     Export the scene and return the cache file stream.
     """
-    run_in_main_thread(export_cached_scene)
 
+    # STEP 0: Export the scene 
+    if offset == 0:
+        log.info("export the scene...")
+        run_in_main_thread(export_cached_scene)
+        file = open(SCENE_CACHE, "rb")
+        log.info("Done, exported  {} bytes".format(len(file.read())))
+        file.close()
+
+
+
+    # STEP 1: Read chunk of data from file
+    log.info("open : {}".format(SCENE_CACHE))
     file = open(SCENE_CACHE, "rb")
+    file.seek(offset, os.SEEK_SET)
+    data = file.read(chunk_size)
 
-    return file.read()
+    log.info("read : {}".format(offset))
+
+    # file = open(SCENE_CACHE, "rb")
+
+    return data
 
 
 '''

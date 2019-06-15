@@ -86,9 +86,9 @@ class ArEventHandler():
             log.info("Record not implemented")
             return None
 
-    def GetScene(self):
+    def GetScene(self,offset,chunk_size):
         if self._getScene:
-            return self._getScene()
+            return self._getScene(offset,chunk_size)
         else:
             return None
 
@@ -130,6 +130,7 @@ class AppLink(threading.Thread):
         self.context = context
         self.command_socket = self.context.socket(zmq.ROUTER)
         self.command_socket.setsockopt(zmq.IDENTITY, b'SERVER')
+        self.command_socket.setsockopt(zmq.RCVHWM, 0)   
         self.command_socket.bind("tcp://*:5559")
         self.data_socket = self.context.socket(zmq.PULL)
         self.data_socket.bind("tcp://*:5558")
@@ -194,13 +195,13 @@ class AppLink(threading.Thread):
 
                 if command[1] == b"SCENE":
                     log.info("Try to get scene")
-                    scene_data = self.handler.GetScene()
+                    scene_data_chunk = self.handler.GetScene(int(command[2]),int(command[3]))
                    
-                    if scene_data:
+                    if scene_data_chunk:
                         log.info("sending scene")
                         try:
                             self.command_socket.send(identity, zmq.SNDMORE)
-                            self.command_socket.send_multipart([b"SCENE",scene_data])
+                            self.command_socket.send_multipart([b"SCENE",scene_data_chunk])
                         except:
                             log.info("Fail to send scene")
                     else:
