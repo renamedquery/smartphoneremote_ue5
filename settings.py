@@ -7,6 +7,7 @@ from bpy.types import (
     WindowManager
 )
 import bpy.utils.previews
+from . import environment 
 
 import os
 
@@ -26,7 +27,7 @@ class USERPREF_PT_input_devices_smartphone(Panel):
         # This tells Blender to draw the my_previews window manager object
         # (Which is our preview)
         row = layout.row()
-        row.template_icon_view(context.scene, "my_thumbnails")
+        row.template_icon_view(context.scene, "qrcodes")
         row = layout.row()
         row.label(text = bpy.context.preferences.inputs.srLocalIp[1]['default'])
         # if bpy.context.preferences.inputs.srDaemonRunning[1]['default'] == False:
@@ -48,7 +49,7 @@ def generate_previews():
     enum_items = []
     
     # Generate the thumbnails
-    for i, image in enumerate(os.listdir(image_location)):
+    for i, image in enumerate(os.listdir(environment.CACHE_DIR)):
         if image.endswith(VALID_EXTENSIONS):
             filepath = os.path.join(image_location, image)
             thumb = pcoll.load(filepath, filepath, 'IMAGE')
@@ -62,10 +63,10 @@ def register():
     from bpy.props import StringProperty, EnumProperty
 
     pcoll = bpy.utils.previews.new()
-    pcoll.images_location = os.path.join(os.path.dirname(__file__), "images")
+    pcoll.images_location = os.path.join(os.path.dirname(__file__), "cache")
     preview_collections["thumbnail_previews"] = pcoll
 
-    bpy.types.Scene.my_thumbnails = EnumProperty(
+    bpy.types.Scene.qrcodes = EnumProperty(
         items=generate_previews(),)
     bpy.utils.register_class(USERPREF_PT_input_devices_smartphone)
 
@@ -76,7 +77,7 @@ def unregister():
         bpy.utils.previews.remove(pcoll)
 
     preview_collections.clear()
-    del bpy.types.Scene.my_thumbnails
+    del bpy.types.Scene.qrcodes
     bpy.utils.unregister_class(USERPREF_PT_input_devices_smartphone)
 
 
