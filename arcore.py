@@ -86,11 +86,11 @@ class ArEventHandler():
             log.info("Record not implemented")
             return None
 
-    def GetScene(self,offset,chunk_size):
+    def OnGetScene(self,offset,chunk_size):
         if self._getScene:
             return self._getScene(offset,chunk_size)
         else:
-            return None
+            raise Exception('GetScene not implemented !')
 
 
 class ArCoreInterface(object):
@@ -128,17 +128,26 @@ class AppLink(threading.Thread):
         self.status = 0  # 0: idle, 1: Connecting, 2: Connected\
 
         self.context = context
+        
+        # The command socket handle asynchonous commands
+        # the from android application
         self.command_socket = self.context.socket(zmq.ROUTER)
         self.command_socket.setsockopt(zmq.IDENTITY, b'SERVER')
         self.command_socket.setsockopt(zmq.RCVHWM, 0)   
         self.command_socket.bind("tcp://*:5559")
+
+        # Data socket is used load each frame ARCore state from 
+        # the android application 
         self.data_socket = self.context.socket(zmq.PULL)
         self.data_socket.bind("tcp://*:5558")
+        
+        # TTL socket is in charge of the connexion monitoring 
         self.ttl_socket = self.context.socket(zmq.ROUTER)
         self.ttl_socket.setsockopt(zmq.IDENTITY, b'SERVERTTL')
         self.ttl_socket.setsockopt(zmq.RCVHWM, 0)   
         self.ttl_socket.linger = 0
         self.ttl_socket.bind("tcp://*:5557")
+
         self.client_addr = None
 
         self.exit_event = threading.Event()
@@ -199,18 +208,18 @@ class AppLink(threading.Thread):
                 identity = command[0]
 
                 if command[1] == b"SCENE":
-                    log.info("Try to get scene")
-                    scene_data_chunk = self.handler.GetScene(int(command[2]),int(command[3]))
+                    log.debug("Try to get scene")
+                    scene_data_chunk = self.handler.OnGetScene(int(command[2]),int(command[3]))
                    
                     if scene_data_chunk:
-                        log.info("sending scene")
-                        try:
-                            self.command_socket.send(identity, zmq.SNDMORE)
-                            self.command_socket.send_multipart([b"SCENE",scene_data_chunk])
-                        except:
-                            log.info("Fail to send scene")
+                        log.debug("sending scene")
+                        
+                        self.command_socket.send(identity, zmq.SNDMORE)
+                        self.command_socket.send_multipart([b"SCENE",scene_data_chunk])
+                       
                     else:
                         log.info("GetScene not implemented")
+
                 elif command[1] == b"RECORD":
                     result = self.handler.OnRecord(command[2].decode())
                     response = [b"RECORD"]
@@ -248,7 +257,7 @@ if __name__ == "__main__":
     def test(frame):
         log.debug(frame.camera.translation)
 
-    ar_handler.append(test)
+    ar_handler.bindOnFrameReceived(test)
 
     ar = ArCoreInterface(ar_handler)
 

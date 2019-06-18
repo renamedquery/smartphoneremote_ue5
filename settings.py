@@ -24,16 +24,11 @@ class USERPREF_PT_input_devices_smartphone(Panel):
 
         prefs = context.preferences
 
-        # This tells Blender to draw the my_previews window manager object
-        # (Which is our preview)
         row = layout.row()
         row.template_icon_view(context.scene, "qrcodes")
         row = layout.row()
         row.label(text = bpy.context.preferences.inputs.srLocalIp[1]['default'])
-        # if bpy.context.preferences.inputs.srDaemonRunning[1]['default'] == False:
-        #     sub.operator("scene.restart_blender_remote")
-        # else:
-        #     sub.operator("scene.stop_blender_remote")
+
 
 
 
