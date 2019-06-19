@@ -15,6 +15,7 @@ import json
 import bpy
 import mathutils
 from .arcore import ArCoreInterface, ArEventHandler
+from . import environment
 import queue
 from mathutils import Matrix, Vector
 
@@ -22,7 +23,7 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 TASKS_FREQUENCY = .0001
-SCENE_CACHE = "scene_cache.glb"
+
 BLENDER = np.matrix([[-1, 0, 0, 0],
                      [0, 0, 1, 0],
                      [0, 1, 0, 0],
@@ -248,7 +249,8 @@ def export_cached_scene():
         export_lights=False,
         export_displacement=False,
         will_save_settings=False,
-        filepath=SCENE_CACHE,
+        filepath=os.path.join(environment.CACHE_DIR,
+                            environment.SCENE_FILE),
         check_existing=True,
         filter_glob="*.glb;*.gltf"
     )

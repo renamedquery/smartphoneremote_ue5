@@ -5,6 +5,7 @@ import bpy
 
 CACHE_DIR = "cache"
 QR_FILE  = "connexion.png"
+SCENE_FILE = "scene_cache.glb"
 
 thirdPartyDir = os.path.dirname(os.path.abspath(__file__))+"/libs"
 python_path = Path(bpy.app.binary_path_python)
