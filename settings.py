@@ -7,14 +7,14 @@ from bpy.types import (
     WindowManager
 )
 import bpy.utils.previews
-from . import environment 
+from . import environment, operators
 
 import os
 
 class USERPREF_PT_input_devices_smartphone(Panel):
     """Creates a Panel in the Object properties window"""
     bl_idname = "SMARTPHONE_SETTINGS_PT_panel"
-    bl_label = "Connexion"
+    bl_label = "General"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Remote"
@@ -24,13 +24,39 @@ class USERPREF_PT_input_devices_smartphone(Panel):
 
         prefs = context.preferences
 
+        
+        
         row = layout.row()
-        row.template_icon_view(context.scene, "qrcodes")
-        row = layout.row()
-        row.label(text = bpy.context.preferences.inputs.srLocalIp[1]['default'])
+        if operators.app and operators.app.is_running():
+            row = layout.row()
+            row.template_icon_view(context.scene, "qrcodes")
+            row = layout.row()
+            status_box = row.box()
+            detail_status_box = status_box.row()
+            detail_status_box.label(text=prefs.inputs.srLocalIp[1]['default'])
+            row = layout.row()
+            row.operator("remote.stop",text="STOP")
+            
+            
+
+        else:
+            row.operator("remote.start",text="START")
 
 
+class USERLIST_PT_input_devices_smartphone(Panel):
+    """Creates a Panel in the Object properties window"""
+    bl_idname = "SMARTPHONE_SETTINGS_PT_panel"
+    bl_label = "clients"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Remote"
 
+    def draw(self, context):
+        layout = self.layout
+
+        prefs = context.preferences
+
+        # TODO: List connected remotes
 
 
 preview_collections = {}

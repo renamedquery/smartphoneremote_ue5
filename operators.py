@@ -260,20 +260,21 @@ def get_cached_scene(offset,chunk_size):
     """
     Export the scene and return the cache file stream.
     """
-
+    scene_filepath = os.path.join(environment.CACHE_DIR,
+                            environment.SCENE_FILE)
     # STEP 0: Export the scene 
     if offset == 0:
         log.info("export the scene...")
         run_in_main_thread(export_cached_scene)
-        file = open(SCENE_CACHE, "rb")
+        file = open(scene_filepath, "rb")
         log.info("Done, exported  {} bytes".format(len(file.read())))
         file.close()
 
 
 
     # STEP 1: Read chunk of data from file
-    log.info("open : {}".format(SCENE_CACHE))
-    file = open(SCENE_CACHE, "rb")
+    log.info("open : {}".format(scene_filepath))
+    file = open(scene_filepath, "rb")
     file.seek(offset, os.SEEK_SET)
     data = file.read(chunk_size)
 
@@ -334,7 +335,7 @@ class RemoteStopOperator(bpy.types.Operator):
 
         if app:
             app.stop()
-            del app
+            app = None
 
         stop_modal_executor = True
         bpy.app.handlers.frame_change_post.remove(record)
