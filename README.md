@@ -9,8 +9,8 @@ Install the blender addon from the preference editor.
 
 ## Usage example
 
-![camera_animation](https://gitlab.com/slumber/smartphoneremote/wikis/uploads/b37d2fec7a025f5597090043e502d34a/remotelow.gif)
-
+![camera_animation](https://gitlab.com/slumber/smartphoneremote/wikis/uploads/0a83d79c7d6f59e92d4aa8885539feb2/remotelow.gif)
+![camera_record](https://gitlab.com/slumber/smartphoneremote/wikis/uploads/361e212366bc9b67230e69075b191075/recordlow.gif)
 ## Meta
 
 Les gobelets
