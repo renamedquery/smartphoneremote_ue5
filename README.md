@@ -10,7 +10,7 @@ Install the blender addon from the preference editor.
 ## Usage example
 
 Camera animation...
-
+![camera_animation](https://gitlab.com/slumber/smartphoneremote/wikis/uploads/b37d2fec7a025f5597090043e502d34a/remotelow.gif)
 
 ## Meta
 
