@@ -171,7 +171,6 @@ def stop_camera_animation():
 
 def update_camera_animation():
     global is_recording
-    import bpy
 
     ctx = getContext().copy()
     
@@ -206,7 +205,6 @@ def record_camera(status):
 '''
    Scene export
 '''
-
 def export_cached_scene():
     """
     Export the current scene to SCENE_CACHE
@@ -280,8 +278,6 @@ def get_cached_scene(offset,chunk_size):
 
     log.info("read : {}".format(offset))
 
-    # file = open(SCENE_CACHE, "rb")
-
     return data
 
 
@@ -300,7 +296,6 @@ def record(scene):
 '''
    Operators
 '''
-
 class RemoteStartOperator(bpy.types.Operator):
     """Start the blender remote"""
     bl_idname = "remote.start"

@@ -55,6 +55,7 @@ class Frame():
         self.root = root
 
 
+
 class ArEventHandler():
     """ Application Event handler
 
@@ -232,11 +233,12 @@ class AppLink(threading.Thread):
                     self.command_socket.send(identity, zmq.SNDMORE)
                     self.command_socket.send_multipart(response)
                 else:
-                    log.info("request peon")
+                    log.error("Wrong request")
 
 
 
         log.debug("Exiting App link")
+
         self.data_socket.close()
         self.ttl_socket.close()
         self.command_socket.close()
