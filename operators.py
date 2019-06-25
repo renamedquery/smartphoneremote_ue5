@@ -130,6 +130,7 @@ def apply_camera(frame):
 
         
             camera.matrix_world = bpose.A
+            camera.lens = frame.camera.intrinsec[0]/10
             
             if is_recording:
                 camera.keyframe_insert(data_path="location")

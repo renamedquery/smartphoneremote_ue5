@@ -15,9 +15,10 @@ class Camera():
     """ ARCore camera
 
     """
-    def __init__(self, translation = [0,0,0], rotation=[0,0,0,0],vm= None):
+    def __init__(self,intrinsics=[0,0], translation = [0,0,0], rotation=[0,0,0,0],vm=None):
         self.rotation= rotation
         self.translation = translation
+        self.intrinsics = intrinsics
         if vm:
             self.view_matrix =  np.matrix([[vm[0],vm[1],vm[2],vm[3]],
                                         [vm[4],vm[5],vm[6],vm[7]],
@@ -25,6 +26,7 @@ class Camera():
                                         [vm[12],vm[13],vm[14],vm[15]]])
         else:
             self.view_matrix = np.matrix(np.zeros((4, 4)))
+
 
 
 class Node():
@@ -53,7 +55,37 @@ class Frame():
     def __init__(self, camera = Camera(),root = Node()):
         self.camera = camera
         self.root = root
+        self.mode = 'CAMERA'
 
+    @classmethod
+    def recv(cls,socket):
+        frame_buffer = socket.recv_multipart()
+        frame = Frame()
+
+        while len(frame_buffer)>0:
+            header =  frame_buffer.pop(0)
+            if header == b"STATE":
+                frame.mode = frame_buffer.pop(0).decode()    
+
+            elif header == b"CAMERA":
+                arCamera = Camera(
+                    intrinsics=umsgpack.unpackb(frame_buffer.pop(0)),
+                    rotation=umsgpack.unpackb(frame_buffer.pop(0)),
+                    translation=umsgpack.unpackb(frame_buffer.pop(0)),
+                    vm=umsgpack.unpackb(frame_buffer.pop(0))
+                    )
+                log.info(arCamera.intrinsics[0])
+                frame.camera = arCamera
+            elif header == b"NODE":
+                arNode = Node(
+                    rotation=umsgpack.unpackb(frame_buffer.pop(0)),
+                    translation=umsgpack.unpackb(frame_buffer.pop(0)),
+                    scale=umsgpack.unpackb(frame_buffer.pop(0)),
+                    wm=umsgpack.unpackb(frame_buffer.pop(0))
+                    )
+                frame.root = arNode
+
+        return frame
 
 
 class ArEventHandler():
@@ -168,29 +200,10 @@ class AppLink(threading.Thread):
 
             # Handle arcord data replication
             if self.data_socket in items:
-                frame_buffer = self.data_socket.recv_multipart()
-                frame = Frame()
-
-                while len(frame_buffer)>0:
-                    header =  frame_buffer.pop(0)
-                    if header == b"CAMERA":
-                        arCamera = Camera(
-                            rotation=umsgpack.unpackb(frame_buffer.pop(0)),
-                            translation=umsgpack.unpackb(frame_buffer.pop(0)),
-                            vm=umsgpack.unpackb(frame_buffer.pop(0))
-                            )
-                        frame.camera = arCamera
-                    if header == b"NODE":
-                        arNode = Node(
-                            rotation=umsgpack.unpackb(frame_buffer.pop(0)),
-                            translation=umsgpack.unpackb(frame_buffer.pop(0)),
-                            scale=umsgpack.unpackb(frame_buffer.pop(0)),
-                            wm=umsgpack.unpackb(frame_buffer.pop(0))
-                            )
-                        frame.root = arNode
-
-                self.handler.OnFrameReceived(frame)
-
+                try:
+                    self.handler.OnFrameReceived(Frame.recv(self.data_socket))              
+                except:
+                    log.info("error")
             # Handle live link heartbeat
             if self.ttl_socket in items:
                 request = self.ttl_socket.recv_multipart()
