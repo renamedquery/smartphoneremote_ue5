@@ -6,6 +6,8 @@ import threading
 import logging
 import time
 
+from . import environment
+
 TIMEOUT = 1
 
 logging.basicConfig(level=logging.DEBUG)
@@ -26,7 +28,6 @@ class Camera():
                                         [vm[12],vm[13],vm[14],vm[15]]])
         else:
             self.view_matrix = np.matrix(np.zeros((4, 4)))
-
 
 
 class Node():
@@ -74,7 +75,7 @@ class Frame():
                     translation=umsgpack.unpackb(frame_buffer.pop(0)),
                     vm=umsgpack.unpackb(frame_buffer.pop(0))
                     )
-                log.info(arCamera.intrinsics[0])
+
                 frame.camera = arCamera
             elif header == b"NODE":
                 arNode = Node(
@@ -167,19 +168,19 @@ class AppLink(threading.Thread):
         self.command_socket = self.context.socket(zmq.ROUTER)
         self.command_socket.setsockopt(zmq.IDENTITY, b'SERVER')
         self.command_socket.setsockopt(zmq.RCVHWM, 0)   
-        self.command_socket.bind("tcp://*:5559")
+        self.command_socket.bind("tcp://*:{}".format(environment.PORT+2))
 
         # Data socket is used load each frame ARCore state from 
         # the android application 
         self.data_socket = self.context.socket(zmq.PULL)
-        self.data_socket.bind("tcp://*:5558")
+        self.data_socket.bind("tcp://*:{}".format(environment.PORT+1))
         
         # TTL socket is in charge of the connexion monitoring 
         self.ttl_socket = self.context.socket(zmq.ROUTER)
         self.ttl_socket.setsockopt(zmq.IDENTITY, b'SERVERTTL')
         self.ttl_socket.setsockopt(zmq.RCVHWM, 0)   
         self.ttl_socket.linger = 0
-        self.ttl_socket.bind("tcp://*:5557")
+        self.ttl_socket.bind("tcp://*:{}".format(environment.PORT))
 
         self.client_addr = None
 
@@ -218,16 +219,13 @@ class AppLink(threading.Thread):
             # Handle remote command
             if self.command_socket in items:
                 command = self.command_socket.recv_multipart()
-                log.info(command)
                 identity = command[0]
 
                 if command[1] == b"SCENE":
                     log.debug("Try to get scene")
                     scene_data_chunk = self.handler.OnGetScene(int(command[2]),int(command[3]))
                    
-                    if scene_data_chunk:
-                        log.debug("sending scene")
-                        
+                    if scene_data_chunk:                        
                         self.command_socket.send(identity, zmq.SNDMORE)
                         self.command_socket.send_multipart([b"SCENE",scene_data_chunk])
                        
@@ -237,7 +235,6 @@ class AppLink(threading.Thread):
                 elif command[1] == b"RECORD":
                     result = self.handler.OnRecord(command[2].decode())
                     response = [b"RECORD"]
-                    log.info(result)
                     if result:
                         response.append(result.encode())
                     else:

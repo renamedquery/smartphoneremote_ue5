@@ -93,14 +93,33 @@ def execute_queued_functions():
    Camera managment
 '''
 def apply_ar_frame(frame):
-    run_in_main_thread(apply_camera,frame)
+    if frame.mode == "CAMERA":
+        run_in_main_thread(apply_camera_pose,frame)
+    if frame.mode == "OBJECT":
+         run_in_main_thread(apply_object_pose,frame)
+
+def apply_object_pose(frame):
+    """Apply frame blender pose into blender select object"""
+    global is_recording
+
+    try:
+        active_object = bpy.context.object
+
+        if active_object:
+
+            bpose = frame.camera.view_matrix * BLENDER
+            worigin = frame.root.world_matrix * BLENDER
+            bpose[3] = (bpose[3] - worigin[3])*(1/np.linalg.norm(worigin[1]))
+
+            active_object.matrix_world = bpose.A
 
 
-def apply_camera(frame):
-    """Apply frame camera pose into blender scene active camera
+    except Exception as e:
+        log.error(e)
 
-        TODO: load camera intrinsec    
-    """
+
+def apply_camera_pose(frame):
+    """Apply frame camera pose into blender scene active camera"""
     global is_recording
     try:
         camera = bpy.context.scene.camera
@@ -130,7 +149,7 @@ def apply_camera(frame):
 
         
             camera.matrix_world = bpose.A
-            camera.lens = frame.camera.intrinsec[0]/10
+            camera.data.lens = frame.camera.intrinsics[0]/10
             
             if is_recording:
                 camera.keyframe_insert(data_path="location")
