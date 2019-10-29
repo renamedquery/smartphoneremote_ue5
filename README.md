@@ -6,7 +6,7 @@ The blender smartphone remote is an attempt to bring a free wireless spatialized
 ## Installation
 
 1. Install smartphone remote android app.
-2. Download latest release [multi_user.zip](/uploads/8aef79c7cf5b1d9606dc58307fd9ad8b/multi_user.zip).
+2. Download latest release .
 3. Run blender as administrator (dependencies installation).
 4. Install last_version.zip from your addon preferences.
 
