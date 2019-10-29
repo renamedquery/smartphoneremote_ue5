@@ -12,7 +12,6 @@ bl_info = {
 import addon_utils
 import random
 import string
-import subprocess
 import sys
 import os
 import bpy
@@ -58,7 +57,7 @@ def unregister():
     environment.clean()
 
     from . import settings, operators
-    # operators.stop_daemons()
+
     settings.unregister()
     operators.unregister()
 

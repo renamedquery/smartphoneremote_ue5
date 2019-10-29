@@ -125,26 +125,9 @@ def apply_camera_pose(frame):
         camera = bpy.context.scene.camera
         
         if camera:
-            
-
             bpose = frame.camera.view_matrix * BLENDER
             worigin = frame.root.world_matrix * BLENDER
-
-            # T1  =  np.matrix([[1.0, 0.0, 0.0, 0.0],
-            #                     [0.0, 1.0, 0.0, 0.0],
-            #                     [0.0, 0.0, 1.0, 0.0],
-            #                     [ 0.0, 0.0, 0.0, 1.0]])
-            # T1[3] = (bpose[3] - worigin[3])
-
-            # R0 = worigin
-
-            # T=T1
-            # T[3] =  (bpose[3] - worigin[3]) * (-1)
-
-            # R1 = bpose
-            # R1[3] = [0,0,0,1]
-
-            # pose = R1 * T1 * R0  * T
+            
             bpose[3] = (bpose[3] - worigin[3])*(1/np.linalg.norm(worigin[1]))
 
         

@@ -2,6 +2,7 @@ import sys
 import os
 from pathlib import Path
 import bpy
+import subprocess
 
 CACHE_DIR = "cache"
 QR_FILE  = "connexion.png"
