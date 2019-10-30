@@ -58,10 +58,7 @@ def getContext():
     """
     log.info("getContext()")
     import bpy
-    
     override = bpy.context.copy()
-       
-                
     return override
     
 
@@ -85,8 +82,6 @@ def execute_queued_functions():
         function = execution_queue.get()
         function()
         execution_result_queue.put("done")
-
-    return 1.0
 
 
 '''
@@ -113,7 +108,6 @@ def apply_object_pose(frame):
 
             active_object.matrix_world = bpose.A
 
-
     except Exception as e:
         log.error(e)
 
@@ -130,19 +124,13 @@ def apply_camera_pose(frame):
             
             bpose[3] = (bpose[3] - worigin[3])*(1/np.linalg.norm(worigin[1]))
 
-        
             camera.matrix_world = bpose.A
-            camera.data.lens = frame.camera.intrinsics[0]/10
+            camera.data.angle = frame.camera.intrinsics[0]
             
             if is_recording:
                 camera.keyframe_insert(data_path="location")
                 camera.keyframe_insert(data_path="rotation_quaternion")
            
-
-            # log.info(frame.camera.view_matrix)
-            # camera.translation = frame.camera.translation
-            # log.info(frame.camera.view_matrix)
-            
     except Exception as e:
         log.info("apply camera error: {}".format(e))
 
@@ -155,7 +143,7 @@ def setup_camera_animation():
     # Create and setup new action
     scene.camera.rotation_mode = 'QUATERNION'
 
-    new_action =  bpy.data.actions.new("camera_0")
+    new_action = bpy.data.actions.new("camera_0")
     scene.camera.animation_data_create()
     scene.camera.animation_data.action = new_action
 
@@ -182,6 +170,7 @@ def update_camera_animation():
     else:
         return "STOPPED"
 
+
 def record_camera(status):
     """
     Record camera animation callback.
@@ -200,14 +189,14 @@ def record_camera(status):
         run_in_main_thread(stop_camera_animation)
         blender_state = "STOPPED"
 
-
     return blender_state
-
 
 
 '''
    Scene export
 '''
+
+
 def export_cached_scene():
     """
     Export the current scene to SCENE_CACHE
@@ -257,7 +246,7 @@ def export_cached_scene():
     )
 
 
-def get_cached_scene(offset,chunk_size):
+def get_cached_scene(offset, chunk_size):
     """
     Export the scene and return the cache file stream.
     """
@@ -270,8 +259,6 @@ def get_cached_scene(offset,chunk_size):
         file = open(scene_filepath, "rb")
         log.info("Done, exported  {} bytes".format(len(file.read())))
         file.close()
-
-
 
     # STEP 1: Read chunk of data from file
     log.info("open : {}".format(scene_filepath))
@@ -287,6 +274,8 @@ def get_cached_scene(offset,chunk_size):
 '''
     Handlers
 '''
+
+
 def record(scene):
     global is_recording
 
@@ -295,10 +284,11 @@ def record(scene):
             stop_camera_animation()
 
             
-
 '''
    Operators
 '''
+
+
 class RemoteStartOperator(bpy.types.Operator):
     """Start the blender remote"""
     bl_idname = "remote.start"
@@ -368,7 +358,7 @@ class RemoteModalExecutorOperator(bpy.types.Operator):
 
         if event.type == 'TIMER':
             if not execution_queue.empty():
-                function,args = execution_queue.get()
+                function, args = execution_queue.get()
 
                 if args:
                     result = function(args)
@@ -380,18 +370,19 @@ class RemoteModalExecutorOperator(bpy.types.Operator):
                 else:
                     execution_result_queue.put("done")
             
-
         return {'PASS_THROUGH'}
 
     def execute(self, context):
         wm = context.window_manager
-        self._timer = wm.event_timer_add(TASKS_FREQUENCY, window=context.window)
+        self._timer = wm.event_timer_add(
+            TASKS_FREQUENCY, window=context.window)
         wm.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
     def cancel(self, context):
         wm = context.window_manager
         wm.event_timer_remove(self._timer)
+
 
 classes = {
     RemoteStartOperator,

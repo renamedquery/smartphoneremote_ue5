@@ -158,9 +158,7 @@ class AppLink(threading.Thread):
     def __init__(self, handler, context=zmq.Context.instance(), name="Applink"):
         threading.Thread.__init__(self)
         self.name = name
-        self.daemon = True
-        self.status = 0  # 0: idle, 1: Connecting, 2: Connected\
-
+        self.status = 0  # 0: idle, 1: Connecting, 2: Connected
         self.context = context
         
         # The command socket handle asynchonous commands
@@ -174,6 +172,7 @@ class AppLink(threading.Thread):
         # the android application 
         self.data_socket = self.context.socket(zmq.PULL)
         self.data_socket.bind("tcp://*:{}".format(environment.PORT+1))
+        self.data_socket.linger = 0
         
         # TTL socket is in charge of the connexion monitoring 
         self.ttl_socket = self.context.socket(zmq.ROUTER)
@@ -252,15 +251,15 @@ class AppLink(threading.Thread):
         self.data_socket.close()
         self.ttl_socket.close()
         self.command_socket.close()
-        self.exit_event.clear()
+
+
+
 
 
     def stop(self):
         self.exit_event.set()
 
-        #Wait the end of the run
-        while self.exit_event.is_set():
-            time.sleep(.1)
+
 
 
 if __name__ == "__main__":
