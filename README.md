@@ -17,8 +17,8 @@ The blender smartphone remote is an attempt to bring a free wireless spatialized
 
 ## Usage example
 
-![camera_animation](https://gitlab.com/slumber/smartphoneremote/wikis/uploads/0a83d79c7d6f59e92d4aa8885539feb2/remotelow.gif)
-![camera_record](https://gitlab.com/slumber/smartphoneremote/wikis/uploads/361e212366bc9b67230e69075b191075/recordlow.gif)
+![camera_animation](https://gitlab.com/slumber/smartphoneremote/-/wiki_pages/uploads/0a83d79c7d6f59e92d4aa8885539feb2/remotelow.gif)
+![camera_record](https://gitlab.com/slumber/smartphoneremote/-/wiki_pages/uploads/361e212366bc9b67230e69075b191075/recordlow.gif)
 
 ## Dependencies
 
