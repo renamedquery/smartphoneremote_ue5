@@ -14,6 +14,9 @@ The blender smartphone remote is an attempt to bring a free wireless spatialized
 
 [Dependencies](#dependencies) will be automatically added to your blender python during installation.
 
+## Documentation
+
+Follow the quick start [here](https://gitlab.com/slumber/smartphoneremote/-/wikis/Quick-start)
 
 ## Usage example
 
