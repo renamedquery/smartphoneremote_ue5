@@ -9,7 +9,7 @@ import subprocess
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-CACHE_DIR = "cache"
+CACHE_DIR = os.path.dirname(os.path.abspath(__file__))+"/cache"
 QR_FILE  = "connexion.png"
 SCENE_FILE = "scene_cache.glb"
 PORT = 5560
