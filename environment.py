@@ -2,7 +2,12 @@ import sys
 import os
 from pathlib import Path
 import bpy
+import logging
 import subprocess
+
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 CACHE_DIR = "cache"
 QR_FILE  = "connexion.png"
@@ -36,10 +41,12 @@ def install_pip():
 
 
 def install_package(name):
+    log.info('Installing module: {}'.format(name))
     target = get_package_install_directory()
     
     subprocess.run([str(python_path), "-m", "pip", "install",
                         name, '--target', target], cwd=cwd_for_subprocesses)
+    log.info('{} module successfully installed.'.format(name))
 
 def setup(dependencies):
     if not module_can_be_imported("pip"):
