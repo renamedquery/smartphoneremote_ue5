@@ -28,35 +28,20 @@ DEPENDENCIES = {
 }
 
 
-def generate_connexion_qrcode(app_address):
-    import pyqrcode
-
-    log.info('Generating connexion qrcode (addr: {}) '.format(app_address))
-    url = pyqrcode.create(app_address)
-
-    if not os.path.exists(environment.CACHE_DIR):
-        os.makedirs(environment.CACHE_DIR)
-
-    qr_path = os.path.join(environment.CACHE_DIR ,environment.QR_FILE)
-
-    url.png(qr_path,  scale=4)
-    log.info('Success, qrcode saved in {}.'.format(qr_path))
-    
-
 def register():
     environment.setup(DEPENDENCIES)
     
-    from . import settings, operators
+    from . import settings, operators, preference
     
-    app_address = operators.GetCurrentIp()
+    preference.register()
 
-    generate_connexion_qrcode(app_address)
+    app_address = preference.get_current_ip()
     
     bpy.types.PreferencesInput.srLocalIp = bpy.props.StringProperty(
         name="Interface address", default=app_address)
     bpy.types.PreferencesInput.srDaemonRunning = bpy.props.BoolProperty(
         name="Daemon running", default=True)
-    
+
     settings.register()
     operators.register()
 
@@ -64,10 +49,11 @@ def register():
 def unregister():
     environment.clean()
 
-    from . import settings, operators
+    from . import settings, operators, preference
 
     settings.unregister()
     operators.unregister()
+    preference.unregister()
 
 
 if __name__ == "__main__":

@@ -133,8 +133,8 @@ class ArCoreInterface(object):
     Interface in charge to manage the network bridge 
     between local application and the remote app.
     """
-    def __init__(self, handler):
-        self._net_link = AppLink(handler)
+    def __init__(self, handler, port=63150):
+        self._net_link = AppLink(handler, port=port)
         self.handler = handler
 
     def start(self):
@@ -155,7 +155,13 @@ class AppLink(threading.Thread):
     TODO: complete this area
 
     """
-    def __init__(self, handler, context=zmq.Context.instance(), name="Applink"):
+    def __init__(
+            self,
+            handler,
+            port=63150,
+            context=zmq.Context.instance(),
+            name="Applink"):
+
         threading.Thread.__init__(self)
         self.name = name
         self.status = 0  # 0: idle, 1: Connecting, 2: Connected
@@ -166,12 +172,12 @@ class AppLink(threading.Thread):
         self.command_socket = self.context.socket(zmq.ROUTER)
         self.command_socket.setsockopt(zmq.IDENTITY, b'SERVER')
         self.command_socket.setsockopt(zmq.RCVHWM, 0)   
-        self.command_socket.bind("tcp://*:{}".format(environment.PORT+2))
+        self.command_socket.bind("tcp://*:{}".format(port+2))
 
         # Data socket is used load each frame ARCore state from 
         # the android application 
         self.data_socket = self.context.socket(zmq.PULL)
-        self.data_socket.bind("tcp://*:{}".format(environment.PORT+1))
+        self.data_socket.bind("tcp://*:{}".format(port+1))
         self.data_socket.linger = 0
         
         # TTL socket is in charge of the connexion monitoring 
@@ -179,7 +185,7 @@ class AppLink(threading.Thread):
         self.ttl_socket.setsockopt(zmq.IDENTITY, b'SERVERTTL')
         self.ttl_socket.setsockopt(zmq.RCVHWM, 0)   
         self.ttl_socket.linger = 0
-        self.ttl_socket.bind("tcp://*:{}".format(environment.PORT))
+        self.ttl_socket.bind("tcp://*:{}".format(port))
 
         self.client_addr = None
 
@@ -251,10 +257,6 @@ class AppLink(threading.Thread):
         self.data_socket.close()
         self.ttl_socket.close()
         self.command_socket.close()
-
-
-
-
 
     def stop(self):
         self.exit_event.set()

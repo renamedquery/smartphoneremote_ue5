@@ -10,12 +10,11 @@ import sys
 import mathutils
 import numpy as np
 import math
-import socket
 import json
 import bpy
 import mathutils
 from .arcore import ArCoreInterface, ArEventHandler
-from . import environment
+from . import environment, preference
 import queue
 from mathutils import Matrix, Vector
 
@@ -38,19 +37,6 @@ stop_modal_executor = False
 '''
     Utility functions
 '''
-
-def GetCurrentIp():
-    """
-    Retrieve the main network interface IP.
-
-    """
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    ip = s.getsockname()[0]
-    s.close()
-    return ip
-
-
 def getContext():
     """
     Load the current blender context and fill it 
@@ -60,7 +46,7 @@ def getContext():
     import bpy
     override = bpy.context.copy()
     return override
-    
+
 
 def run_in_main_thread(function, args=None):
     """
@@ -203,7 +189,7 @@ def export_cached_scene():
     
     TODO: export config
     """
-
+    prefs = preference.get()
 
     bpy.ops.export_scene.gltf(
         getContext(),
@@ -238,7 +224,7 @@ def export_cached_scene():
         export_lights=False,
         export_displacement=False,
         will_save_settings=False,
-        filepath=os.path.join(environment.CACHE_DIR,
+        filepath=os.path.join(prefs.cache_directory,
                             environment.SCENE_FILE),
         check_existing=True,
         filter_glob="*.glb;*.gltf"
@@ -249,7 +235,8 @@ def get_cached_scene(offset, chunk_size):
     """
     Export the scene and return the cache file stream.
     """
-    scene_filepath = os.path.join(environment.CACHE_DIR,
+    prefs = preference.get()
+    scene_filepath = os.path.join(prefs.cache_directory,
                             environment.SCENE_FILE)
     # STEP 0: Export the scene 
     if offset == 0:
@@ -295,6 +282,8 @@ class RemoteStartOperator(bpy.types.Operator):
 
     def execute(self, context):
         global app
+
+        prefs = preference.get()
         handler = ArEventHandler()      
 
         # Arcore interface setup
@@ -302,7 +291,7 @@ class RemoteStartOperator(bpy.types.Operator):
         handler.bindGetScene(get_cached_scene)
         handler.bindRecord(record_camera)
 
-        app = ArCoreInterface(handler)
+        app = ArCoreInterface(handler,port=prefs.port)
         app.start()
 
         bpy.ops.wm.modal_executor_operator()
@@ -353,6 +342,7 @@ class RemoteModalExecutorOperator(bpy.types.Operator):
 
         if stop_modal_executor:
             self.cancel(context)
+            stop_modal_executor = False
             return {'CANCELLED'}
 
         if event.type == 'TIMER':

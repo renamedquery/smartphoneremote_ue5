@@ -7,11 +7,11 @@ from bpy.types import (
     WindowManager
 )
 import bpy.utils.previews
-from . import environment, operators
+from . import environment, operators, preference
 
 import os
 
-class USERPREF_PT_input_devices_smartphone(Panel):
+class SMARTPHONEREMOTE_PT_settings(Panel):
     """Creates a Panel in the Object properties window"""
     bl_idname = "SMARTPHONE_SETTINGS_PT_panel"
     bl_label = "General"
@@ -22,25 +22,27 @@ class USERPREF_PT_input_devices_smartphone(Panel):
     def draw(self, context):
         layout = self.layout
 
-        prefs = context.preferences
-
-        
-        
+        prefs = preference.get()
+       
         row = layout.row()
         if operators.app and operators.app.is_running():
+            ip = context.preferences.inputs.srLocalIp[1]['default']
+            port = prefs.port
+
             row = layout.row()
             row.template_icon_view(context.scene, "qrcodes")
             row = layout.row()
             status_box = row.box()
             detail_status_box = status_box.row()
-            detail_status_box.label(text=prefs.inputs.srLocalIp[1]['default'])
+            detail_status_box.label(text=f"{ip}:{port}")
             row = layout.row()
             row.operator("remote.stop",text="STOP")
-            
-            
-
         else:
+            row.label(text="Service port:")
+            row.prop(prefs, 'port', text="")
+            row = layout.row()
             row.operator("remote.start",text="START")
+
 
 
 class USERLIST_PT_input_devices_smartphone(Panel):
@@ -59,46 +61,16 @@ class USERLIST_PT_input_devices_smartphone(Panel):
         # TODO: List connected remotes
 
 
-preview_collections = {}
-
-
-def generate_previews():
-    pcoll = preview_collections["thumbnail_previews"]
-    image_location = pcoll.images_location
-    VALID_EXTENSIONS = ('.png', '.jpg', '.jpeg')
-
-    enum_items = []
-    
-    # Generate the thumbnails
-    for i, image in enumerate(os.listdir(environment.CACHE_DIR)):
-        if image.endswith(VALID_EXTENSIONS):
-            filepath = os.path.join(image_location, image)
-            thumb = pcoll.load(filepath, filepath, 'IMAGE')
-            enum_items.append((image, image, "", thumb.icon_id, i))
-
-    return enum_items
-
-
 def register():
-    from bpy.types import Scene
-    from bpy.props import StringProperty, EnumProperty
-
-    pcoll = bpy.utils.previews.new()
-    pcoll.images_location = os.path.join(os.path.dirname(__file__), "cache")
-    preview_collections["thumbnail_previews"] = pcoll
-
-    bpy.types.Scene.qrcodes = EnumProperty(
-        items=generate_previews(),)
-    bpy.utils.register_class(USERPREF_PT_input_devices_smartphone)
+    
+    bpy.utils.register_class(SMARTPHONEREMOTE_PT_settings)
 
 
 def unregister():
     from bpy.types import WindowManager
-    for pcoll in preview_collections.values():
-        bpy.utils.previews.remove(pcoll)
+    
 
-    preview_collections.clear()
     del bpy.types.Scene.qrcodes
-    bpy.utils.unregister_class(USERPREF_PT_input_devices_smartphone)
+    bpy.utils.unregister_class(SMARTPHONEREMOTE_PT_settings)
 
 
