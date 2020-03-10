@@ -42,10 +42,9 @@ def install_pip():
 
 def install_package(name):
     log.info('Installing module: {}'.format(name))
-    target = get_package_install_directory()
     
     subprocess.run([str(python_path), "-m", "pip", "install",
-                        name, '--target', target], cwd=cwd_for_subprocesses)
+                        name], cwd=cwd_for_subprocesses)
     log.info('{} module successfully installed.'.format(name))
 
 def setup(dependencies):
