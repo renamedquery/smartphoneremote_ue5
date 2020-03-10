@@ -210,7 +210,6 @@ def export_cached_scene():
         export_format='GLB',
         ui_tab='GENERAL',
         export_copyright="",
-        export_image_format='NAME',
         export_texcoords=True,
         export_normals=True,
         export_draco_mesh_compression_enable=False,
