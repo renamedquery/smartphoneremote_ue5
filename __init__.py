@@ -1,11 +1,14 @@
 bl_info = {
     "name": "Blender remote",
     "author": "Gobelet Team: Samuel Bernou, Laure Le Sidaner, Swann Martinez",
-    "version": (1, 0),
+    "version": (0, 0, 2),
     "blender": (2, 80, 0),
     "location": "View3D",
     "description": "Allow to use smartphone as a controller",
     "category": "System",
+    "support": "COMMUNITY",
+    "tracker_url": "https://gitlab.com/slumber/smartphoneremote/-/issues",
+    "wiki_url": "https://gitlab.com/slumber/smartphoneremote/-/wikis/Quick-start",
 }
 
 
