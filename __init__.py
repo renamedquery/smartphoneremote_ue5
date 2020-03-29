@@ -34,8 +34,8 @@ DEPENDENCIES = {
 def register():
     environment.setup(DEPENDENCIES)
     
-    from . import settings, operators, preference
-    
+    from . import settings, operators, preference,addon_updater_ops
+
     preference.register()
 
     app_address = preference.get_current_ip()
@@ -45,6 +45,7 @@ def register():
     bpy.types.PreferencesInput.srDaemonRunning = bpy.props.BoolProperty(
         name="Daemon running", default=True)
 
+    addon_updater_ops.register(bl_info)
     settings.register()
     operators.register()
 
@@ -52,8 +53,9 @@ def register():
 def unregister():
     environment.clean()
 
-    from . import settings, operators, preference
+    from . import settings, operators, preference, addon_updater_ops
 
+    addon_updater_ops.unregister()
     settings.unregister()
     operators.unregister()
     preference.unregister()

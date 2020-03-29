@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+
 import logging
 import bpy
 import os
@@ -81,6 +99,66 @@ class SmartphoneRemotePrefs(bpy.types.AddonPreferences):
         subtype="DIR_PATH",
         default=environment.CACHE_DIR)
 
+    category: bpy.props.EnumProperty(
+        name="Category",
+        description="Preferences Category",
+        items=[
+            ('CONFIG', "Configuration", "Configuration about this add-on"),
+            ('UPDATE', "Update", "Update this add-on"),
+        ],
+        default='CONFIG'
+    )
+
+    auto_check_update: bpy.props.BoolProperty(
+        name="Auto-check for Update",
+        description="If enabled, auto-check for updates using an interval",
+        default=False,
+    )
+    updater_intrval_months: bpy.props.IntProperty(
+        name='Months',
+        description="Number of months between checking for updates",
+        default=0,
+        min=0
+    )
+    updater_intrval_days: bpy.props.IntProperty(
+        name='Days',
+        description="Number of days between checking for updates",
+        default=7,
+        min=0,
+        max=31
+    )
+    updater_intrval_hours: bpy.props.IntProperty(
+        name='Hours',
+        description="Number of hours between checking for updates",
+        default=0,
+        min=0,
+        max=23
+    )
+    updater_intrval_minutes: bpy.props.IntProperty(
+        name='Minutes',
+        description="Number of minutes between checking for updates",
+        default=0,
+        min=0,
+        max=59
+    )
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.row().prop(self, "category", expand=True)
+        
+        if self.category == 'CONFIG':
+            row = layout.row()
+            row.prop(self, 'cache_directory')
+
+            row = layout.row()
+            row.label(text='port :')
+            row.prop(self, 'port', text="")
+
+        if self.category == 'UPDATE':
+            from . import addon_updater_ops
+            addon_updater_ops.update_settings_ui_condensed(self, context)
+
 classes = (
     SmartphoneRemotePrefs,
 )
@@ -90,6 +168,7 @@ def get():
 
 def register():
     from bpy.utils import register_class
+    
 
     for cls in classes:
         register_class(cls)
