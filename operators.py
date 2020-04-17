@@ -114,6 +114,17 @@ def apply_object_pose(frame):
     except Exception as e:
         log.error(e)
 
+def normalize(_d, to_sum=True, copy=True):
+    # d is a (n x dimension) np array
+    d = _d if not copy else np.copy(_d)
+    d -= np.min(d, axis=0)
+    d /= (np.sum(d, axis=0) if to_sum else np.ptp(d, axis=0))
+    return d
+
+def normalized(a, axis=-1, order=2):
+    l2 = np.atleast_1d(np.linalg.norm(a, order, axis))
+    l2[l2==0] = 1
+    return a / np.expand_dims(l2, axis)
 
 def apply_camera_pose(frame):
     """Apply frame camera pose into blender scene active camera"""
@@ -122,14 +133,26 @@ def apply_camera_pose(frame):
         camera = bpy.context.scene.camera
         
         if camera:
-            bpose = frame.camera.view_matrix * BLENDER
-            worigin = frame.root.world_matrix * BLENDER
+            ar_camera = frame.camera.view_matrix * BLENDER
+            ar_origin = frame.root.world_matrix * BLENDER
             
-            bpose[3] = (bpose[3] - worigin[3])*(1/np.linalg.norm(worigin[1]))
+            or_translate = np.matrix(np.identity(4), copy=False)
+            or_translate[3] = normalized(ar_camera[3] - ar_origin[3])*(1/np.linalg.norm(ar_origin[1]))
+            
+            or_rotation  =  np.matrix(np.identity(4), copy=False)
+            or_rotation = normalized(ar_origin,axis=1)
+            or_rotation[3] = [0,0,0,1]
 
-            camera.matrix_world = bpose.A
-            camera.data.angle = frame.camera.intrinsics[0]
-            
+            cam_rotation  =  np.matrix(np.identity(4), copy=False)
+            cam_rotation[0:3] = ar_camera[0:3]
+
+            cam_translate  =  np.matrix(np.identity(4), copy=False)
+            cam_translate[3] = ar_camera[3]
+
+            composition  =  np.matrix(np.identity(4), copy=False)
+            composition =   cam_rotation *cam_translate* or_translate *or_rotation* composition
+            # logging.error(or_rotation)
+            bpy.data.objects['origin'].matrix_world = composition.A
             if is_recording:
                 camera.keyframe_insert(data_path="location")
                 camera.keyframe_insert(data_path="rotation_quaternion")
@@ -207,45 +230,32 @@ def export_cached_scene():
     TODO: export config
     """
     prefs = preference.get()
-
-    bpy.ops.export_scene.gltf(
+    bpy.ops.export_scene.obj(
         getContext(),
-        export_format='GLB',
-        ui_tab='GENERAL',
-        export_copyright="",
-        export_texcoords=True,
-        export_normals=True,
-        export_draco_mesh_compression_enable=False,
-        export_draco_mesh_compression_level=6,
-        export_draco_position_quantization=14,
-        export_draco_normal_quantization=10,
-        export_draco_texcoord_quantization=12,
-        export_tangents=False,
-        export_materials=True,
-        export_colors=True,
-        export_cameras=False,
-        export_selected=False,
-        export_extras=False,
-        export_yup=True,
-        export_apply=True,
-        export_animations=True,
-        export_frame_range=True,
-        export_frame_step=1,
-        export_force_sampling=False,
-        export_current_frame=False,
-        export_skins=True,  
-        export_all_influences=False,
-        export_morph=True,
-        export_morph_normal=True,
-        export_morph_tangent=False,
-        export_lights=False,
-        export_displacement=False,
-        will_save_settings=False,
         filepath=os.path.join(prefs.cache_directory,
                             environment.SCENE_FILE),
         check_existing=True,
-        filter_glob="*.glb;*.gltf"
-    )
+        filter_glob="*.obj;*.mtl",
+        use_selection=False,
+        use_animation=False,
+        use_mesh_modifiers=True,
+        use_edges=True,
+        use_smooth_groups=False,
+        use_smooth_groups_bitflags=False,
+        use_normals=True,
+        use_uvs=True,
+        use_materials=False,
+        use_triangles=False,
+        use_nurbs=False,
+        use_vertex_groups=False,
+        use_blen_objects=True,
+        group_by_object=False,
+        group_by_material=False,
+        keep_vertex_order=False,
+        global_scale=1,
+        path_mode='AUTO',
+        axis_forward='-Z',
+        axis_up='Y')
 
 
 def get_cached_scene(offset, chunk_size):
