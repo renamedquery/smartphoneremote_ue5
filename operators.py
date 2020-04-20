@@ -133,29 +133,18 @@ def apply_camera_pose(frame):
         camera = bpy.context.scene.camera
         
         if camera:
-            ar_camera = frame.camera.view_matrix * BLENDER
-            ar_origin = frame.root.world_matrix * BLENDER
+            bpose = frame.camera.view_matrix * BLENDER
+            worigin = frame.root.world_matrix * BLENDER
             
-            or_translate = np.matrix(np.identity(4), copy=False)
-            or_translate[3] = normalized(ar_camera[3] - ar_origin[3])*(1/np.linalg.norm(ar_origin[1]))
+            bpose[3] = (bpose[3] - worigin[3])*(1/np.linalg.norm(worigin[1]))
+
+            camera.matrix_world = bpose.A
+            camera.data.angle = frame.camera.intrinsics[0]
             
-            or_rotation  =  np.matrix(np.identity(4), copy=False)
-            or_rotation = normalized(ar_origin,axis=1)
-            or_rotation[3] = [0,0,0,1]
-
-            cam_rotation  =  np.matrix(np.identity(4), copy=False)
-            cam_rotation[0:3] = ar_camera[0:3]
-
-            cam_translate  =  np.matrix(np.identity(4), copy=False)
-            cam_translate[3] = ar_camera[3]
-
-            composition  =  np.matrix(np.identity(4), copy=False)
-            composition =   cam_rotation *cam_translate* or_translate *or_rotation* composition
-            # logging.error(or_rotation)
-            bpy.data.objects['origin'].matrix_world = composition.A
             if is_recording:
                 camera.keyframe_insert(data_path="location")
                 camera.keyframe_insert(data_path="rotation_quaternion")
+
            
     except Exception as e:
         log.info("apply camera error: {}".format(e))
