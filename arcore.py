@@ -34,9 +34,8 @@ class Camera():
     """ ARCore camera
 
     """
-    def __init__(self,intrinsics=[0,0], translation = [0,0,0], rotation=[0,0,0,0],vm=None):
-        self.rotation= rotation
-        self.translation = translation
+    def __init__(self,intrinsics=[0,0], vm=None):
+
         self.intrinsics = intrinsics
         if vm:
             self.view_matrix =  np.matrix([[vm[0],vm[1],vm[2],vm[3]],
@@ -52,11 +51,7 @@ class Node():
 
     """
     
-    def __init__(self, translation = [0,0,0], rotation=[0,0,0,0],scale = [1,1,1], wm = None):
-        self.rotation= rotation
-        self.translation = translation
-        self.scale = scale
-
+    def __init__(self, wm = None):
         if wm:
             self.world_matrix =  np.matrix([[wm[0],wm[1],wm[2],wm[3]],
                                         [wm[4],wm[5],wm[6],wm[7]],
@@ -88,17 +83,12 @@ class Frame():
             elif header == b"CAMERA":
                 arCamera = Camera(
                     intrinsics=umsgpack.unpackb(frame_buffer.pop(0)),
-                    rotation=umsgpack.unpackb(frame_buffer.pop(0)),
-                    translation=umsgpack.unpackb(frame_buffer.pop(0)),
                     vm=umsgpack.unpackb(frame_buffer.pop(0))
                     )
 
                 frame.camera = arCamera
             elif header == b"NODE":
                 arNode = Node(
-                    rotation=umsgpack.unpackb(frame_buffer.pop(0)),
-                    translation=umsgpack.unpackb(frame_buffer.pop(0)),
-                    scale=umsgpack.unpackb(frame_buffer.pop(0)),
                     wm=umsgpack.unpackb(frame_buffer.pop(0))
                     )
                 frame.root = arNode

@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Blender remote",
     "author": "Gobelet Team: Samuel Bernou, Laure Le Sidaner, Swann Martinez",
-    "version": (0, 0, 2),
+    "version": (0, 0, 3),
     "blender": (2, 80, 0),
     "location": "View3D",
     "description": "Allow to use smartphone as a controller",
