@@ -27,7 +27,7 @@ Follow the quick start [here](https://gitlab.com/slumber/smartphoneremote/-/wiki
 | Dependencies | Version | Needed |
 | ------------ | :-----: | -----: |
 | ZeroMQ       | latest  |    yes |
-| umsgpack      | latest  |    yes |
+| msgpack      | latest  |    yes |
 
 
 ## Contributing

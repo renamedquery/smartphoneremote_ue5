@@ -16,7 +16,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import zmq
-import umsgpack
+import msgpack
 import numpy as np
 
 import threading
@@ -82,14 +82,14 @@ class Frame():
 
             elif header == b"CAMERA":
                 arCamera = Camera(
-                    intrinsics=umsgpack.unpackb(frame_buffer.pop(0)),
-                    vm=umsgpack.unpackb(frame_buffer.pop(0))
+                    intrinsics=msgpack.unpackb(frame_buffer.pop(0)),
+                    vm=msgpack.unpackb(frame_buffer.pop(0))
                     )
 
                 frame.camera = arCamera
             elif header == b"NODE":
                 arNode = Node(
-                    wm=umsgpack.unpackb(frame_buffer.pop(0))
+                    wm=msgpack.unpackb(frame_buffer.pop(0))
                     )
                 frame.root = arNode
 

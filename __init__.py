@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 
 DEPENDENCIES = {
     "zmq",
-    "umsgpack",
+    "msgpack",
 }
 
 
