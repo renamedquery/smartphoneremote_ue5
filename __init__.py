@@ -40,10 +40,8 @@ def register():
 
     app_address = preference.get_current_ip()
     
-    bpy.types.PreferencesInput.srLocalIp = bpy.props.StringProperty(
+    bpy.types.WindowManager.srLocalIp = bpy.props.StringProperty(
         name="Interface address", default=app_address)
-    bpy.types.PreferencesInput.srDaemonRunning = bpy.props.BoolProperty(
-        name="Daemon running", default=True)
 
     addon_updater_ops.register(bl_info)
     settings.register()

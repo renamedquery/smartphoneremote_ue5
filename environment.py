@@ -30,11 +30,13 @@ CACHE_DIR = os.path.dirname(os.path.abspath(__file__))+"/cache"
 QR_FILE  = "connexion.png"
 SCENE_FILE = "scene_cache.obj"
 PORT = 5560
+LIBS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "libs")
 
+if bpy.app.version[1] >= 91:
+    python_path = sys.executable
+else:
+    python_path = bpy.app.binary_path_python
 
-thirdPartyDir = os.path.dirname(os.path.abspath(__file__))+"/libs"
-python_path = Path(bpy.app.binary_path_python)
-cwd_for_subprocesses = python_path.parent
 target = None
 
 def module_can_be_imported(name):
@@ -54,14 +56,14 @@ def get_package_install_directory():
 def install_pip():
     # pip can not necessarily be imported into Blender after this
     get_pip_path = Path(__file__).parent / "libs" / "get-pip.py"
-    subprocess.run([str(python_path), str(get_pip_path)], cwd=cwd_for_subprocesses)
+    subprocess.run([str(python_path), str(get_pip_path)])
 
 
 def install_package(name):
     log.info('Installing module: {}'.format(name))
     
     subprocess.run([str(python_path), "-m", "pip", "install",
-                        name], cwd=cwd_for_subprocesses)
+                        name, "-t", LIBS])
     log.info('{} module successfully installed.'.format(name))
 
 def setup(dependencies):
@@ -76,18 +78,18 @@ def setup(dependencies):
 
 def setup_python_path():
 
-    if thirdPartyDir in sys.path:
+    if LIBS in sys.path:
         print('Third party module already added')
     else:
         print('Adding local modules dir to the path')
-        sys.path.insert(0, thirdPartyDir)
+        sys.path.insert(0, LIBS)
 
 def clean():
     clean_python_path()
     
 def clean_python_path():
-    if thirdPartyDir in sys.path:
+    if LIBS in sys.path:
         print('Cleanup the path')
-        sys.path.remove(thirdPartyDir)
+        sys.path.remove(LIBS)
     else:
         print('Nothing to clean')

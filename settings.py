@@ -44,7 +44,7 @@ class SMARTPHONEREMOTE_PT_settings(Panel):
        
         row = layout.row()
         if operators.app and operators.app.is_running():
-            ip = context.preferences.inputs.srLocalIp[1]['default']
+            ip = context.window_manager.srLocalIp
             port = prefs.port
 
             row = layout.row()
