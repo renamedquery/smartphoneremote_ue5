@@ -32,7 +32,7 @@ SCENE_FILE = "scene_cache.obj"
 PORT = 5560
 LIBS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "libs")
 
-if bpy.app.version[1] >= 91:
+if bpy.app.version >= (2,91,0):
     python_path = sys.executable
 else:
     python_path = bpy.app.binary_path_python
