@@ -25,11 +25,22 @@ print('EASY CONNECT QR CODE SAVED TO CURRENT DIRECTORY' if recieverCLIArgs.recie
 
 def handleARFrameRecieved(frame) -> None:
     print(frame.camera.translation)
-    print('b')
+
+def handleARRecording(status):
+    returnState = 'NONE'
+    if (status == 'NONE'): # start
+        returnState = 'STARTED'
+        print('STARTED RECORDING')
+    elif (status == 'STATE'): # update
+        returnState = 'NONE'
+    elif (status == 'STOP'): # stop
+        returnState = 'STOPPED'
+        print('STOPPED RECORDING')
+    return returnState
 
 if (__name__ == '__main__'):
     ARHandler = arcore.ArEventHandler()
     ARHandler.bindOnFrameReceived(handleARFrameRecieved)
+    ARHandler.bindRecord(handleARRecording)
     AR = arcore.ArCoreInterface(ARHandler, port = int(recieverCLIArgs.recieverCLIArgs_bindPort))
     AR.start()
-    print('a')

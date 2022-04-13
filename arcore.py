@@ -126,10 +126,11 @@ class ArEventHandler():
             return None
 
     def OnGetScene(self,offset,chunk_size):
-        if self._getScene:
-            return self._getScene(offset,chunk_size)
-        else:
-            raise Exception('GetScene not implemented !')
+        #if self._getScene:
+        #    return self._getScene(offset,chunk_size)
+        #else:
+        #    raise Exception('GetScene not implemented !')
+        return None
 
 
 class ArCoreInterface(object):
@@ -233,7 +234,7 @@ class AppLink(threading.Thread):
                 
                 if command[1] == b"SCENE":
                     log.debug("Try to get scene")
-                    scene_data_chunk = self.handler.OnGetScene(int(command[2]),int(command[3]))
+                    #scene_data_chunk = self.handler.OnGetScene(int(command[2]),int(command[3]))
 
                     '''if scene_data_chunk:                        
                         self.command_socket.send(identity, zmq.SNDMORE)
@@ -254,6 +255,7 @@ class AppLink(threading.Thread):
                     self.command_socket.send_multipart(response)
                 else:
                     log.error("Wrong request")
+                
             
 
 
