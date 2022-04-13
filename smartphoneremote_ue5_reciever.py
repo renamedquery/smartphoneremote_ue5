@@ -24,10 +24,12 @@ print('CURRENT BOUND ADDRESS: {}:{}'.format(preference.get_current_ip(), recieve
 print('EASY CONNECT QR CODE SAVED TO CURRENT DIRECTORY' if recieverCLIArgs.recieverCLIArgs_generateQRCode else "NO QR CODE GENERATED (USE -H FOR MORE INFO)")
 
 def handleARFrameRecieved(frame) -> None:
-    print(frame)
+    print(frame.camera.translation)
+    print('b')
 
 if (__name__ == '__main__'):
     ARHandler = arcore.ArEventHandler()
     ARHandler.bindOnFrameReceived(handleARFrameRecieved)
     AR = arcore.ArCoreInterface(ARHandler, port = int(recieverCLIArgs.recieverCLIArgs_bindPort))
     AR.start()
+    print('a')
