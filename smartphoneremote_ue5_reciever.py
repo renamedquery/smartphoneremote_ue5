@@ -43,7 +43,7 @@ def handleARRecording(status):
         print('STOPPED RECORDING')
     return returnState
 
-def handleARGetScene(_, __):
+def handleARGetScene(**kwargs):
     return b''
 
 if (__name__ == '__main__'):
