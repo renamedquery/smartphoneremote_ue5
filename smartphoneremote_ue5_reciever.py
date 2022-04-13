@@ -1,8 +1,10 @@
-import preference, arcore, argparse, os, sys
+import preference, arcore, argparse, os, sys, requests, time
 from scipy.spatial.transform import Rotation as scipy_rotation
 import numpy as np
 
 currentFrame = 0
+UE5RemoteControlServerEndpointAddress = 'http://127.0.0.1:30010'
+UE5CameraObjectPath = '/Game/StarterContent/Maps/Minimal_Default.Minimal_Default:PersistentLevel.CineCameraActor_0'
 
 recieverCLIParser = argparse.ArgumentParser(description = 'Smartphone Remote middleman for UE5.')
 recieverCLIParser.add_argument(
@@ -31,9 +33,26 @@ print('EASY CONNECT QR CODE SAVED TO CURRENT DIRECTORY' if recieverCLIArgs.recie
 
 def handleARFrameRecieved(frame):
     global currentFrame
-    cameraRotation = scipy_rotation.from_quat(frame.camera.view_matrix)
-    cameraRotation.as_euler('xyz', degrees = True)
-    currentFrame += 1
+    try:
+        currentFrame += 1 # comes first in case a frame is dropped
+        cameraRotation = scipy_rotation.from_quat(frame.camera.view_matrix)
+        cameraRotation = cameraRotation.as_euler('xyz', degrees = True).tolist()
+        rotationRequestJSONData = {
+            "objectPath" : UE5CameraObjectPath,
+            "functionName":"SetActorRotation",
+            "parameters": {
+                "NewRotation": {
+                    "Pitch":cameraRotation[0],
+                    "Yaw":cameraRotation[2],
+                    "Roll":cameraRotation[1]
+                }
+            },
+            "generateTransaction":False
+        }
+        requests.put(UE5RemoteControlServerEndpointAddress + '/remote/object/call', json = rotationRequestJSONData)
+        time.sleep(1/24)
+    except Exception as e:
+        print(e)
 
 def handleARRecording(status):
     global currentFrame

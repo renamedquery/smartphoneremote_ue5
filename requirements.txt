@@ -4,3 +4,4 @@ msgpack
 numpy
 argparse
 scipy
+requests
