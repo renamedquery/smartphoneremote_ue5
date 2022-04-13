@@ -225,13 +225,13 @@ class AppLink(threading.Thread):
                 
                 self.ttl_socket.send(identity, zmq.SNDMORE)
                 self.ttl_socket.send_multipart([b"pong"])
-            
+            '''
             # Handle remote command
             if self.command_socket in items:
                 command = self.command_socket.recv_multipart()
                 identity = command[0]
 
-                '''if command[1] == b"SCENE":
+                if command[1] == b"SCENE":
                     log.debug("Try to get scene")
                     scene_data_chunk = self.handler.OnGetScene(int(command[2]),int(command[3]))
                    
@@ -240,7 +240,7 @@ class AppLink(threading.Thread):
                         self.command_socket.send_multipart([b"SCENE",scene_data_chunk])
                        
                     else:
-                        log.info("GetScene not implemented")'''
+                        log.info("GetScene not implemented")
 
                 if command[1] == b"RECORD":
                     result = self.handler.OnRecord(command[2].decode())
@@ -254,7 +254,7 @@ class AppLink(threading.Thread):
                     self.command_socket.send_multipart(response)
                 else:
                     log.error("Wrong request")
-
+            '''
 
 
         log.debug("Exiting App link")
@@ -284,4 +284,3 @@ if __name__ == "__main__":
 
 
     ar.stop()
-
