@@ -15,3 +15,4 @@ recieverCLIParser.add_argument(
     dest = 'recieverCLIArgs_generateQRCode',
     help = '(yes/no) whether or not the program should generate a QR code for easy connections (default: no)'
 )
+recieverCLIArgs = recieverCLIParser.parse_args()
