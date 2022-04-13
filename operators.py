@@ -129,7 +129,7 @@ def normalized(a, axis=-1, order=2):
 def apply_camera_pose(frame):
     """Apply frame camera pose into blender scene active camera"""
     global is_recording
-    try:
+    '''try:
         camera = bpy.context.scene.camera
         
         if camera:
@@ -147,7 +147,7 @@ def apply_camera_pose(frame):
 
            
     except Exception as e:
-        log.info("apply camera error: {}".format(e))
+        log.info("apply camera error: {}".format(e))'''
 
 
 def setup_camera_animation():

@@ -3,3 +3,4 @@ zmq
 msgpack
 numpy
 argparse
+scipy

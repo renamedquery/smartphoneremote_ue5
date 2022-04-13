@@ -1,4 +1,6 @@
 import preference, arcore, argparse, os, sys
+from scipy.spatial.transform import Rotation as scipy_rotation
+import numpy as np
 
 currentFrame = 0
 
@@ -28,7 +30,10 @@ print('CURRENT BOUND ADDRESS: {}:{}'.format(preference.get_current_ip(), recieve
 print('EASY CONNECT QR CODE SAVED TO CURRENT DIRECTORY' if recieverCLIArgs.recieverCLIArgs_generateQRCode else "NO QR CODE GENERATED (USE -H FOR MORE INFO)")
 
 def handleARFrameRecieved(frame):
-    open('working.png', 'w').close()
+    global currentFrame
+    cameraRotation = scipy_rotation.from_quat(frame.camera.view_matrix)
+    cameraRotation.as_euler('xyz', degrees = True)
+    currentFrame += 1
 
 def handleARRecording(status):
     global currentFrame
@@ -43,7 +48,7 @@ def handleARRecording(status):
         print('STOPPED RECORDING')
     return returnState
 
-def handleARGetScene(**kwargs):
+def handleARGetScene(*args):
     return b''
 
 if (__name__ == '__main__'):
