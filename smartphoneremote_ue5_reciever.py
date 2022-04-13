@@ -3,6 +3,8 @@ from scipy.spatial.transform import Rotation as scipy_rotation
 import numpy as np
 
 currentFrame = 0
+
+# make these two vars into cli args
 UE5RemoteControlServerEndpointAddress = 'http://127.0.0.1:30010'
 UE5CameraObjectPath = '/Game/StarterContent/Maps/Minimal_Default.Minimal_Default:PersistentLevel.CineCameraActor_0'
 
@@ -33,26 +35,22 @@ print('EASY CONNECT QR CODE SAVED TO CURRENT DIRECTORY' if recieverCLIArgs.recie
 
 def handleARFrameRecieved(frame):
     global currentFrame
-    try:
-        currentFrame += 1 # comes first in case a frame is dropped
-        cameraRotation = scipy_rotation.from_quat(frame.camera.view_matrix)
-        cameraRotation = cameraRotation.as_euler('xyz', degrees = True).tolist()
-        rotationRequestJSONData = {
-            "objectPath" : UE5CameraObjectPath,
-            "functionName":"SetActorRotation",
-            "parameters": {
-                "NewRotation": {
-                    "Pitch":cameraRotation[0],
-                    "Yaw":cameraRotation[2],
-                    "Roll":cameraRotation[1]
-                }
-            },
-            "generateTransaction":False
-        }
-        requests.put(UE5RemoteControlServerEndpointAddress + '/remote/object/call', json = rotationRequestJSONData)
-        time.sleep(1/24)
-    except Exception as e:
-        print(e)
+    currentFrame += 1 # comes first in case a frame is dropped
+    cameraRotation = scipy_rotation.from_quat(frame.camera.view_matrix)
+    cameraRotation = cameraRotation.as_euler('xyz', degrees = True).tolist()
+    rotationRequestJSONData = {
+        "objectPath" : UE5CameraObjectPath,
+        "functionName":"SetActorRotation",
+        "parameters": {
+            "NewRotation": {
+                "Pitch":cameraRotation[0],
+                "Yaw":cameraRotation[2],
+                "Roll":cameraRotation[1]
+            }
+        },
+        "generateTransaction":False
+    }
+    requests.put(UE5RemoteControlServerEndpointAddress + '/remote/object/call', json = rotationRequestJSONData)
 
 def handleARRecording(status):
     global currentFrame

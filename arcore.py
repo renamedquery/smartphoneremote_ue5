@@ -25,7 +25,7 @@ import time
 
 TIMEOUT = 1
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.CRITICAL)
 log = logging.getLogger(__name__)
 
 class Camera():
