@@ -35,16 +35,13 @@ def get_current_ip():
     s.close()
     return ip
 
-def generate_connexion_qrcode(app_address):
+def generate_connexion_qrcode(app_address, output_path):
     import pyqrcode
 
     logger.info('Generating connexion qrcode (addr: {}) '.format(app_address))
     url = pyqrcode.create(app_address)
-    prefs = get()
-    if not os.path.exists(prefs.cache_directory):
-        os.makedirs(prefs.cache_directory)
 
-    qr_path = os.path.join(prefs.cache_directory ,environment.QR_FILE)
+    qr_path = os.path.join(output_path, 'easy_connect_qr_code.png')
 
     url.png(qr_path,  scale=4)
     logger.info('Success, qrcode saved in {}.'.format(qr_path))

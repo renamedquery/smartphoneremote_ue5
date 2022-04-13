@@ -303,9 +303,9 @@ class RemoteStartOperator(bpy.types.Operator):
         handler = ArEventHandler()      
 
         # Arcore interface setup
-        handler.bindOnFrameReceived(apply_ar_frame)
-        handler.bindGetScene(get_cached_scene)
-        handler.bindRecord(record_camera)
+        #handler.bindOnFrameReceived(apply_ar_frame)
+        #handler.bindGetScene(get_cached_scene)
+        #handler.bindRecord(record_camera)
 
         app = ArCoreInterface(handler,port=prefs.port)
         app.start()

@@ -1,4 +1,6 @@
-import preference, arcore, argparse
+import preference, arcore, argparse, os
+
+currentFrame = 0
 
 recieverCLIParser = argparse.ArgumentParser(description = 'Smartphone Remote middleman for UE5.')
 recieverCLIParser.add_argument(
@@ -20,19 +22,22 @@ recieverCLIArgs = recieverCLIParser.parse_args()
 if (not recieverCLIArgs.recieverCLIArgs_bindPort): recieverCLIArgs.recieverCLIArgs_bindPort = 8096
 recieverCLIArgs.recieverCLIArgs_generateQRCode = False if (str(recieverCLIArgs.recieverCLIArgs_generateQRCode).lower()  != 'yes') else True
 
+if (recieverCLIArgs.recieverCLIArgs_generateQRCode): preference.generate_connexion_qrcode('{}:{}'.format(preference.get_current_ip(), recieverCLIArgs.recieverCLIArgs_bindPort), os.getcwd())
+
 print('CURRENT BOUND ADDRESS: {}:{}'.format(preference.get_current_ip(), recieverCLIArgs.recieverCLIArgs_bindPort))
 print('EASY CONNECT QR CODE SAVED TO CURRENT DIRECTORY' if recieverCLIArgs.recieverCLIArgs_generateQRCode else "NO QR CODE GENERATED (USE -H FOR MORE INFO)")
 
-def handleARFrameRecieved(frame) -> None:
-    print(frame.camera.translation)
+def handleARFrameRecieved(frame):
+    print ('a')
 
 def handleARRecording(status):
+    global currentFrame
     returnState = 'NONE'
     if (status == 'START'): # start
         returnState = 'STARTED'
         print('STARTED RECORDING')
     elif (status == 'STATE'): # update
-        returnState = 'NONE'
+        returnState = str(currentFrame)
     elif (status == 'STOP'): # stop
         returnState = 'STOPPED'
         print('STOPPED RECORDING')
