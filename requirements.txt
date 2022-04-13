@@ -1,0 +1,4 @@
+pyqrcode
+zmq
+msgpack
+numpy

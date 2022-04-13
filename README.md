@@ -1,4 +1,5 @@
 # THIS IS THE OLD README. A README FOR UNREAL ENGINE 5 WILL BE AVAILABLE SOON.
+# REQUIRED FILES: preference.py, arcore.py
 
 # Blender smartphone remote
 > Use your smartphone as a three-dimensional controller.

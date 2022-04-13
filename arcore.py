@@ -23,8 +23,6 @@ import threading
 import logging
 import time
 
-from . import environment
-
 TIMEOUT = 1
 
 logging.basicConfig(level=logging.DEBUG)
