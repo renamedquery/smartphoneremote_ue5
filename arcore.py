@@ -126,12 +126,7 @@ class ArEventHandler():
             return None
 
     def OnGetScene(self,offset,chunk_size):
-        #if self._getScene:
-        #    return self._getScene(offset,chunk_size)
-        #else:
-        #    raise Exception('GetScene not implemented !')
-        return None
-
+        return self._getScene(0,0)
 
 class ArCoreInterface(object):
     """ Application Ar interface
@@ -207,7 +202,7 @@ class AppLink(threading.Thread):
         poller.register(self.ttl_socket, zmq.POLLIN)
         poller.register(self.command_socket, zmq.POLLIN)
 
-        while not self.exit_event.is_set():
+        while 1: #not self.exit_event.is_set():
             items = dict(poller.poll(TIMEOUT))
 
             # Handle arcord data replication
@@ -234,14 +229,9 @@ class AppLink(threading.Thread):
                 
                 if command[1] == b"SCENE":
                     log.debug("Try to get scene")
-                    #scene_data_chunk = self.handler.OnGetScene(int(command[2]),int(command[3]))
-
-                    '''if scene_data_chunk:                        
-                        self.command_socket.send(identity, zmq.SNDMORE)
-                        self.command_socket.send_multipart([b"SCENE",scene_data_chunk])
-                       
-                    else:
-                        log.info("GetScene not implemented")'''
+                    scene_data_chunk = self.handler.OnGetScene(int(command[2]),int(command[3]))
+                    self.command_socket.send(identity, zmq.SNDMORE)
+                    self.command_socket.send_multipart([b"SCENE",scene_data_chunk])
                 
                 elif command[1] == b"RECORD":
                     result = self.handler.OnRecord(command[2].decode())

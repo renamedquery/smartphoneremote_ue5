@@ -1,4 +1,4 @@
-import preference, arcore, argparse, os
+import preference, arcore, argparse, os, sys
 
 currentFrame = 0
 
@@ -28,7 +28,7 @@ print('CURRENT BOUND ADDRESS: {}:{}'.format(preference.get_current_ip(), recieve
 print('EASY CONNECT QR CODE SAVED TO CURRENT DIRECTORY' if recieverCLIArgs.recieverCLIArgs_generateQRCode else "NO QR CODE GENERATED (USE -H FOR MORE INFO)")
 
 def handleARFrameRecieved(frame):
-    print ('a')
+    open('working.png', 'w').close()
 
 def handleARRecording(status):
     global currentFrame
@@ -43,9 +43,13 @@ def handleARRecording(status):
         print('STOPPED RECORDING')
     return returnState
 
+def handleARGetScene(_, __):
+    return b''
+
 if (__name__ == '__main__'):
     ARHandler = arcore.ArEventHandler()
     ARHandler.bindOnFrameReceived(handleARFrameRecieved)
     ARHandler.bindRecord(handleARRecording)
+    ARHandler.bindGetScene(handleARGetScene)
     AR = arcore.ArCoreInterface(ARHandler, port = int(recieverCLIArgs.recieverCLIArgs_bindPort))
     AR.start()
