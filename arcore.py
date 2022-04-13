@@ -231,7 +231,7 @@ class AppLink(threading.Thread):
                 command = self.command_socket.recv_multipart()
                 identity = command[0]
 
-                if command[1] == b"SCENE":
+                '''if command[1] == b"SCENE":
                     log.debug("Try to get scene")
                     scene_data_chunk = self.handler.OnGetScene(int(command[2]),int(command[3]))
                    
@@ -240,9 +240,9 @@ class AppLink(threading.Thread):
                         self.command_socket.send_multipart([b"SCENE",scene_data_chunk])
                        
                     else:
-                        log.info("GetScene not implemented")
+                        log.info("GetScene not implemented")'''
 
-                elif command[1] == b"RECORD":
+                if command[1] == b"RECORD":
                     result = self.handler.OnRecord(command[2].decode())
                     response = [b"RECORD"]
                     if result:
