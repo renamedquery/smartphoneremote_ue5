@@ -28,7 +28,7 @@ def handleARFrameRecieved(frame) -> None:
 
 def handleARRecording(status):
     returnState = 'NONE'
-    if (status == 'NONE'): # start
+    if (status == 'START'): # start
         returnState = 'STARTED'
         print('STARTED RECORDING')
     elif (status == 'STATE'): # update
