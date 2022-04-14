@@ -11,10 +11,6 @@ for rotationFiller in range(lastCameraRotationsToCapture):
     lastCameraRotations[1].append(0)
     lastCameraRotations[2].append(0)
 
-# make these two vars into cli args
-UE5RemoteControlServerEndpointAddress = 'http://127.0.0.1:30010'
-UE5CameraObjectPath = '/Game/StarterContent/Maps/Minimal_Default.Minimal_Default:PersistentLevel.CineCameraActor_0'
-
 recieverCLIParser = argparse.ArgumentParser(description = 'Smartphone Remote middleman for UE5.')
 recieverCLIParser.add_argument(
     '--bind', '-b', 
@@ -30,11 +26,26 @@ recieverCLIParser.add_argument(
     dest = 'recieverCLIArgs_generateQRCode',
     help = '(yes/no) whether or not the program should generate a QR code for easy connections (default: no)'
 )
+recieverCLIParser.add_argument(
+    '--unreal-engine-api-root', '-u',
+    required = False,
+    type = str,
+    dest = 'recieverCLIArgs_unrealEngineAPIRoot',
+    help = '(http://a.d.d.r:port) the root point for the unrean engine web control api (default: http://127.0.0.1:30010)'
+)
+recieverCLIParser.add_argument(
+    '--unreal-engine-camera-path', '-c',
+    required = False,
+    type = str,
+    dest = 'recieverCLIArgs_unrealEngineCameraPath',
+    help = 'the path for the unreal engine scene\'s camera (default: debug value)'
+)
 recieverCLIArgs = recieverCLIParser.parse_args()
 
 if (not recieverCLIArgs.recieverCLIArgs_bindPort): recieverCLIArgs.recieverCLIArgs_bindPort = 8096
+if (not recieverCLIArgs.recieverCLIArgs_unrealEngineAPIRoot): recieverCLIArgs.recieverCLIArgs_unrealEngineAPIRoot = 'http://127.0.0.1:30010'
+if (not recieverCLIArgs.recieverCLIArgs_unrealEngineCameraPath): recieverCLIArgs.recieverCLIArgs_unrealEngineCameraPath = '/Game/StarterContent/Maps/Minimal_Default.Minimal_Default:PersistentLevel.CineCameraActor_0'
 recieverCLIArgs.recieverCLIArgs_generateQRCode = False if (str(recieverCLIArgs.recieverCLIArgs_generateQRCode).lower()  != 'yes') else True
-
 if (recieverCLIArgs.recieverCLIArgs_generateQRCode): preference.generate_connexion_qrcode('{}:{}'.format(preference.get_current_ip(), recieverCLIArgs.recieverCLIArgs_bindPort), os.getcwd())
 
 print('CURRENT BOUND ADDRESS: {}:{}'.format(preference.get_current_ip(), recieverCLIArgs.recieverCLIArgs_bindPort))
@@ -74,7 +85,7 @@ def handleARFrameRecieved(frame):
         cameraRotation = scipy_rotation.from_quat(frame.camera.view_matrix)
         cameraRotation = cameraRotation.as_euler('xyz', degrees = True).tolist()
         rotationRequestJSONData = {
-            "objectPath" : UE5CameraObjectPath,
+            "objectPath" : recieverCLIArgs.recieverCLIArgs_unrealEngineCameraPath,
             "functionName":"SetActorRotation",
             "parameters": {
                 "NewRotation": {
@@ -85,7 +96,7 @@ def handleARFrameRecieved(frame):
             },
             "generateTransaction":False
         }
-        requests.put(UE5RemoteControlServerEndpointAddress + '/remote/object/call', json = rotationRequestJSONData)
+        requests.put(recieverCLIArgs.recieverCLIArgs_unrealEngineAPIRoot + '/remote/object/call', json = rotationRequestJSONData)
         currentFrame += 1
     except Exception as ex:
         print(ex)
