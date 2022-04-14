@@ -31,7 +31,7 @@ recieverCLIParser.add_argument(
     required = False,
     type = str,
     dest = 'recieverCLIArgs_unrealEngineAPIRoot',
-    help = '(http://a.d.d.r:port) the root point for the unrean engine web control api (default: http://127.0.0.1:30010)'
+    help = '(http://a.d.d.r:port) the root point for the unreal engine web control api (default: http://127.0.0.1:30010)'
 )
 recieverCLIParser.add_argument(
     '--unreal-engine-camera-path', '-c',
