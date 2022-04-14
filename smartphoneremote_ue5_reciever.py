@@ -75,7 +75,6 @@ def handleARFrameRecieved(frame):
         phi_x = np.arctan2(-camPose[1][2],camPose[2][2])    #angle alpha in wiki
         phi_z = np.arctan2(-camPose[0][1],camPose[0][0])    #angle gamma in wiki
         cameraRotation = [math.degrees(phi_x), math.degrees(phi_y), math.degrees(phi_z)]
-        print(cameraRotation)
 
         # send the data
         rotationRequestJSONData = {
@@ -83,9 +82,9 @@ def handleARFrameRecieved(frame):
             "functionName":"SetActorRotation",
             "parameters": {
                 "NewRotation": {
-                    "Pitch": cameraRotation[0] + 90,
-                    "Yaw": 0, #cameraRotation[1],
-                    "Roll": 0 #cameraRotation[2]
+                    "Pitch": 270 - cameraRotation[0],
+                    "Yaw": cameraRotation[2],
+                    "Roll": 360 - cameraRotation[1]
                 }
             },
             "generateTransaction":False
