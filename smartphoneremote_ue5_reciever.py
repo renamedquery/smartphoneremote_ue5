@@ -3,6 +3,7 @@ from scipy.spatial.transform import Rotation as scipy_rotation
 import numpy as np
 
 currentFrame = 0
+movementMultiplier = 2
 lastCameraRotationsToCapture = 24
 lastCameraRotations = [[], [], []]
 
@@ -66,18 +67,15 @@ def handleARFrameRecieved(frame):
         # i dont know. thanks, internet.
         camPose = frame.camera.view_matrix * UE5_VIEW_MATRIX
         camPose = camPose.tolist()
-        camWorldOrigin = frame.root.world_matrix * UE5_VIEW_MATRIX
-        camWorldOrigin = camWorldOrigin.tolist()
-        #camPose[3] = (camPose[3] - camWorldOrigin[3])*(1/np.linalg.norm(camWorldOrigin[1]))
-        #cameraLocation = [camWorldOrigin[0][3], camWorldOrigin[1][3], camWorldOrigin[2][3]]
         phi_y = np.arctan2(camPose[0][2], math.sqrt(1 - (camPose[0][2])**2))  #angle beta in wiki
         # or just phi_y = np.arcsin(R[0,2])
         phi_x = np.arctan2(-camPose[1][2],camPose[2][2])    #angle alpha in wiki
         phi_z = np.arctan2(-camPose[0][1],camPose[0][0])    #angle gamma in wiki
         cameraRotation = [math.degrees(phi_x), math.degrees(phi_y), math.degrees(phi_z)]
+        cameraLocation = (np.linalg.inv(frame.camera.view_matrix)).tolist()[-1][:-1] # does not respect rotation yet
 
         # send the data
-        rotationRequestJSONData = {
+        rotationRequestJSONDataRotation = {
             "objectPath" : recieverCLIArgs.recieverCLIArgs_unrealEngineCameraPath,
             "functionName":"SetActorRotation",
             "parameters": {
@@ -89,7 +87,20 @@ def handleARFrameRecieved(frame):
             },
             "generateTransaction":False
         }
-        requests.put(recieverCLIArgs.recieverCLIArgs_unrealEngineAPIRoot + '/remote/object/call', json = rotationRequestJSONData)
+        requests.put(recieverCLIArgs.recieverCLIArgs_unrealEngineAPIRoot + '/remote/object/call', json = rotationRequestJSONDataRotation)
+        rotationRequestJSONDataLocation = {
+            "objectPath" : recieverCLIArgs.recieverCLIArgs_unrealEngineCameraPath,
+            "functionName":"SetActorLocation",
+            "parameters": {
+                "NewLocation": {
+                    "X": -math.degrees(cameraLocation[2]) * movementMultiplier,
+                    "Y": math.degrees(cameraLocation[0]) * movementMultiplier,
+                    "Z": -math.degrees(cameraLocation[1]) * movementMultiplier
+                }
+            },
+            "generateTransaction":False
+        }
+        requests.put(recieverCLIArgs.recieverCLIArgs_unrealEngineAPIRoot + '/remote/object/call', json = rotationRequestJSONDataLocation)
     except Exception as ex:
         print(ex)
         # -------------- DEBUG --------------
