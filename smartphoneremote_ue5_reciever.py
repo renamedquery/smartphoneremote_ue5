@@ -66,19 +66,21 @@ def euler_from_quaternion(x, y, z, w):
 def handleARFrameRecieved(frame):
     global currentFrame, lastCameraRotations
     try:
-        print(frame.camera.view_matrix)
-        cameraRotation = euler_from_quaternion(*frame.camera.view_matrix)
-        for axis in range(3):
-            lastCameraRotations[axis].append(cameraRotation[axis])
-            cameraRotation = sum(lastCameraRotations[axis]) / len(lastCameraRotations[axis])
+        #print(frame.camera.view_matrix)
+        #cameraRotation = euler_from_quaternion(*frame.camera.view_matrix)
+        #for axis in range(3):
+        #    lastCameraRotations[axis].append(cameraRotation[axis])
+        #    cameraRotation = sum(lastCameraRotations[axis]) / len(lastCameraRotations[axis])
+        cameraRotation = scipy_rotation.from_quat(frame.camera.view_matrix)
+        cameraRotation = cameraRotation.as_euler('xyz', degrees = True).tolist()
         rotationRequestJSONData = {
             "objectPath" : UE5CameraObjectPath,
             "functionName":"SetActorRotation",
             "parameters": {
                 "NewRotation": {
-                    "Pitch":0, #cameraRotation[1],
-                    "Yaw":cameraRotation[2] * -1,
-                    "Roll":0 #cameraRotation[0]
+                    "Pitch":0, #cameraRotation[0],
+                    "Yaw":cameraRotation[2],
+                    "Roll":0, #cameraRotation[1]
                 }
             },
             "generateTransaction":False
