@@ -8,6 +8,8 @@
 
 2.] `python3 -m pip install -r requirements.txt`
 
+3.] Download the smartphone remote APK from this repo's releases. Downloading it from anywhere else is at your own risk.
+
 ## CLI Args:
 
 `--bind` / `-b` : The port where the program will listen for incoming connections from the smartphone app. [Not required, default is 8096].
