@@ -2,6 +2,10 @@
 
 *A Python middleman for the Smartphone Remote app, and Unreal Engine 5. This enables remote control of the camera in UE5 using a smartphone.*
 
+https://user-images.githubusercontent.com/38505228/163478528-466e5dcf-6ad1-4b25-90cc-9fd558521122.mp4
+
+*(Pitch control is working, and the video above demonstrates how an Android smartphone that supports ARCore can be used to control a UE5 cinemacamera.)*
+
 ## Setup Instructions:
 
 1.] `git clone https://github.com/katznboyz1/smartphoneremote_ue5 %% cd smartphoneremote_ue5`
