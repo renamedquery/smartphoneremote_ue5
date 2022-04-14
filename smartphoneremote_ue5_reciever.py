@@ -1,4 +1,4 @@
-import preference, arcore, argparse, os, sys, requests, time
+import preference, arcore, argparse, os, sys, requests, time, math
 from scipy.spatial.transform import Rotation as scipy_rotation
 import numpy as np
 
@@ -51,25 +51,46 @@ if (recieverCLIArgs.recieverCLIArgs_generateQRCode): preference.generate_connexi
 print('CURRENT BOUND ADDRESS: {}:{}'.format(preference.get_current_ip(), recieverCLIArgs.recieverCLIArgs_bindPort))
 print('EASY CONNECT QR CODE SAVED TO CURRENT DIRECTORY' if recieverCLIArgs.recieverCLIArgs_generateQRCode else "NO QR CODE GENERATED (USE -H FOR MORE INFO)")
 
+UE5_VIEW_MATRIX = np.matrix([
+    [-1, 0, 0, 0],
+    [0, 0, 1, 0],
+    [0, 1, 0, 0],
+    [0, 0, 0, 1]
+])
+
 def handleARFrameRecieved(frame):
     global currentFrame, lastCameraRotations
     try:
-        cameraRotation = scipy_rotation.from_quat(frame.camera.view_matrix)
-        cameraRotation = cameraRotation.as_euler('xyz', degrees = True).tolist()
+        currentFrame += 1
+        if (not currentFrame % 3 == 0): return '' # for pacing the requests
+        # i dont know. thanks, internet.
+        camPose = frame.camera.view_matrix * UE5_VIEW_MATRIX
+        camPose = camPose.tolist()
+        camWorldOrigin = frame.root.world_matrix * UE5_VIEW_MATRIX
+        camWorldOrigin = camWorldOrigin.tolist()
+        #camPose[3] = (camPose[3] - camWorldOrigin[3])*(1/np.linalg.norm(camWorldOrigin[1]))
+        #cameraLocation = [camWorldOrigin[0][3], camWorldOrigin[1][3], camWorldOrigin[2][3]]
+        phi_y = np.arctan2(camPose[0][2], math.sqrt(1 - (camPose[0][2])**2))  #angle beta in wiki
+        # or just phi_y = np.arcsin(R[0,2])
+        phi_x = np.arctan2(-camPose[1][2],camPose[2][2])    #angle alpha in wiki
+        phi_z = np.arctan2(-camPose[0][1],camPose[0][0])    #angle gamma in wiki
+        cameraRotation = [math.degrees(phi_x), math.degrees(phi_y), math.degrees(phi_z)]
+        print(cameraRotation)
+
+        # send the data
         rotationRequestJSONData = {
             "objectPath" : recieverCLIArgs.recieverCLIArgs_unrealEngineCameraPath,
             "functionName":"SetActorRotation",
             "parameters": {
                 "NewRotation": {
-                    "Pitch":0, #cameraRotation[0],
-                    "Yaw":cameraRotation[2],
-                    "Roll":0, #cameraRotation[1]
+                    "Pitch": cameraRotation[0] + 90,
+                    "Yaw": 0, #cameraRotation[1],
+                    "Roll": 0 #cameraRotation[2]
                 }
             },
             "generateTransaction":False
         }
         requests.put(recieverCLIArgs.recieverCLIArgs_unrealEngineAPIRoot + '/remote/object/call', json = rotationRequestJSONData)
-        currentFrame += 1
     except Exception as ex:
         print(ex)
         # -------------- DEBUG --------------
