@@ -1,5 +1,4 @@
-import preference, arcore, argparse, os, sys, requests, time, math, tback
-from scipy.spatial.transform import Rotation as scipy_rotation
+import preference, arcore, argparse, os, requests, math, tback
 import numpy as np
 
 currentFrame = 0
