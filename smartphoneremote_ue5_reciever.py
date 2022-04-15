@@ -4,13 +4,6 @@ import numpy as np
 
 currentFrame = 0
 movementMultiplier = 2
-lastCameraRotationsToCapture = 24
-lastCameraRotations = [[], [], []]
-
-for rotationFiller in range(lastCameraRotationsToCapture):
-    lastCameraRotations[0].append(0)
-    lastCameraRotations[1].append(0)
-    lastCameraRotations[2].append(0)
 
 recieverCLIParser = argparse.ArgumentParser(description = 'Smartphone Remote middleman for UE5.')
 recieverCLIParser.add_argument(
