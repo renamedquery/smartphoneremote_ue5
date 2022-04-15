@@ -42,17 +42,25 @@ recieverCLIParser.add_argument(
     dest = 'recieverCLIArgs_zRotationOffset',
     help = 'the camera\'s starting z rotation (yaw) offset (additive) (default: 0)'
 )
+recieverCLIParser.add_argument(
+    '--speed-dividend', '-s',
+    required = False,
+    type = int,
+    dest = 'recieverCLIArgs_speedDividend',
+    help = 'only send requests on every n\'th frame (default: 2)'
+)
 recieverCLIArgs = recieverCLIParser.parse_args()
 
 if (not recieverCLIArgs.recieverCLIArgs_bindPort): recieverCLIArgs.recieverCLIArgs_bindPort = 8096
 if (not recieverCLIArgs.recieverCLIArgs_zRotationOffset): recieverCLIArgs.recieverCLIArgs_zRotationOffset = cameraZRotationOffsetAdditive
+if (not recieverCLIArgs.recieverCLIArgs_speedDividend): recieverCLIArgs.recieverCLIArgs_speedDividend = 2
 if (not recieverCLIArgs.recieverCLIArgs_unrealEngineAPIRoot): recieverCLIArgs.recieverCLIArgs_unrealEngineAPIRoot = 'http://127.0.0.1:30010'
 if (not recieverCLIArgs.recieverCLIArgs_unrealEngineCameraPath): recieverCLIArgs.recieverCLIArgs_unrealEngineCameraPath = '/Game/StarterContent/Maps/Minimal_Default.Minimal_Default:PersistentLevel.CineCameraActor_0'
 recieverCLIArgs.recieverCLIArgs_generateQRCode = False if (str(recieverCLIArgs.recieverCLIArgs_generateQRCode).lower()  != 'yes') else True
 if (recieverCLIArgs.recieverCLIArgs_generateQRCode): preference.generate_connexion_qrcode('{}:{}'.format(preference.get_current_ip(), recieverCLIArgs.recieverCLIArgs_bindPort), os.getcwd())
 
 print('CURRENT BOUND ADDRESS: {}:{}'.format(preference.get_current_ip(), recieverCLIArgs.recieverCLIArgs_bindPort))
-print('EASY CONNECT QR CODE SAVED TO CURRENT DIRECTORY' if recieverCLIArgs.recieverCLIArgs_generateQRCode else "NO QR CODE GENERATED (USE -H FOR MORE INFO)")
+print('EASY CONNECT QR CODE SAVED TO CURRENT DIRECTORY' if recieverCLIArgs.recieverCLIArgs_generateQRCode else "NO QR CODE GENERATED (USE -h FOR MORE INFO)")
 
 UE5_VIEW_MATRIX = np.matrix([
     [-1, 0, 0, 0],
@@ -65,7 +73,7 @@ def handleARFrameRecieved(frame):
     global currentFrame, lastCameraRotations
     try:
         currentFrame += 1
-        if (not currentFrame % 2 == 0): return '' # for pacing the requests
+        if (not currentFrame % recieverCLIArgs.recieverCLIArgs_speedDividend == 0): return '' # for pacing the requests
         # i dont know. thanks, internet.
         camPose_orig = frame.camera.view_matrix * UE5_VIEW_MATRIX
         camPose = camPose_orig.tolist()

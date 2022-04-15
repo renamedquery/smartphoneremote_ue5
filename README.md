@@ -32,6 +32,8 @@ https://user-images.githubusercontent.com/38505228/163592853-01ae9b15-cdca-4625-
 
 `--camera-z-rotation-offset` / `-z` : The Z rotation [yaw] offset for the camera. This is additive. [Not required, default is 0].
 
+`--speed-dividend` / `-s` : Only send a PUT request to the Unreal Engine API every N'th frame. [Not required, default is 2].
+
 ## Running the Program
 
 1.] Start Unreal Engine with the web control plugin enabled and configured.
