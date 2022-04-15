@@ -1,4 +1,4 @@
-import preference, arcore, argparse, os, sys, requests, time, math
+import preference, arcore, argparse, os, sys, requests, time, math, tback
 from scipy.spatial.transform import Rotation as scipy_rotation
 import numpy as np
 
@@ -114,23 +114,7 @@ def handleARFrameRecieved(frame):
         }
         requests.put(recieverCLIArgs.recieverCLIArgs_unrealEngineAPIRoot + '/remote/object/call', json = rotationRequestJSONDataLocation)
     except Exception as ex:
-        print(ex)
-        # -------------- DEBUG --------------
-        trace = []
-        tb = ex.__traceback__
-        while tb is not None:
-            trace.append({
-                "filename": tb.tb_frame.f_code.co_filename,
-                "name": tb.tb_frame.f_code.co_name,
-                "lineno": tb.tb_lineno
-            })
-            tb = tb.tb_next
-        print(str({
-            'type': type(ex).__name__,
-            'message': str(ex),
-            'trace': trace
-        }))
-        # -------------- DEBUG --------------
+        tback.printTraceback(ex)
 
 def handleARRecording(status):
     global currentFrame

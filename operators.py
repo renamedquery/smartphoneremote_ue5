@@ -17,23 +17,23 @@
 
 
 import logging
-import gc
+#import gc
 import os
 
-import locale
+#import locale
 import logging
-import bpy
-import sys
-import mathutils
+#import bpy
+#import sys
+#import mathutils
 import numpy as np
-import math
-import json
-import bpy
-import mathutils
+#import math
+#import json
+#import bpy
+#import mathutils
 from .arcore import ArCoreInterface, ArEventHandler
 from . import environment, preference
 import queue
-from mathutils import Matrix, Vector
+#from mathutils import Matrix, Vector
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
