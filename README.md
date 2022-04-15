@@ -4,7 +4,7 @@
 
 https://user-images.githubusercontent.com/38505228/163480885-5ac1b89e-8c31-4a0b-93d8-2bf0a1189eaf.mp4
 
-*(Yaw, pitch, and roll work now. Location movement is next.)*
+*(Yaw, roll, pitch, and location can be transferred from an Android phone to UE5 via this script.)*
 
 ## Original Repos:
 
