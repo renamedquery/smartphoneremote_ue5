@@ -6,6 +6,12 @@ https://user-images.githubusercontent.com/38505228/163480885-5ac1b89e-8c31-4a0b-
 
 *(Yaw, pitch, and roll work now. Location movement is next.)*
 
+## Original Repos:
+
+- https://gitlab.com/slumber/smartphoneremote
+
+- https://gitlab.com/slumber/smartphoneremoteandroid
+
 ## Setup Instructions:
 
 1.] `git clone https://github.com/katznboyz1/smartphoneremote_ue5 %% cd smartphoneremote_ue5`
