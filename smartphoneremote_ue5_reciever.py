@@ -3,7 +3,7 @@ from scipy.spatial.transform import Rotation as scipy_rotation
 import numpy as np
 
 currentFrame = 0
-movementMultiplier = 2
+movementMultiplier = 1
 
 recieverCLIParser = argparse.ArgumentParser(description = 'Smartphone Remote middleman for UE5.')
 recieverCLIParser.add_argument(
