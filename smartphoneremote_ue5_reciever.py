@@ -58,14 +58,16 @@ def handleARFrameRecieved(frame):
         currentFrame += 1
         if (not currentFrame % 3 == 0): return '' # for pacing the requests
         # i dont know. thanks, internet.
-        camPose = frame.camera.view_matrix * UE5_VIEW_MATRIX
-        camPose = camPose.tolist()
+        camPose_orig = frame.camera.view_matrix * UE5_VIEW_MATRIX
+        camPose = camPose_orig.tolist()
+        camOrigin = frame.root.world_matrix * UE5_VIEW_MATRIX
         phi_y = np.arctan2(camPose[0][2], math.sqrt(1 - (camPose[0][2])**2))  #angle beta in wiki
         # or just phi_y = np.arcsin(R[0,2])
         phi_x = np.arctan2(-camPose[1][2],camPose[2][2])    #angle alpha in wiki
         phi_z = np.arctan2(-camPose[0][1],camPose[0][0])    #angle gamma in wiki
         cameraRotation = [math.degrees(phi_x), math.degrees(phi_y), math.degrees(phi_z)]
-        cameraLocation = (np.linalg.inv(frame.camera.view_matrix)).tolist()[-1][:-1] # does not respect rotation yet
+        camPose[3] = (camPose_orig[3] - camOrigin[3])*(1/np.linalg.norm(camOrigin[1])).tolist()
+        cameraLocation = camPose[3].tolist()[-1]
 
         # send the data
         rotationRequestJSONDataRotation = {
@@ -86,9 +88,9 @@ def handleARFrameRecieved(frame):
             "functionName":"SetActorLocation",
             "parameters": {
                 "NewLocation": {
-                    "X": -math.degrees(cameraLocation[2]) * movementMultiplier,
+                    "X": math.degrees(cameraLocation[1]) * movementMultiplier,
                     "Y": math.degrees(cameraLocation[0]) * movementMultiplier,
-                    "Z": -math.degrees(cameraLocation[1]) * movementMultiplier
+                    "Z": math.degrees(cameraLocation[2]) * movementMultiplier
                 }
             },
             "generateTransaction":False
