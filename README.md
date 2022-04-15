@@ -41,3 +41,7 @@ https://user-images.githubusercontent.com/38505228/163592853-01ae9b15-cdca-4625-
 2.] `python3 smartphoneremote_ue5_reciever.py [args]`
 
 3.] Scan the QR code/enter the information on your phone to connect to the middleman.
+
+## Extras:
+
+- If you would like to support this project, feel free to send a few dollars here: https://katznboyz1.gumroad.com/l/unreal-engine-android-camera-tracker
