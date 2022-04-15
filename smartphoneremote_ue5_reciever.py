@@ -4,6 +4,7 @@ import numpy as np
 
 currentFrame = 0
 movementMultiplier = 1
+cameraZRotationOffsetAdditive = 0
 
 recieverCLIParser = argparse.ArgumentParser(description = 'Smartphone Remote middleman for UE5.')
 recieverCLIParser.add_argument(
@@ -34,9 +35,17 @@ recieverCLIParser.add_argument(
     dest = 'recieverCLIArgs_unrealEngineCameraPath',
     help = 'the path for the unreal engine scene\'s camera (default: debug value)'
 )
+recieverCLIParser.add_argument(
+    '--camera-z-rotation-offset', '-z',
+    required = False,
+    type = float,
+    dest = 'recieverCLIArgs_zRotationOffset',
+    help = 'the camera\'s starting z rotation (yaw) offset (additive) (default: 0)'
+)
 recieverCLIArgs = recieverCLIParser.parse_args()
 
 if (not recieverCLIArgs.recieverCLIArgs_bindPort): recieverCLIArgs.recieverCLIArgs_bindPort = 8096
+if (not recieverCLIArgs.recieverCLIArgs_zRotationOffset): recieverCLIArgs.recieverCLIArgs_zRotationOffset = cameraZRotationOffsetAdditive
 if (not recieverCLIArgs.recieverCLIArgs_unrealEngineAPIRoot): recieverCLIArgs.recieverCLIArgs_unrealEngineAPIRoot = 'http://127.0.0.1:30010'
 if (not recieverCLIArgs.recieverCLIArgs_unrealEngineCameraPath): recieverCLIArgs.recieverCLIArgs_unrealEngineCameraPath = '/Game/StarterContent/Maps/Minimal_Default.Minimal_Default:PersistentLevel.CineCameraActor_0'
 recieverCLIArgs.recieverCLIArgs_generateQRCode = False if (str(recieverCLIArgs.recieverCLIArgs_generateQRCode).lower()  != 'yes') else True
@@ -56,7 +65,7 @@ def handleARFrameRecieved(frame):
     global currentFrame, lastCameraRotations
     try:
         currentFrame += 1
-        if (not currentFrame % 3 == 0): return '' # for pacing the requests
+        if (not currentFrame % 2 == 0): return '' # for pacing the requests
         # i dont know. thanks, internet.
         camPose_orig = frame.camera.view_matrix * UE5_VIEW_MATRIX
         camPose = camPose_orig.tolist()
@@ -76,7 +85,7 @@ def handleARFrameRecieved(frame):
             "parameters": {
                 "NewRotation": {
                     "Pitch": 270 - cameraRotation[0],
-                    "Yaw": cameraRotation[2],
+                    "Yaw": cameraRotation[2] + recieverCLIArgs.recieverCLIArgs_zRotationOffset,
                     "Roll": 360 - cameraRotation[1]
                 }
             },

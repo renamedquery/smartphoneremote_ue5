@@ -30,6 +30,8 @@ https://user-images.githubusercontent.com/38505228/163592853-01ae9b15-cdca-4625-
 
 `--unreal-engine-camera-path` / `-c` : The path for the camera in Unreal Engine. [Not required, however this will likely not work if you don't set it manually, as the default is specific to my debug environment].
 
+`--camera-z-rotation-offset` / `-z` : The Z rotation [yaw] offset for the camera. This is additive. [Not required, default is 0].
+
 ## Running the Program
 
 1.] Start Unreal Engine with the web control plugin enabled and configured.
