@@ -2,9 +2,9 @@
 
 *A Python middleman for the Smartphone Remote app, and Unreal Engine 5. This enables remote control of the camera in UE5 using a smartphone.*
 
-https://user-images.githubusercontent.com/38505228/163592853-01ae9b15-cdca-4625-95c9-ff90358eef64.mp4
+https://user-images.githubusercontent.com/38505228/163685425-78a85a74-b234-4d47-b218-244dca9166a6.mp4
 
-*(Yaw, roll, pitch, and location can be transferred from an Android phone to UE5 via this script.)*
+*(Yaw, roll, pitch, and location can be transferred from an Android phone to UE5 via this script. This was recorded with a speed dividend of 4, so it was a bit choppy.)*
 
 ## Original Repos:
 
