@@ -45,3 +45,12 @@ def generate_connexion_qrcode(app_address, output_path):
 
     url.png(qr_path,  scale=4)
     logger.info('Success, qrcode saved in {}.'.format(qr_path))
+
+def print_qrcode(app_address):
+    import qrcode, io
+    qr = qrcode.QRCode()
+    qr.add_data(app_address)
+    f = io.StringIO()
+    qr.print_ascii(out=f)
+    f.seek(0)
+    print(f.read())
